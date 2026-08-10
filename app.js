@@ -1,4 +1,10 @@
 /* =====================================================================
+   GLOBAL VARIABLES & CONFIG
+===================================================================== */
+// Hardcoded Gemini API Key for internal use (Leave blank "" if not using)
+const HARDCODED_GEMINI_KEY = "AQ.Ab8RN6Jk9QDvQcL0jG_p6ctcGRMbBiiGeLl-dv1s67j7YNbURw";
+
+/* =====================================================================
    🔥 FIREBASE CONFIGURATION 🔥
 ===================================================================== */
 const firebaseConfig = {
@@ -698,6 +704,16 @@ document.querySelectorAll('.nav-item').forEach(item => {
         if (document.getElementById('maker-screen').classList.contains('active') && customQuizData.length > 0) {
             if (!confirm('Are you sure you want to navigate away? Any unsaved quiz progress will be lost.')) return;
         }
+        // BUGFIX: If host navigates away during an active game, stop/clean up the game
+        const isInGame = ['quiz', 'countdown', 'preview', 'feedback', 'results'].some(s =>
+            document.getElementById(s + '-screen')?.classList.contains('active')
+        );
+        if (isInGame && role === 'host' && roomCode) {
+            if (!confirm('The game is currently in progress. Are you sure you want to leave? This will end the game for all players.')) return;
+            clearInterval(localTimer);
+            db.ref(`rooms/${roomCode}`).update({ gameState: 'ended' });
+            roomCode = null;
+        }
         if (target === 'role') {
             window.location.reload();
         } else {
@@ -820,10 +836,10 @@ async function renderDashboard() {
                 </div>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px;">
-                <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">▶️ Host Now</button>
-                <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">🌍 Share / Get Code</button>
-                <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">✏️ Edit</button>
-                <button class="btn-pill btn-pill-danger btn-delete-quiz" data-index="${index}">🗑️ Delete</button>
+                <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">Host Now</button>
+                <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">Share / Get Code</button>
+                <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">Edit</button>
+                <button class="btn-pill btn-pill-danger btn-delete-quiz" data-index="${index}">Delete</button>
             </div>
         `;
         list.appendChild(div);
@@ -930,6 +946,32 @@ document.getElementById('btn-create-new-quiz').addEventListener('click', () => {
     renderMakerList();
     resetMakerForm(); // Reset the form to ensure it's not stuck open
     switchScreen('maker');
+});
+
+// AI Settings Logic
+const aiSettingsModal = document.getElementById('ai-settings-modal');
+document.getElementById('btn-ai-settings').addEventListener('click', () => {
+    document.getElementById('ai-api-key').value = localStorage.getItem('geminiApiKey') || HARDCODED_GEMINI_KEY || '';
+    document.getElementById('ai-model').value = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+    aiSettingsModal.style.display = 'flex';
+});
+document.getElementById('close-ai-settings').addEventListener('click', () => {
+    aiSettingsModal.style.display = 'none';
+});
+document.getElementById('btn-save-ai-settings').addEventListener('click', () => {
+    const key = document.getElementById('ai-api-key').value.trim();
+    const model = document.getElementById('ai-model').value;
+    if (key) {
+        localStorage.setItem('geminiApiKey', key);
+        localStorage.setItem('geminiModel', model);
+        Swal.fire('Saved!', 'AI Settings have been saved.', 'success');
+        aiSettingsModal.style.display = 'none';
+    } else {
+        localStorage.removeItem('geminiApiKey');
+        localStorage.setItem('geminiModel', model);
+        Swal.fire('Saved', 'API Key removed. AI grading is disabled.', 'info');
+        aiSettingsModal.style.display = 'none';
+    }
 });
 
 document.getElementById('btn-dashboard-download').addEventListener('click', async () => {
@@ -1130,7 +1172,7 @@ document.getElementById('maker-add-media-toggle').addEventListener('change', fun
         document.getElementById('maker-img-url').value = '';
         document.getElementById('maker-img-file').value = '';
         document.getElementById('maker-media-container').style.display = 'none';
-        document.getElementById('btn-change-media').innerText = '📸 Add Media';
+        document.getElementById('btn-change-media').innerText = 'Add Media';
         saveActiveQuestion(); // Clear the saved media as well
     }
 });
@@ -1233,6 +1275,23 @@ const tfOptionsDiv = document.getElementById('maker-tf-options');
 const typingKeysContainer = document.getElementById('typing-keys-container');
 const btnAddTypingKey = document.getElementById('btn-add-typing-key');
 
+const typingAIGradingToggle = document.getElementById('maker-typing-ai-grading');
+function updateAIToggleUI() {
+    const isAIOn = typingAIGradingToggle && typingAIGradingToggle.checked;
+    const optionsContainers = document.querySelectorAll('.key-options-container');
+    optionsContainers.forEach(container => {
+        container.style.display = isAIOn ? 'none' : 'flex';
+    });
+    
+    const rejectedWrapper = document.getElementById('maker-typing-rejected-wrapper');
+    if (rejectedWrapper) {
+        rejectedWrapper.style.display = isAIOn ? 'none' : 'block';
+    }
+}
+if (typingAIGradingToggle) {
+    typingAIGradingToggle.addEventListener('change', updateAIToggleUI);
+}
+
 function addTypingKeyRow(text = '', points = 10, exact = false, ordered = false, followsPrevious = false) {
     const isFirstRow = typingKeysContainer.children.length === 0;
     const row = document.createElement('div');
@@ -1252,7 +1311,7 @@ function addTypingKeyRow(text = '', points = 10, exact = false, ordered = false,
             <input type="number" class="key-points" style="width: 80px; text-align: center;" placeholder="Pts" value="${points}" min="0">
             <button type="button" class="btn-remove-key" style="background:none; border:none; color:var(--danger); font-size:1.5rem; cursor:pointer; line-height:1; margin-left: auto;">&times;</button>
         </div>
-        <div style="display: flex; width: 100%; gap: 20px; margin-top: 10px; padding-left: 5px; flex-wrap: wrap;">
+        <div class="key-options-container" style="display: flex; width: 100%; gap: 20px; margin-top: 10px; padding-left: 5px; flex-wrap: wrap;">
             <label class="toggle-label" style="font-size: 0.8rem; margin:0; color:var(--text-main);" title="Words must be in correct order">
                 <input type="checkbox" class="key-ordered" ${ordered ? 'checked' : ''}>
                 <span class="toggle-switch" style="transform: scale(0.7); transform-origin: left center; margin-right: 5px;"></span>
@@ -1287,6 +1346,9 @@ function addTypingKeyRow(text = '', points = 10, exact = false, ordered = false,
         row.remove();
     });
     typingKeysContainer.appendChild(row);
+    
+    // Ensure newly added row honors the current AI toggle state
+    updateAIToggleUI();
 }
 
 if (btnAddTypingKey) {
@@ -1359,9 +1421,9 @@ window.editQuestion = (index) => {
     renderMediaCommon(q, 'maker', false);
 
     if (hasMedia) {
-        document.getElementById('btn-change-media').innerText = '📸 Change Media';
+        document.getElementById('btn-change-media').innerText = 'Change Media';
     } else {
-        document.getElementById('btn-change-media').innerText = '📸 Add Media';
+        document.getElementById('btn-change-media').innerText = 'Add Media';
     }
 
     if (q.type === 'multiple-choice') {
@@ -1400,6 +1462,9 @@ window.editQuestion = (index) => {
         mcOptionsDiv.style.display = 'none';
         typingCorrectDiv.style.display = 'block';
         tfOptionsDiv.style.display = 'none';
+        if (document.getElementById('maker-typing-ai-grading')) {
+            document.getElementById('maker-typing-ai-grading').checked = q.aiGrading !== false; // Default true if undefined
+        }
         typingKeysContainer.innerHTML = '';
         if (q.acceptedAnswers && q.acceptedAnswers.length > 0) {
             q.acceptedAnswers.forEach(ans => {
@@ -1413,6 +1478,7 @@ window.editQuestion = (index) => {
         } else {
             addTypingKeyRow('', 10, false, false);
         }
+        updateAIToggleUI();
         const rejectedInput = document.getElementById('maker-typing-rejected');
         if (rejectedInput) {
             rejectedInput.value = (q.rejectedWords || []).join(', ');
@@ -1525,9 +1591,10 @@ function resetMakerForm(defaultType = 'question') {
     document.getElementById('maker-media-container').style.display = "none";
     document.getElementById('maker-add-media-toggle').checked = false;
     document.getElementById('maker-media-fields').style.display = 'none';
-    document.getElementById('btn-change-media').innerText = '📸 Add Media';
+    document.getElementById('btn-change-media').innerText = 'Add Media';
     typingKeysContainer.innerHTML = '';
     addTypingKeyRow('', 10, false, false, false);
+    updateAIToggleUI();
     const rejectedInput = document.getElementById('maker-typing-rejected');
     if (rejectedInput) rejectedInput.value = '';
     for (let i=0; i<5; i++) {
@@ -1639,9 +1706,9 @@ window.saveActiveQuestion = async () => {
         if (imageUrl) {
             document.getElementById('maker-add-media-toggle').checked = true;
             document.getElementById('maker-media-fields').style.display = 'none';
-            document.getElementById('btn-change-media').innerText = '📸 Change Media';
+            document.getElementById('btn-change-media').innerText = 'Change Media';
         } else {
-            document.getElementById('btn-change-media').innerText = '📸 Add Media';
+            document.getElementById('btn-change-media').innerText = 'Add Media';
         }
 
 
@@ -1710,6 +1777,9 @@ window.saveActiveQuestion = async () => {
             q.correctAnswer = objs[0] || {text:"", isImage:false}; 
             q.acceptedAnswers = objs;
             q.forgiving = true; // Hardcoded default, now controlled per key via exact/ordered
+            if (document.getElementById('maker-typing-ai-grading')) {
+                q.aiGrading = document.getElementById('maker-typing-ai-grading').checked;
+            }
             
             const rejectedInput = document.getElementById('maker-typing-rejected');
             if (rejectedInput && rejectedInput.value.trim()) {
@@ -1836,7 +1906,7 @@ window.previewActiveQuestion = () => {
         backBtn = document.createElement('button');
         backBtn.id = 'preview-back-btn';
         backBtn.className = 'btn-secondary';
-        backBtn.innerText = '🔙 Back to Editor';
+        backBtn.innerText = 'Back to Editor';
         backBtn.style.position = 'fixed';
         backBtn.style.top = '20px';
         backBtn.style.left = '20px';
@@ -2034,6 +2104,9 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
     }
     debugText.innerText = joinUrl;
 
+    // BUGFIX: Always reset local question index when starting a new game session
+    currentQuestionIndex = 0;
+
     await db.ref(`rooms/${roomCode}`).set({
         gameState: 'lobby',
         quizData: customQuizData,
@@ -2075,6 +2148,13 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
         score: 0,
         hasAnswered: -1
     });
+
+    // BUGFIX: Save playerName+room to sessionStorage so page refresh can auto-rejoin
+    sessionStorage.setItem('playerName_' + roomCode, playerName);
+    
+    // BUGFIX: Update the URL so if the user refreshes, the app knows which room to check for
+    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?room=" + roomCode;
+    window.history.replaceState({path: newUrl}, '', newUrl);
 
     db.ref(`rooms/${roomCode}/gameState`).on('value', (snapshot) => {
         const state = snapshot.val();
@@ -2138,10 +2218,80 @@ const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('room')) {
     role = 'student';
     document.body.setAttribute('data-role', 'student');
-    switchScreen('join');
     const rm = urlParams.get('room');
     document.getElementById('join-room-code').value = rm;
     document.getElementById('display-room-code').innerText = rm;
+
+    // BUGFIX: If player already has a name stored (from previous session), try to rejoin automatically
+    const savedName = sessionStorage.getItem('playerName_' + rm);
+    if (savedName) {
+        // Auto-rejoin: reconnect to Firebase and restore their game state
+        playerName = savedName;
+        document.getElementById('join-player-name').value = savedName;
+        db.ref(`rooms/${rm}`).get().then(snap => {
+            if (!snap.exists()) {
+                switchScreen('join');
+                return;
+            }
+            roomCode = rm;
+            const roomData = snap.val();
+            document.getElementById('lobby-quiz-title').innerText = roomData.quizTitle || 'Spot Diagnosis Game';
+
+            // Re-register player in case they got dropped
+            const existingPlayer = roomData.players?.[savedName];
+            const playerData = existingPlayer || { score: 0, hasAnswered: -1 };
+            db.ref(`rooms/${rm}/players/${savedName}`).set(playerData);
+
+            // Listen to game state to jump back to the right screen
+            db.ref(`rooms/${rm}/gameState`).on('value', (snapshot) => {
+                const state = snapshot.val();
+                if (state === 'lobby') {
+                    switchScreen('lobby');
+                } else if (state === 'starting_countdown') {
+                    switchScreen('countdown');
+                } else if (state === 'question_preview') {
+                    db.ref(`rooms/${rm}`).get().then(s => {
+                        const r = s.val();
+                        const q = r.quizData[r.currentQuestionIndex];
+                        document.getElementById('preview-q-num').innerText = `Question ${r.currentQuestionIndex + 1}`;
+                        document.getElementById('preview-q-text').innerText = q.text;
+                        document.getElementById('preview-media-container').style.display = 'none';
+                        switchScreen('preview');
+                    });
+                } else if (state === 'playing') {
+                    loadStudentQuestion();
+                } else if (state === 'feedback') {
+                    showStudentFeedback();
+                } else if (state === 'results') {
+                    showResults();
+                } else if (state === 'review') {
+                    switchScreen('review');
+                    renderReviewList();
+                } else if (state && state.startsWith('review_detail_')) {
+                    const idx = parseInt(state.replace('review_detail_', ''), 10);
+                    showReviewDetail(idx);
+                } else {
+                    // Game ended or unknown state - go to join screen
+                    switchScreen('join');
+                }
+            });
+
+            db.ref(`rooms/${rm}/players`).on('value', (snapshot) => {
+                const players = snapshot.val() || {};
+                const count = Object.keys(players).length;
+                const countEl = document.getElementById('lobby-player-count');
+                if (countEl) countEl.innerText = count;
+                const listEl = document.getElementById('lobby-players-list');
+                if (listEl) {
+                    listEl.innerHTML = Object.keys(players).map(name =>
+                        `<div class="player-chip">${name}</div>`
+                    ).join('');
+                }
+            });
+        });
+    } else {
+        switchScreen('join');
+    }
 }
 
 /* =====================================================================
@@ -2433,7 +2583,7 @@ async function startNextQuestion() {
     }
 }
 
-function endQuestion() {
+async function endQuestion() {
     clearInterval(localTimer);
     if (hostPlayersListener) {
         db.ref(`rooms/${roomCode}/players`).off('value', hostPlayersListener);
@@ -2446,9 +2596,108 @@ function endQuestion() {
         // Skip feedback for info slides, go directly to next question/results
         document.getElementById('btn-host-continue').click();
     } else {
+        if (q && q.type === 'typing' && q.aiGrading && !q.freePoint) {
+            await runAIGrading(q, currentQuestionIndex);
+        }
         db.ref(`rooms/${roomCode}`).update({ gameState: 'feedback' });
         showHostFeedback();
     }
+}
+
+async function runAIGrading(q, qIndex) {
+    const apiKey = localStorage.getItem('geminiApiKey') || HARDCODED_GEMINI_KEY;
+    const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
+    const players = pSnap.val() || {};
+    
+    let answersToGrade = []; 
+    for (let pName in players) {
+        const pData = players[pName];
+        if (pData.answers && pData.answers[qIndex] !== undefined && pData.answers[qIndex] !== null) {
+            answersToGrade.push({ playerName: pName, answer: pData.answers[qIndex] });
+        }
+    }
+    
+    if (answersToGrade.length === 0) return;
+    
+    const maxPoints = getTypingMaxPoints(q);
+    const updates = {};
+    
+    if (!apiKey) {
+        // Fallback to local regex matching if no API key is set
+        console.warn("No API key found. Falling back to local grading.");
+        for (let i = 0; i < answersToGrade.length; i++) {
+            let pts = getTypingAnswerScore(answersToGrade[i].answer, q);
+            if (pts === maxPoints && maxPoints > 0) pts += 150; // Bonus
+            updates[`rooms/${roomCode}/players/${answersToGrade[i].playerName}/lastPointsEarned`] = pts;
+        }
+        await db.ref().update(updates);
+        return;
+    }
+    
+    const model = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+    
+    Swal.fire({
+        title: 'AI is grading answers...',
+        text: 'Please wait a moment',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    let promptText = `You are a strict but fair medical professor grading a "fill in the blank" quiz.\n`;
+    promptText += `Question context: "${q.context || ''}". Question text: "${q.text}".\n`;
+    promptText += `The accepted core concepts are: ${q.acceptedAnswers.map(a => a.text).join(', ')}.\n`;
+    promptText += `Evaluate the following student answers. If the answer demonstrates clear understanding of the core concept, is a valid synonym, or has a minor typo, award full points (${maxPoints}). If it is partially correct, award partial points. If incorrect or too broad, award 0.\n\n`;
+    promptText += `Format your response EXACTLY as a JSON object where keys are player names and values are integer scores. Example: {"player1": ${maxPoints}, "player2": 0}\n\n`;
+    promptText += `Student Answers:\n`;
+    answersToGrade.forEach(ans => {
+        promptText += `Player "${ans.playerName}": "${ans.answer}"\n`;
+    });
+    
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { response_mime_type: "application/json" }
+            })
+        });
+        
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        
+        const rawJsonStr = data.candidates[0].content.parts[0].text;
+        const scores = JSON.parse(rawJsonStr);
+        
+        for (let pName in scores) {
+            let pts = parseInt(scores[pName]) || 0;
+            if (pts === maxPoints && maxPoints > 0) pts += 150; // Bonus
+            updates[`rooms/${roomCode}/players/${pName}/lastPointsEarned`] = pts;
+        }
+        
+        // Ensure everyone gets a score even if AI missed them
+        answersToGrade.forEach(ans => {
+            if (updates[`rooms/${roomCode}/players/${ans.playerName}/lastPointsEarned`] === undefined) {
+                updates[`rooms/${roomCode}/players/${ans.playerName}/lastPointsEarned`] = 0;
+            }
+        });
+        
+        if (Object.keys(updates).length > 0) {
+            await db.ref().update(updates);
+        }
+    } catch (e) {
+        console.error("AI Grading Error:", e);
+        Swal.fire('AI Grading Error', e.message, 'error');
+        // Fallback on error
+        for (let i = 0; i < answersToGrade.length; i++) {
+            let pts = getTypingAnswerScore(answersToGrade[i].answer, q);
+            if (pts === maxPoints && maxPoints > 0) pts += 150; // Bonus
+            updates[`rooms/${roomCode}/players/${answersToGrade[i].playerName}/lastPointsEarned`] = pts;
+        }
+        await db.ref().update(updates);
+        await new Promise(r => setTimeout(r, 2000));
+    }
+    Swal.close();
 }
 
 async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
@@ -2498,7 +2747,19 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                 isCorrectAnswer = (ans === cText);
                 barColor = isCorrectAnswer ? 'var(--success)' : 'var(--danger)';
             } else {
-                const earned = getTypingAnswerScore(ans, q);
+                let earned = 0;
+                if (q.aiGrading) {
+                    // Find a player who gave this answer to get their AI score
+                    let samplePlayer = Object.keys(players).find(p => players[p].answers && players[p].answers[currentQuestionIndex] === ans);
+                    if (samplePlayer && players[samplePlayer].lastPointsEarned !== undefined) {
+                        earned = players[samplePlayer].lastPointsEarned;
+                        // Remove bonus if present to just check max Points
+                        const maxP = getTypingMaxPoints(q);
+                        if (earned >= maxP + 150) earned -= 150;
+                    }
+                } else {
+                    earned = getTypingAnswerScore(ans, q);
+                }
                 const max = getTypingMaxPoints(q);
                 isCorrectAnswer = (earned === max && max > 0);
                 barColor = (earned > 0 && earned < max) ? '#eab308' : (isCorrectAnswer ? 'var(--success)' : 'var(--danger)');
@@ -2556,6 +2817,13 @@ async function loadStudentQuestion() {
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
     const q = room.quizData[room.currentQuestionIndex];
+
+    // Show question number above the image
+    const qNumEl = document.getElementById('student-q-num');
+    if (qNumEl) {
+        qNumEl.innerText = `Question ${room.currentQuestionIndex + 1} / ${room.quizData.length}`;
+        qNumEl.style.display = 'block';
+    }
     
     document.getElementById('clinical-context').innerText = q.context || "";
     document.getElementById('question-text').innerText = q.text;
@@ -2600,17 +2868,26 @@ async function submitAnswer(answer, q, qIndex) {
             isCorrect = answer === cText;
             scoreFrac = isCorrect ? 1 : 0;
         } else {
-            typingRawEarned = getTypingAnswerScore(answer, q);
-            isCorrect = typingRawEarned > 0;
+            // If AI grading is enabled, defer grading to Host
+            if (q.aiGrading) {
+                typingRawEarned = 0;
+                isCorrect = false; // Decided by host later
+            } else {
+                typingRawEarned = getTypingAnswerScore(answer, q);
+                isCorrect = typingRawEarned > 0;
+            }
         }
     }
     
-    if (isCorrect && !q.freePoint) {
+    // For AI grading, we set studentCurrentPointsEarned to a special flag 'pending_ai'
+    if (q.type === 'typing' && q.aiGrading && !q.freePoint) {
+        studentCurrentPointsEarned = 'pending_ai';
+    } else if (isCorrect && !q.freePoint) {
         if (q.type === 'typing') {
             studentCurrentPointsEarned = typingRawEarned;
             const max = getTypingMaxPoints(q);
             if (typingRawEarned === max && max > 0) {
-                studentCurrentPointsEarned += 150;
+                studentCurrentPointsEarned += 150; // Bonus for max points
             }
         } else {
             let maxPts = 100 + Math.floor((timeLeft / q.timer) * 50);
@@ -2673,6 +2950,12 @@ async function showStudentFeedback() {
     // Switch screen only after all DOM updates are complete
     switchScreen('feedback');
 
+    // If AI grading was used, fetch the result computed by the host
+    if (studentCurrentPointsEarned === 'pending_ai') {
+        const aiPoints = pSnap.val().lastPointsEarned; // Host writes this
+        studentCurrentPointsEarned = (typeof aiPoints === 'number') ? aiPoints : 0;
+    }
+
     if (q.freePoint) {
         title.innerText = "Answer Recorded!";
         title.className = "correct";
@@ -2686,12 +2969,10 @@ async function showStudentFeedback() {
         pts.className = "correct";
         AudioController.playCorrect();
         
-        const playerRef = db.ref(`rooms/${roomCode}/players/${playerName}`);
-        const pSnap = await playerRef.get();
         const currentScore = pSnap.val().score || 0;
         const newScore = currentScore + studentCurrentPointsEarned;
         
-        await playerRef.update({ score: newScore });
+        await db.ref(`rooms/${roomCode}/players/${playerName}`).update({ score: newScore });
         
         const scoreUI = document.getElementById('hud-score');
         scoreUI.innerText = newScore;

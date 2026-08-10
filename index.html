@@ -22,9 +22,9 @@
                 <span class="nav-title">Spot Diagnosis</span>
             </div>
             <div class="nav-dropdown" id="nav-dropdown-menu" style="display: none;">
-                <div class="nav-item" data-target="role">🏠 Main Menu</div>
-                <div class="nav-item" data-target="join">🎓 Join a Game</div>
-                <div class="nav-item" data-target="dashboard">📚 My Quiz Library</div>
+                <div class="nav-item" data-target="role">Main Menu</div>
+                <div class="nav-item" data-target="join">Join a Game</div>
+                <div class="nav-item" data-target="dashboard">My Quiz Library</div>
             </div>
         </div>
         
@@ -84,8 +84,8 @@
                 
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
                     <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">+ Create New Game</button>
-                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">📥 Download Shared Quiz</button>
-                    <button id="btn-ai-settings" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: #8b3dff; color: #8b3dff; width: 100%; max-width: 300px;">✨ AI Auto-Grading Settings</button>
+                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">Download Shared Quiz</button>
+                    <button id="btn-ai-settings" class="btn-secondary" style="display: none; font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: #8b3dff; color: #8b3dff; width: 100%; max-width: 300px;">✨ AI Auto-Grading Settings</button>
                 </div>
 
                 <div id="local-quizzes-list" class="questions-list">
@@ -286,7 +286,7 @@
                                     </div>
                                     <label class="switch" style="position:relative; display:inline-block; width:50px; height:24px;">
                                         <input type="checkbox" id="maker-typing-ai-grading" checked style="opacity:0; width:0; height:0;">
-                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px;"></span>
+                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; transition:.4s; border-radius:24px;"></span>
                                     </label>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -296,7 +296,7 @@
                                 <div id="typing-keys-container"></div>
                                 <button id="btn-add-typing-key" class="btn-text mt-2">+ Add Answer Key</button>
                                 
-                                <div class="mt-4">
+                                <div id="maker-typing-rejected-wrapper" class="mt-4">
                                     <label style="color:var(--text-main);">Rejected Words (Optional) <a href="#" id="rejected-guide-link" style="color:var(--primary); font-size:0.85rem;">What is this?</a></label>
                                     <input type="text" id="maker-typing-rejected" style="width:100%; margin-top:5px;" placeholder="e.g. normal, healthy">
                                 </div>
@@ -314,8 +314,8 @@
                         <!-- Action Buttons at Bottom -->
                         <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top:20px; margin-bottom:40px;">
                             <button class="btn-action btn-secondary" onclick="previewActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Preview</button>
-                            <button class="btn-action btn-primary" onclick="forceSaveActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">💾 Save Question</button>
-                            <button class="btn-action btn-danger" onclick="deleteActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">🗑️ Delete Question</button>
+                            <button class="btn-action btn-primary" onclick="forceSaveActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Save Question</button>
+                            <button class="btn-action btn-danger" onclick="deleteActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Delete Question</button>
                         </div>
                     </div>
                 </div>
