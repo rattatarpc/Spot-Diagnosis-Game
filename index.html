@@ -84,7 +84,8 @@
                 
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
                     <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">+ Create New Game</button>
-                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">☁️ Download Shared Quiz</button>
+                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">📥 Download Shared Quiz</button>
+                    <button id="btn-ai-settings" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: #8b3dff; color: #8b3dff; width: 100%; max-width: 300px;">✨ AI Auto-Grading Settings</button>
                 </div>
 
                 <div id="local-quizzes-list" class="questions-list">
@@ -151,6 +152,12 @@
                                 font-weight: bold;
                                 text-transform: uppercase;
                             }
+                            /* Toggle Switch CSS */
+                            .switch input { display:none; }
+                            .slider { background-color: #ccc; }
+                            .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+                            input:checked + .slider { background-color: var(--primary); }
+                            input:checked + .slider:before { transform: translateX(26px); }
                         </style>
                         <textarea id="maker-q-text" placeholder="TAP TO ADD QUESTION" style="font-size: 1.5rem; font-weight: normal; text-align: center; padding: 10px 15px; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; margin-bottom: 15px; display: block; background: var(--input-bg); color: var(--text-main); resize: vertical; min-height: 50px; height: 56px; line-height: 1.2;"></textarea>
                         
@@ -271,8 +278,19 @@
 
                             <!-- Typing Options -->
                             <div id="maker-typing-correct" style="display:none; background:var(--glass-bg); padding:15px; border-radius:8px; border:1px solid var(--glass-border); width:100%;">
+                                <!-- AI Grading Toggle -->
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
+                                    <div>
+                                        <strong style="color:var(--text-main); display:flex; align-items:center; gap:5px;">✨ Use AI Auto-Grading</strong>
+                                        <div style="font-size:0.8rem; color:var(--text-muted);">Smartly evaluate synonyms and concepts using Gemini API</div>
+                                    </div>
+                                    <label class="switch" style="position:relative; display:inline-block; width:50px; height:24px;">
+                                        <input type="checkbox" id="maker-typing-ai-grading" checked style="opacity:0; width:0; height:0;">
+                                        <span class="slider round" style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:24px;"></span>
+                                    </label>
+                                </div>
                                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                    <strong style="color:var(--text-main);">Accepted Answers</strong>
+                                    <strong style="color:var(--text-main);">Accepted Answers / Core Concept</strong>
                                     <a href="#" id="guide-link" style="color:var(--primary); font-size:0.85rem;">How to make a key answer</a>
                                 </div>
                                 <div id="typing-keys-container"></div>
@@ -357,6 +375,8 @@
             </header>
             
             <div class="quiz-content">
+                <!-- Question number label (above image, student only) -->
+                <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
                 <!-- EKG Viewer (Dynamically hidden if no media provided) -->
                 <div class="ekg-viewer glass-container" id="media-container">
                     <div class="clinical-context" id="clinical-context">Context goes here</div>
@@ -548,6 +568,31 @@
             <div id="import-questions-list" style="display: flex; flex-direction: column; gap: 10px;">
                 <div style="text-align: center; color: #777; padding: 2rem;">Please select a quiz from the dropdown.</div>
             </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="ai-settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div class="glass-container" style="max-width:500px; width:90%; position:relative;">
+            <span id="close-ai-settings" style="position:absolute; top:10px; right:20px; font-size:2rem; cursor:pointer; color:white;">&times;</span>
+            <h2 style="margin-bottom:1rem; color:#8b3dff;">✨ AI Auto-Grading Settings</h2>
+            <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                Enter your Google Gemini API Key to enable smart grading for "Fill in the Blank" questions. The AI will understand synonyms, typos, and clinical context.
+                <br><br>
+                <a href="https://aistudio.google.com/" target="_blank" style="color:var(--primary); text-decoration:underline;">Get a free API Key here</a>
+            </p>
+            <div class="form-group">
+                <label>Gemini API Key</label>
+                <input type="password" id="ai-api-key" placeholder="AIzaSy..." class="form-control" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>AI Model</label>
+                <select id="ai-model" class="form-control">
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest & Free)</option>
+                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Smarter & Free)</option>
+                </select>
+            </div>
+            <button id="btn-save-ai-settings" class="btn-primary mt-3" style="width:100%; background:#8b3dff; border:none;">Save Settings</button>
         </div>
     </div>
 
