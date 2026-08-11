@@ -2,7 +2,7 @@
    GLOBAL VARIABLES & CONFIG
 ===================================================================== */
 // Hardcoded Gemini API Key for internal use (Leave blank "" if not using)
-const HARDCODED_GEMINI_KEY = "AQ.Ab8RN6Jk9QDvQcL0jG_p6ctcGRMbBiiGeLl-dv1s67j7YNbURw";
+const HARDCODED_GEMINI_KEY = "AIzaSyA4Y-k1OPHoztuyB4HSWH96wOrF9QyzhyE";
 
 /* =====================================================================
    🔥 FIREBASE CONFIGURATION 🔥
@@ -2643,10 +2643,13 @@ async function runAIGrading(q, qIndex) {
         didOpen: () => { Swal.showLoading(); }
     });
 
-    let promptText = `You are a strict but fair medical professor grading a "fill in the blank" quiz.\n`;
+    let promptText = `You are a strict but fair medical professor grading a quiz.\n`;
     promptText += `Question context: "${q.context || ''}". Question text: "${q.text}".\n`;
-    promptText += `The accepted core concepts are: ${q.acceptedAnswers.map(a => a.text).join(', ')}.\n`;
-    promptText += `Evaluate the following student answers. If the answer demonstrates clear understanding of the core concept, is a valid synonym, or has a minor typo, award full points (${maxPoints}). If it is partially correct, award partial points. If incorrect or too broad, award 0.\n\n`;
+    promptText += `The grading rubric consists of the following core concepts and their point values:\n`;
+    q.acceptedAnswers.forEach(a => {
+        promptText += `- Concept: "${a.text}", Points: ${a.points || 10}\n`;
+    });
+    promptText += `Evaluate the following student answers against the rubric. For each student, check if their answer demonstrates clear understanding of each concept (allowing for synonyms or minor typos). Sum the points for the concepts they successfully identified. Do not exceed the maximum possible points (${maxPoints}).\n\n`;
     promptText += `Format your response EXACTLY as a JSON object where keys are player names and values are integer scores. Example: {"player1": ${maxPoints}, "player2": 0}\n\n`;
     promptText += `Student Answers:\n`;
     answersToGrade.forEach(ans => {
@@ -2654,19 +2657,17 @@ async function runAIGrading(q, qIndex) {
     });
     
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: { response_mime_type: "application/json" }
-            })
+        // Use official Google SDK to support the new AQ. authorization keys
+        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const generativeModel = genAI.getGenerativeModel({ model: model });
+        
+        const result = await generativeModel.generateContent({
+            contents: [{ role: 'user', parts: [{ text: promptText }] }],
+            generationConfig: { responseMimeType: "application/json" }
         });
         
-        const data = await response.json();
-        if (data.error) throw new Error(data.error.message);
-        
-        const rawJsonStr = data.candidates[0].content.parts[0].text;
+        const rawJsonStr = result.response.text();
         const scores = JSON.parse(rawJsonStr);
         
         for (let pName in scores) {
@@ -2952,7 +2953,9 @@ async function showStudentFeedback() {
 
     // If AI grading was used, fetch the result computed by the host
     if (studentCurrentPointsEarned === 'pending_ai') {
-        const aiPoints = pSnap.val().lastPointsEarned; // Host writes this
+        // lastPointsEarned is stored on the PLAYER node, not the answer node
+        const playerSnap = await db.ref(`rooms/${roomCode}/players/${playerName}`).get();
+        const aiPoints = playerSnap.val()?.lastPointsEarned;
         studentCurrentPointsEarned = (typeof aiPoints === 'number') ? aiPoints : 0;
     }
 
