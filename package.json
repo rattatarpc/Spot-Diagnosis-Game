@@ -1,0 +1,11 @@
+{
+  "name": "spot-diagnosis-game",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/grading.test.js",
+    "lint": "eslint app.js app-services.js tests"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}

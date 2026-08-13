@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+async function test() {
+  try {
+    const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+    const genAI = new GoogleGenerativeAI("PASTE_GEMINI_API_KEY_HERE");
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent("Hello!");
+    console.log(result.response.text());
+  } catch(e) {
+    console.error(e);
+  }
+}
+test();
+</script>
+</body>
+</html>
