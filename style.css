@@ -969,6 +969,15 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     text-align: center;
 }
 
+.question-prompt {
+    padding: 1.1rem 1.5rem;
+    width: 100%;
+}
+
+.question-prompt #question-text {
+    margin-bottom: 0;
+}
+
 .options-grid {
     display: flex;
     flex-wrap: wrap;
@@ -1297,27 +1306,285 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 }
 
 @media (max-width: 768px) {
-    .options-grid {
-        grid-template-columns: 1fr;
+    #app {
+        height: auto;
+        min-height: 100dvh;
     }
+
+    .global-home {
+        top: 10px;
+        left: 12px;
+    }
+
+    .nav-title {
+        font-size: 0.9rem;
+    }
+
+    .global-controls {
+        top: 8px;
+        right: 10px;
+        gap: 5px;
+    }
+
+    .global-controls .theme-select,
+    .global-controls #music-style-select {
+        display: none;
+    }
+
+    .screen {
+        padding: 0.75rem;
+    }
+
+    #quiz-screen {
+        padding: 4.25rem 0.6rem 1rem;
+    }
+
+    .hud {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 0.65rem 0.8rem;
+        margin-bottom: 0.7rem;
+        border-radius: 10px;
+    }
+
+    .hud-item {
+        font-size: 0.85rem;
+    }
+
+    .quiz-content {
+        gap: 0.7rem;
+    }
+
+    .question-prompt,
+    .question-container,
+    .ekg-viewer {
+        border-radius: 14px;
+        padding: 0.8rem;
+    }
+
+    #question-text {
+        font-size: 1.2rem;
+        line-height: 1.35;
+    }
+
+    .ekg-viewer {
+        max-height: none;
+        min-height: 0;
+    }
+
+    .clinical-context {
+        font-size: 0.85rem;
+        margin-bottom: 0.6rem;
+        padding: 0.45rem 0.65rem;
+    }
+
+    #ekg-image,
+    #ekg-video {
+        max-height: 32vh;
+    }
+
+    .options-grid {
+        gap: 0.6rem;
+    }
+
+    .option-btn {
+        flex: 1 1 100%;
+        min-width: 0;
+        min-height: 58px;
+        padding: 0.9rem 0.75rem;
+        font-size: 1.05rem;
+        border-radius: 10px;
+    }
+
+    .kahoot-btn {
+        gap: 0.7rem;
+        padding: 0.8rem 0.75rem !important;
+    }
+
+    .kahoot-shape {
+        font-size: 1.7rem;
+    }
+
+    .kahoot-answer-text {
+        font-size: 1.05rem;
+    }
+
     .typing-input-container {
         grid-column: span 1;
         flex-direction: column;
     }
-    .ekg-viewer {
-        max-height: 30vh;
+
+    .typing-input-container textarea {
+        min-height: 130px;
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .typing-input-container button {
+        padding: 1rem;
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .maker-screen {
+        height: auto !important;
+        min-height: 100dvh;
+        max-height: none !important;
+        overflow: visible !important;
+        padding-top: 58px !important;
+    }
+
+    .maker-navbar {
+        position: sticky;
+        top: 0;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 10px !important;
+    }
+
+    .maker-navbar > div {
+        width: 100%;
+        gap: 8px !important;
+    }
+
+    .maker-navbar > div:last-child {
+        overflow-x: auto;
+        justify-content: flex-start !important;
+    }
+
+    #maker-quiz-title {
+        min-width: 0;
+        width: auto !important;
+        flex: 1;
+        font-size: 1rem !important;
+    }
+
+    .maker-navbar button {
+        flex: 0 0 auto;
+        padding: 0.45rem 0.65rem !important;
+        font-size: 0.78rem !important;
+    }
+
+    .maker-workspace {
+        flex-direction: column;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .maker-sidebar {
+        width: 100% !important;
+        min-height: 0;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .questions-list-sidebar {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto !important;
+        padding: 8px !important;
+        min-height: 78px;
+    }
+
+    .questions-list-sidebar > * {
+        flex: 0 0 145px;
+    }
+
+    .maker-sidebar-actions {
+        padding: 8px !important;
+    }
+
+    .maker-editor-area {
+        padding: 12px 8px !important;
+        overflow: visible !important;
+    }
+
+    #maker-form-container {
+        gap: 10px !important;
+    }
+
+    #maker-q-text {
+        font-size: 1.2rem !important;
+        min-height: 54px !important;
+    }
+
+    #maker-context-group,
+    #maker-info-text-group,
+    #maker-typing-correct {
+        padding: 9px !important;
+    }
+
+    .maker-live-editor {
+        flex-direction: column !important;
+        min-height: 0 !important;
+    }
+
+    .maker-live-editor > div:first-child {
+        width: 100% !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        margin-top: 0 !important;
+    }
+
+    .maker-live-editor > div:first-child > * {
+        flex: 1 1 140px;
+    }
+
+    .maker-media-zone {
+        min-height: 180px !important;
+    }
+
+    .maker-media-zone img,
+    .maker-media-zone video {
+        max-height: 220px !important;
+    }
+
+    .mc-option-row {
+        min-height: 52px !important;
+    }
+
+    .mc-option-row input[type="text"] {
+        font-size: 1rem !important;
+        padding-left: 42px !important;
+    }
+
+    #maker-tf-options {
+        grid-template-columns: 1fr !important;
+    }
+
+    #maker-tf-options .tf-lbl {
+        padding: 14px !important;
+        font-size: 1.35rem !important;
+    }
+
+    #maker-form-container > div:last-child {
+        flex-wrap: wrap;
+        justify-content: stretch !important;
+        margin-bottom: 16px !important;
+    }
+
+    #maker-form-container > div:last-child button {
+        flex: 1 1 30%;
+        min-width: 100px;
     }
 }
 
 /* PC / Desktop layout */
 @media (min-width: 992px) {
     .quiz-content {
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         align-items: stretch;
+    }
+
+    .question-prompt {
+        grid-column: 1 / -1;
     }
     
     .ekg-viewer {
-        flex: 1 1 50%;
+        grid-column: 1;
         max-height: calc(100vh - 12rem);
         justify-content: center;
     }
@@ -1328,7 +1595,7 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     }
     
     .question-container {
-        flex: 1 1 50%;
+        grid-column: 2;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -1545,6 +1812,88 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     outline: 3px solid var(--primary);
     outline-offset: 3px;
 }
+
+/* Maker: save status + live validation */
+.maker-save-status {
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.maker-save-status::before {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
+}
+.maker-save-status.is-saved { color: var(--success); }
+.maker-save-status.is-dirty { color: #f59e0b; }
+.maker-save-status.is-error { color: var(--danger); }
+
+.field-error {
+    width: 100%;
+    color: var(--danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    margin-bottom: 0.6rem;
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--danger);
+    border-radius: 6px;
+}
+
+/* Player: answer submitted waiting state */
+.answer-submitted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    width: 100%;
+    min-height: 160px;
+}
+.answer-submitted .answer-submitted-icon {
+    font-size: 3rem;
+    line-height: 1;
+}
+.answer-submitted .answer-submitted-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--success);
+    margin: 0;
+}
+.answer-submitted .answer-submitted-sub {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+.answer-submitted .answer-submitted-loader {
+    width: 34px;
+    height: 34px;
+    margin-top: 0.25rem;
+}
+
+/* Long content safeguards */
+.player-chip {
+    max-width: 100%;
+    word-break: break-word;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+.podium-name { overflow-wrap: anywhere; }
+.hud-item { min-width: 0; }
+.hud-item span { overflow-wrap: anywhere; }
+#question-text { overflow-wrap: break-word; }
 
 @media (max-width: 700px) {
     .global-controls {

@@ -1665,6 +1665,11 @@ function resetMakerForm(defaultType = 'question') {
     document.getElementById('edit-q-index').value = "-1";
     document.getElementById('maker-form-container').style.display = "none";
     
+    const statusEl = document.getElementById('maker-save-status');
+    if (statusEl) {
+        statusEl.classList.remove('is-saved', 'is-dirty', 'is-error');
+        statusEl.innerText = '';
+    }
     document.getElementById('maker-content-area').style.display = "none";
     document.getElementById('maker-q-type').value = "";
     
@@ -1888,10 +1893,90 @@ window.saveActiveQuestion = async () => {
         }
         
         hideMakerError();
+        markMakerSaved();
     } catch (err) {
         // Silent catch for auto-save
         console.warn("Auto-save validation:", err.message);
+        markMakerDirty();
+        validateMakerForm();
     }
+};
+
+window.updateMakerSaveStatus = (state, msg) => {
+    const el = document.getElementById('maker-save-status');
+    if (!el) return;
+    el.classList.remove('is-saved', 'is-dirty', 'is-error');
+    if (state === 'saved') {
+        el.classList.add('is-saved');
+        el.innerText = msg || 'Saved';
+    } else if (state === 'dirty') {
+        el.classList.add('is-dirty');
+        el.innerText = msg || 'Unsaved changes';
+    } else {
+        el.classList.add('is-error');
+        el.innerText = msg || 'Needs attention';
+    }
+};
+
+window.markMakerDirty = () => updateMakerSaveStatus('dirty');
+
+window.markMakerSaved = () => updateMakerSaveStatus('saved');
+
+function validateMakerForm() {
+    const isInfo = document.getElementById('maker-form-container').dataset.type === 'info';
+    const textEl = document.getElementById('maker-q-text');
+    const qErr = document.getElementById('maker-q-text-error');
+    const mcErr = document.getElementById('maker-mc-error');
+    let valid = true;
+
+    if (qErr) {
+        const missingText = !isInfo && !textEl.value.trim();
+        qErr.style.display = missingText ? 'block' : 'none';
+        qErr.innerText = missingText ? 'Please provide question text before saving.' : '';
+        if (missingText) valid = false;
+    }
+
+    if (mcErr) {
+        const type = document.getElementById('maker-q-type').value;
+        if (type === 'multiple-choice') {
+            const options = [];
+            for (let i = 0; i < 5; i++) {
+                const v = document.getElementById(`mc-opt-${i}`).value.trim();
+                if (v) options.push(v);
+            }
+            const hasCorrect = !!document.querySelector('input[name="mc-correct"]:checked');
+            const freePoint = document.getElementById('maker-free-point').checked;
+            const missingOptions = options.length < 2;
+            const missingCorrect = !hasCorrect && !freePoint;
+            if (missingOptions || missingCorrect) {
+                const parts = [];
+                if (missingOptions) parts.push('at least 2 options');
+                if (missingCorrect) parts.push('a correct answer selected');
+                mcErr.style.display = 'block';
+                mcErr.innerText = `Multiple choice needs ${parts.join(' and ')} before saving.`;
+                valid = false;
+            } else {
+                mcErr.style.display = 'none';
+            }
+        } else {
+            mcErr.style.display = 'none';
+        }
+    }
+    return valid;
+}
+
+window.duplicateActiveQuestion = () => {
+    const editIndex = parseInt(document.getElementById('edit-q-index').value);
+    if (editIndex < 0 || editIndex >= customQuizData.length) {
+        Swal.fire('No question', 'Select a question to duplicate first.', 'info');
+        return;
+    }
+    saveActiveQuestion();
+    const clone = JSON.parse(JSON.stringify(customQuizData[editIndex]));
+    customQuizData.splice(editIndex + 1, 0, clone);
+    renderMakerList();
+    selectQuestion(editIndex + 1);
+    updateMakerSaveStatus('dirty', 'Duplicated - save to keep');
 };
 
 window.showMakerError = (msg) => {
@@ -2984,11 +3069,23 @@ async function loadStudentQuestion() {
     switchScreen('quiz');
 }
 
+function renderAnswerSubmitted() {
+    const container = document.getElementById('options-container');
+    if (!container) return;
+    container.innerHTML = `
+        <div class="answer-submitted" role="status">
+            <div class="answer-submitted-icon">✅</div>
+            <h3 class="answer-submitted-title">Answer Submitted</h3>
+            <p class="answer-submitted-sub">Waiting for other players...</p>
+            <div class="loader answer-submitted-loader"></div>
+        </div>`;
+}
+
 async function submitAnswer(answer, q, qIndex) {
     if (hasAnswered) return;
     hasAnswered = true;
     
-    document.getElementById('options-container').innerHTML = '<h3>Answer Submitted! Waiting for others...</h3>';
+    renderAnswerSubmitted();
     
     let isCorrect = false;
     let scoreFrac = 0;
@@ -3027,8 +3124,6 @@ async function submitAnswer(answer, q, qIndex) {
     } else {
         studentCurrentPointsEarned = 0;
     }
-    
-    document.getElementById('options-container').innerHTML = '<h3>Answer Submitted! Waiting for others...</h3>';
     
     // We store the answer in 'lastAnswer' for the host tally and in 'answers' history for review.
     let updateObj = {
@@ -3667,10 +3762,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const makerForm = document.getElementById('maker-form-container');
     if (makerForm) {
         makerForm.addEventListener('change', (e) => {
+            markMakerDirty();
+            validateMakerForm();
             saveActiveQuestion();
         });
-        makerForm.addEventListener('keyup', (e) => {
-            if (e.target.tagName === 'INPUT' && (e.target.type === 'text' || e.target.type === 'url' || e.target.type === 'number')) {
+        makerForm.addEventListener('input', (e) => {
+            if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && ['text', 'url', 'number', 'email'].includes(e.target.type))) {
+                markMakerDirty();
+                validateMakerForm();
                 saveActiveQuestion();
             }
         });

@@ -113,6 +113,7 @@
                 </div>
                 <!-- Right side -->
                 <div style="display:flex; gap: 10px; align-items: center; justify-content: flex-end;">
+                    <span id="maker-save-status" class="maker-save-status" role="status" aria-live="polite"></span>
                     <button id="btn-import-question" class="btn-secondary" style="padding: 0.5rem 1rem; font-size:0.9rem; white-space:nowrap;">Import Question</button>
                     <button id="btn-save-library" class="btn-primary" style="padding: 0.5rem 1rem; font-size:0.9rem; background:var(--success); border-color:var(--success); white-space:nowrap;">Save Quiz</button>
                     <button id="btn-host-quiz" class="btn-primary" style="padding: 0.5rem 1rem; font-size:0.9rem; white-space:nowrap;" disabled>Host Game</button>
@@ -164,6 +165,7 @@
                             input:checked + .slider:before { transform: translateX(26px); }
                         </style>
                         <textarea id="maker-q-text" placeholder="TAP TO ADD QUESTION" style="font-size: 1.5rem; font-weight: normal; text-align: center; padding: 10px 15px; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; margin-bottom: 15px; display: block; background: var(--input-bg); color: var(--text-main); resize: vertical; min-height: 50px; height: 56px; line-height: 1.2;"></textarea>
+                        <div id="maker-q-text-error" class="field-error" style="display:none;"></div>
                         
                         <!-- Clinical Context Header (moved from right side) -->
                         <div class="input-group" id="maker-context-group" style="background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; display:flex; flex-direction:column; box-sizing: border-box;">
@@ -172,7 +174,7 @@
                         </div>
 
                         <!-- Live Editor Canvas Middle Section -->
-                        <div style="display:flex; gap:15px; align-items: stretch; min-height: 300px;">
+                        <div class="maker-live-editor" style="display:flex; gap:15px; align-items: stretch; min-height: 300px;">
                             <!-- Timer & Settings on Left (Kahoot style) -->
                             <div style="display:flex; flex-direction:column; gap:10px; width:150px; margin-top:10px;">
                                 <div class="input-group" id="maker-timer-group">
@@ -269,6 +271,7 @@
                                     <span id="mc-file-preview-4" style="display:none;"></span>
                                 </div>
                             </div>
+                            <div id="maker-mc-error" class="field-error" style="display:none;"></div>
                             
                             <!-- True/False Options -->
                             <div id="maker-tf-options" style="display:none; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -318,6 +321,7 @@
                         <!-- Action Buttons at Bottom -->
                         <div style="display:flex; justify-content:flex-end; gap: 10px; margin-top:20px; margin-bottom:40px;">
                             <button class="btn-action btn-secondary" onclick="previewActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Preview</button>
+                            <button class="btn-action btn-secondary" onclick="duplicateActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Duplicate</button>
                             <button class="btn-action btn-primary" onclick="forceSaveActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Save Question</button>
                             <button class="btn-action btn-danger" onclick="deleteActiveQuestion()" style="padding: 0.5rem 1.5rem; border-radius:50px;">Delete Question</button>
                         </div>
@@ -379,8 +383,11 @@
             </header>
             
             <div class="quiz-content">
-                <!-- Question number label (above image, student only) -->
-                <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
+                <!-- Keep the prompt first so players understand the task before seeing the media. -->
+                <div class="question-prompt glass-container">
+                    <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
+                    <h2 id="question-text">Question text goes here</h2>
+                </div>
                 <!-- EKG Viewer (Dynamically hidden if no media provided) -->
                 <div class="ekg-viewer glass-container" id="media-container">
                     <div class="clinical-context" id="clinical-context">Context goes here</div>
@@ -389,8 +396,6 @@
                 </div>
 
                 <div class="question-container glass-container">
-                    <h2 id="question-text">Question text goes here</h2>
-                    
                     <div id="options-container" class="options-grid">
                         <!-- Options/Inputs injected here -->
                     </div>
