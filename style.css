@@ -1332,11 +1332,11 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     }
 
     .screen {
-        padding: 0.75rem;
+        padding: 3.75rem 0.75rem 0.75rem;
     }
 
     #quiz-screen {
-        padding: 4.25rem 0.6rem 1rem;
+        padding: 4.5rem 0.6rem 1rem;
     }
 
     .hud {
