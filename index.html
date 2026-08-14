@@ -14,6 +14,15 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
+    <script>
+        // Apply saved theme before first paint to avoid a dark flash
+        (function () {
+            try {
+                var t = localStorage.getItem('spotDiagnosisTheme') || 'light';
+                if (t && t !== 'dark') document.body.classList.add(t + '-theme');
+            } catch (e) {}
+        })();
+    </script>
     <div id="app">
         <!-- Global Nav Menu -->
         <div class="global-home" id="global-nav-container">
@@ -31,19 +40,7 @@
         <!-- Global Controls -->
         <div class="global-controls">
             <span id="connection-status" class="connection-status" role="status" aria-live="polite">Offline</span>
-            <select id="music-style-select" class="theme-select" title="Music Style">
-                <option value="gameshow">🎮 Game Show</option>
-                <option value="party">🎉 Party</option>
-            </select>
-            <button id="btn-music-toggle" class="btn-music-toggle" title="Toggle Music">🔊</button>
-            <select id="theme-select" class="theme-select" title="Choose Theme">
-                <option value="dark">🌑 Dark</option>
-                <option value="light">☀️ Light</option>
-                <option value="pastel">🌸 Pastel</option>
-                <option value="earth">🌿 Earth</option>
-                <option value="warm">🔥 Warm</option>
-                <option value="cool">❄️ Cool</option>
-            </select>
+            <button id="btn-settings" class="btn-icon" title="Appearance & Sound">⚙️</button>
         </div>
         <!-- Hidden background music player -->
         <audio id="bgm-player" loop preload="none"></audio>
@@ -603,6 +600,39 @@
                 </select>
             </div>
             <button id="btn-save-ai-settings" class="btn-primary mt-3" style="width:100%; background:#8b3dff; border:none;">Save Settings</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal (Appearance & Sound) -->
+    <div id="settings-modal" class="zoom-modal" style="display:none; align-items:center; justify-content:center;">
+        <div class="settings-panel" role="dialog" aria-label="Appearance and Sound">
+            <span class="close-settings" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</span>
+            <h2 style="margin-top:0; color:var(--primary); font-size:1.4rem; border-bottom:2px solid var(--primary); padding-bottom:0.5rem; margin-bottom:1rem;">Appearance & Sound</h2>
+
+            <div class="form-group" style="margin-bottom:1.2rem;">
+                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Theme</label>
+                <select id="theme-select" class="settings-select">
+                    <option value="dark">🌑 Dark</option>
+                    <option value="light">☀️ Light</option>
+                    <option value="pastel">🌸 Pastel</option>
+                    <option value="earth">🌿 Earth</option>
+                    <option value="warm">🔥 Warm</option>
+                    <option value="cool">❄️ Cool</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.2rem;">
+                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music Style</label>
+                <select id="music-style-select" class="settings-select">
+                    <option value="gameshow">🎮 Game Show</option>
+                    <option value="party">🎉 Party</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music</label>
+                <button id="btn-music-toggle" class="btn-secondary" style="width:100%; font-size:1rem; padding:0.9rem;">🔊</button>
+            </div>
         </div>
     </div>
 

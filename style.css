@@ -1331,10 +1331,12 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
         gap: 5px;
     }
 
-    .global-controls .theme-select,
-    .global-controls #music-style-select {
-        display: none;
+    .btn-icon {
+        min-width: 36px;
+        height: 36px;
+        font-size: 1rem;
     }
+
 
     .screen {
         padding: 3.75rem 0.75rem 0.75rem;
@@ -1667,6 +1669,61 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 }
 .btn-music-toggle.muted {
     opacity: 0.5;
+}
+
+/* Settings (appearance & sound) */
+.btn-icon {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-icon:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.settings-panel {
+    background: var(--bg-color);
+    padding: 2rem;
+    border-radius: 14px;
+    max-width: 420px;
+    width: 90%;
+    color: var(--text-main);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.settings-select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 2px solid var(--glass-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.3s;
+    cursor: pointer;
+}
+.settings-select:focus {
+    border-color: var(--primary);
 }
 
 /* SweetAlert Overrides to fix input overlap */

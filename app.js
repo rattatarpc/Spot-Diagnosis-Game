@@ -1315,6 +1315,35 @@ if (initialTheme !== 'dark') {
 themeSelect.value = initialTheme;
 
 /* =====================================================================
+   SETTINGS MODAL (Appearance & Sound)
+===================================================================== */
+const settingsModal = document.getElementById('settings-modal');
+const settingsBtn = document.getElementById('btn-settings');
+const closeSettings = document.querySelector('.close-settings');
+
+if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsModal.style.display = 'flex';
+    });
+}
+if (closeSettings) {
+    closeSettings.addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+    });
+}
+if (settingsModal) {
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) settingsModal.style.display = 'none';
+    });
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && settingsModal && settingsModal.style.display === 'flex') {
+        settingsModal.style.display = 'none';
+    }
+});
+
+/* =====================================================================
    MC OPTION FILE UPLOAD HANDLERS
 ===================================================================== */
 // Store uploaded images as base64 per option slot
