@@ -1321,11 +1321,13 @@ const settingsModal = document.getElementById('settings-modal');
 const settingsBtn = document.getElementById('btn-settings');
 const closeSettings = document.querySelector('.close-settings');
 
+window.openSettingsModal = (event) => {
+    if (event) event.stopPropagation();
+    if (settingsModal) settingsModal.style.display = 'flex';
+};
+
 if (settingsBtn && settingsModal) {
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsModal.style.display = 'flex';
-    });
+    settingsBtn.addEventListener('click', window.openSettingsModal);
 }
 if (closeSettings) {
     closeSettings.addEventListener('click', () => {

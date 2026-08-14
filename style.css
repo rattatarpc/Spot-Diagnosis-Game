@@ -1332,8 +1332,9 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     }
 
     .btn-icon {
-        min-width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
         font-size: 1rem;
     }
 
@@ -1673,27 +1674,40 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 
 /* Settings (appearance & sound) */
 .btn-icon {
-    min-width: 40px;
-    height: 40px;
-    padding: 0 0.5rem;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    padding: 0;
     border-radius: 50%;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(145deg, var(--primary), var(--secondary));
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
     color: var(--text-main);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     line-height: 1;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1001;
+    -webkit-tap-highlight-color: transparent;
 }
 .btn-icon:hover {
-    background: var(--primary);
+    background: linear-gradient(145deg, var(--primary-hover), var(--secondary-hover));
     color: white;
     border-color: var(--primary);
-    transform: scale(1.1);
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn-icon:active {
+    transform: scale(0.96);
+}
+
+.settings-modal {
+    z-index: 11000;
+    pointer-events: auto;
 }
 
 .settings-panel {
