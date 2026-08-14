@@ -710,6 +710,10 @@ function switchScreen(screenName) {
     Object.values(screens).forEach(screen => screen.classList.remove('active'));
     screens[screenName].classList.add('active');
     
+    // Reset any leftover scroll so switching screens never leaves blank space
+    document.getElementById('app').scrollTop = 0;
+    screens[screenName].scrollTop = 0;
+    window.scrollTo({ top: 0 });
     if (screenName === 'dashboard') {
         renderDashboard();
     }
@@ -1302,12 +1306,13 @@ themeSelect.addEventListener('change', () => {
     localStorage.setItem('spotDiagnosisTheme', chosen);
 });
 
-// Restore saved theme on load
+// Restore saved theme on load (default to light on first visit)
 const savedTheme = localStorage.getItem('spotDiagnosisTheme');
-if (savedTheme && savedTheme !== 'dark') {
-    document.body.classList.add(`${savedTheme}-theme`);
-    themeSelect.value = savedTheme;
+const initialTheme = savedTheme || 'light';
+if (initialTheme !== 'dark') {
+    document.body.classList.add(`${initialTheme}-theme`);
 }
+themeSelect.value = initialTheme;
 
 /* =====================================================================
    MC OPTION FILE UPLOAD HANDLERS
@@ -1621,8 +1626,6 @@ document.getElementById('btn-show-maker-form').addEventListener('click', async (
         showCancelButton: true,
         showConfirmButton: false,
         cancelButtonColor: '#333333',
-        background: '#1a1a2e',
-        color: '#ffffff',
         customClass: {
             popup: 'glass-container'
         }
