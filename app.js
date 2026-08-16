@@ -124,7 +124,7 @@ function setQuizProgress(qIndex, total) {
    AMBIENT FX (decorative background particles via tsParticles)
    ===================================================================== */
 const FX_KINDS = {
-    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'snow', cool: 'ice'
+    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'fire', cool: 'snow'
 };
 
 function fxCurrentTheme() {
@@ -170,10 +170,94 @@ function fxBuildConfig(theme, burst = false) {
     });
 
     const shapes = {
-        snow: fallingShape('circle', 5, { min: -0.4, max: 0.4 }, 0.7),
+        snow: {
+            particles: {
+                number: { value: isSmall ? 24 : 48, density: { enable: true, area: 800 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'star', options: { star: { sides: 6, inset: 3 } } },
+                opacity: { value: 0.75, animation: { enable: true, speed: 0.6, minimumValue: 0.05, sync: false } },
+                size: { value: { min: 4, max: 8 }, random: { enable: true, minimumValue: 3 }, animation: { enable: true, speed: 4, minimumValue: 1, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.5, max: 1.2 },
+                    direction: 'bottom',
+                    random: false,
+                    straight: false,
+                    outModes: { default: 'out', bottom: 'out', top: 'none' },
+                    drift: { min: -0.4, max: 0.4 }
+                },
+                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 3, sync: false } },
+                shadow: { enable: false }
+            },
+            ...base
+        },
+        fire: {
+            particles: {
+                number: { value: isSmall ? 20 : 36, density: { enable: true, area: 800 } },
+                color: { value: ['#ff7b00', '#ffa200', '#ffd166', '#ff3d00'] },
+                shape: { type: 'circle' },
+                opacity: { value: 0.9, animation: { enable: true, speed: 1.2, minimumValue: 0.1, sync: false } },
+                size: { value: { min: 2, max: 5 }, random: { enable: true, minimumValue: 1 }, animation: { enable: true, speed: 6, minimumValue: 0.5, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.4, max: 1 },
+                    direction: 'top',
+                    random: true,
+                    straight: false,
+                    outModes: { default: 'out', top: 'out', bottom: 'none' },
+                    drift: { min: -0.3, max: 0.3 }
+                },
+                shadow: { enable: false }
+            },
+            ...base
+        },
         ice: fallingShape('star', 6, { min: -0.3, max: 0.3 }, 0.75),
-        petal: fallingShape('circle', 7, { min: -0.7, max: 0.7 }, 0.8, true),
-        leaf: fallingShape('circle', 7, { min: -0.7, max: 0.7 }, 0.8, true),
+        petal: {
+            particles: {
+                number: { value: isSmall ? 24 : 40, density: { enable: true, area: 800 } },
+                color: { value: ['#f9a8d4', '#f0abfc', '#fbcfe8'] },
+                shape: { type: 'star', options: { star: { sides: 5, inset: 2 } } },
+                opacity: { value: 0.8, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
+                size: { value: { min: 6, max: 10 }, random: { enable: true, minimumValue: 4 }, animation: { enable: true, speed: 4, minimumValue: 1.5, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.5, max: 1.1 },
+                    direction: 'bottom',
+                    random: false,
+                    straight: false,
+                    outModes: { default: 'out', bottom: 'out', top: 'none' },
+                    drift: { min: -0.6, max: 0.6 }
+                },
+                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 4, sync: false } },
+                shadow: { enable: false }
+            },
+            ...base
+        },
+        leaf: {
+            particles: {
+                number: { value: isSmall ? 20 : 34, density: { enable: true, area: 800 } },
+                color: { value: ['#84cc16', '#65a30d', '#4d7c0f'] },
+                shape: { type: 'star', options: { star: { sides: 4, inset: 3 } } },
+                opacity: { value: 0.85, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
+                size: { value: { min: 7, max: 12 }, random: { enable: true, minimumValue: 5 }, animation: { enable: true, speed: 4, minimumValue: 2, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.4, max: 0.9 },
+                    direction: 'bottom',
+                    random: false,
+                    straight: false,
+                    outModes: { default: 'out', bottom: 'out', top: 'none' },
+                    drift: { min: -0.7, max: 0.7 }
+                },
+                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 5, sync: false } },
+                shadow: { enable: false }
+            },
+            ...base
+        },
         cloud: {
             particles: {
                 number: { value: isSmall ? 6 : 12, density: { enable: true, area: 900 } },
