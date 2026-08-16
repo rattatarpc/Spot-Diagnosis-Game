@@ -195,10 +195,13 @@ function fxInit() {
             localStorage.setItem('spotDiagnosisFx', isOff ? 'off' : 'on');
         });
     }
+    // Make FX visible on load if the initially-active screen is an FX screen.
+    const activeScreen = Object.entries(screens).find(([, el]) => el.classList.contains('active'))?.[0];
+    const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
+    document.body.classList.toggle('fx-active', fxScreens.includes(activeScreen));
     fxSpawn(1);
 }
 
-if (document.getElementById('ambient-fx')) { fxInit(); }
 document.addEventListener('DOMContentLoaded', fxInit);
 
 const screens = {
