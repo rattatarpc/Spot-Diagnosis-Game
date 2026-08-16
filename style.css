@@ -1845,13 +1845,14 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     color: white;
 }
 .btn-pill-danger {
-    background: transparent;
+    background: var(--danger);
     border: 2px solid var(--danger);
-    color: var(--danger);
+    color: white;
 }
 .btn-pill-danger:hover {
     background: var(--danger);
     color: white;
+    filter: brightness(0.92);
 }
 
 /* Custom Logo */
@@ -2506,6 +2507,15 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 }
 .btn-action.btn-danger {
     border-radius: 999px !important;
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: white !important;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+}
+.btn-action.btn-danger:hover {
+    background: var(--danger) !important;
+    filter: brightness(0.92);
+    transform: translateY(-1px);
 }
 
 .maker-live-editor {

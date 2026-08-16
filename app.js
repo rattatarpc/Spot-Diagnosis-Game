@@ -1103,7 +1103,7 @@ async function renderDashboard() {
                 <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">Host Now</button>
                 <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">Share / Get Code</button>
                 <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">Edit</button>
-                <button class="btn-pill btn-pill-danger btn-delete-quiz" data-index="${index}">Delete</button>
+                <button class="btn-pill btn-pill-danger btn-delete-quiz" data-index="${index}" title="Delete quiz" aria-label="Delete quiz">🗑️</button>
             </div>
         `;
         list.appendChild(div);
