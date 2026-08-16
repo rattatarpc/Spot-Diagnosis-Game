@@ -206,11 +206,12 @@ h1, h2, h3 {
     position: absolute;
     top: calc(100% + 10px);
     left: 0;
-    background: var(--glass-bg);
+    background: var(--panel-bg);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.3);
     min-width: 200px;
     overflow: hidden;
     display: flex;
@@ -219,7 +220,7 @@ h1, h2, h3 {
 .nav-item {
     padding: 1rem;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
     color: var(--text-main);
     transition: background 0.2s;
 }
@@ -831,13 +832,15 @@ body.light-theme .btn-action { background: rgba(0,0,0,0.05); }
     overflow-y: auto;
 }
 .question-item {
-    background: rgba(59, 130, 246, 0.1);
-    padding: 0.8rem;
-    border-radius: 8px;
+    background: var(--panel-bg);
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
     border-left: 4px solid var(--primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 .question-actions {
     display: flex;
@@ -1271,17 +1274,17 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     100% { transform: scale(1); box-shadow: 0 0 20px rgba(234, 179, 8, 0.5); }
 }
 
-/* Modern Radar Scanner Loader */
+/* Hourglass Spinner Loader (used while waiting for the host) */
 .loader {
-    width: 80px;
-    height: 80px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     margin: 2rem auto;
-    background: conic-gradient(from 0deg, transparent 70%, rgba(59, 130, 246, 0.8) 100%);
-    position: relative;
-    animation: spin 1.5s linear infinite;
-    border: 2px solid rgba(59, 130, 246, 0.3);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4), inset 0 0 15px rgba(59, 130, 246, 0.4);
+    border: 4px solid var(--primary);
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    animation: hourglassSpin 1.1s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
 }
 .loader::before {
     content: '';
@@ -1295,20 +1298,10 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     border-radius: 50%;
     box-shadow: 0 0 10px var(--primary);
 }
-.loader::after {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 50%;
-    background: var(--primary);
-    top: 0;
-    left: calc(50% - 1px);
-    transform-origin: bottom center;
-    box-shadow: 0 0 10px var(--primary);
-}
 
-@keyframes spin {
+@keyframes hourglassSpin {
     0% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
     100% { transform: rotate(360deg); }
 }
 
@@ -1326,25 +1319,28 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 
 /* Review Screen Styles */
 .review-item {
-    background: rgba(0,0,0,0.2);
+    background: var(--panel-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     text-align: left;
     cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .review-item:hover {
-    background: rgba(255,255,255,0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
 }
 
 .review-question {
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     margin-bottom: 1rem;
 }
 
@@ -1352,9 +1348,9 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     font-size: 1.1rem;
     color: var(--success);
     font-weight: 600;
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.12);
     padding: 0.75rem;
-    border-radius: 8px;
+    border-radius: 10px;
     border-left: 4px solid var(--success);
 }
 
@@ -1759,9 +1755,11 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 }
 
 .settings-panel {
-    background: var(--bg-color);
+    background: var(--panel-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding: 2rem;
-    border-radius: 14px;
+    border-radius: 20px;
     max-width: 420px;
     width: 90%;
     color: var(--text-main);
@@ -1769,7 +1767,7 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     max-height: 85vh;
     overflow-y: auto;
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
 }
 
 .settings-select {
@@ -2062,7 +2060,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 /* =====================================================================
-   GAME SHOW ARENA — Milestone 1 visual identity
+   GAME SHOW ARENA ï¿½ Milestone 1 visual identity
    ===================================================================== */
 
 /* Surfaces: stronger panels on the arena background */
@@ -2079,9 +2077,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     background: var(--panel-bg);
 }
 
-/* Primary CTA: game-show look */
+/* Primary CTA: game-show look (Outfit bold for readability, not the display font) */
 .btn-primary {
-    font-family: var(--font-display);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     border-bottom: 4px solid rgba(0, 0, 0, 0.22);
