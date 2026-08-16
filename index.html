@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spot Diagnosis Game</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- localForage for IndexedDB storage -->
@@ -46,14 +46,15 @@
         <audio id="bgm-player" loop preload="none"></audio>
 
         <!-- 1. Role Selection Screen -->
-        <section id="role-screen" class="screen active">
+        <section id="role-screen" class="screen">
             <div class="glass-container text-center">
                 <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
                 <h1 class="title-gradient">Spot Diagnosis</h1>
+                <p class="subtitle">The live classroom diagnosis quiz game</p>
                 
                 <div class="role-buttons">
-                    <button id="btn-goto-join" class="btn-primary mb-2">Join a Room</button>
-                    <button id="btn-goto-maker" class="btn-secondary">Create & Host</button>
+                    <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room</button>
+                    <button id="btn-goto-maker" class="btn-secondary">✏️ Create & Host</button>
                 </div>
             </div>
         </section>
@@ -62,6 +63,7 @@
         <section id="join-screen" class="screen">
             <div class="glass-container text-center">
                 <h2>Join Challenge</h2>
+                <p class="subtitle">Enter the room code from the big screen</p>
                 <div class="input-group mt-4">
                     <input type="text" id="join-room-code" placeholder="6-Digit Room Code" maxlength="6" autocomplete="off">
                 </div>
@@ -78,13 +80,13 @@
         <!-- Dashboard Screen (Host) -->
         <section id="dashboard-screen" class="screen">
             <div class="glass-container maker-container" style="margin-top: 4rem;">
-                <h2 class="title-gradient text-center" style="margin-bottom: 2rem;">My Quiz Library</h2>
+                <h2 class="title-gradient text-center" style="margin-bottom: 2rem;">🎮 My Quiz Library</h2>
                 
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                    <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">+ Create New Game</button>
-                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">Download Shared Quiz</button>
-                    <button id="btn-export-local-quizzes" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">Export My Quizzes</button>
-                    <button id="btn-import-local-quizzes" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">Import My Quizzes</button>
+                    <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">🎮 + Create New Game</button>
+                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: var(--primary); color: var(--primary); width: 100%; max-width: 300px;">📥 Download Shared Quiz</button>
+                    <button id="btn-export-local-quizzes" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">📤 Export My Quizzes</button>
+                    <button id="btn-import-local-quizzes" class="btn-secondary" style="font-size: 1.2rem; padding: 1rem 2rem; width: 100%; max-width: 300px;">📥 Import My Quizzes</button>
                     <input id="local-quizzes-file" type="file" accept="application/json,.json" hidden>
                     <button id="btn-ai-settings" class="btn-secondary" style="display: none; font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: #8b3dff; color: #8b3dff; width: 100%; max-width: 300px;">✨ AI Auto-Grading Settings</button>
                 </div>
@@ -342,7 +344,7 @@
                 <div id="lobby-players-list" class="players-list"></div>
                 
                 <!-- Only visible to Host -->
-                <button id="btn-start-game" class="btn-primary mt-4 host-only">Start Game</button>
+                <button id="btn-start-game" class="btn-primary mt-4 host-only">▶ Start Game</button>
                 <div class="student-only mt-4 waiting-text">Waiting for host to start...</div>
                 <div class="btn-back-floating-wrapper mt-4">
                     <button class="btn-secondary btn-back-floating" onclick="window.location.reload()">Back</button>
@@ -352,9 +354,10 @@
 
         <!-- 4.1 Countdown Screen -->
         <section id="countdown-screen" class="screen">
-            <div class="glass-container text-center" style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height: 50vh;">
-                <h2>Get Ready!</h2>
-                <div id="countdown-number" style="font-size: 8rem; font-weight: 800; color: var(--primary); margin: 2rem 0; animation: pulse 1s infinite;">5</div>
+            <div class="glass-container text-center countdown-wrap">
+                <h2 class="countdown-label">Get Ready!</h2>
+                <div id="countdown-number" class="countdown-number">5</div>
+                <div class="countdown-sub">3... 2... 1...</div>
             </div>
         </section>
 
@@ -376,8 +379,13 @@
             <header class="hud">
                 <div class="hud-item player-info student-only">Rank: <span id="hud-rank">-</span></div>
                 <div class="hud-item score-info student-only">Score: <span id="hud-score" class="score-bump">0</span></div>
-                <div class="hud-item timer-info">Time: <span id="hud-timer">30</span>s</div>
+                <div class="hud-item timer-info">Time: <span id="hud-timer">30</span><span class="timer-unit">s</span></div>
             </header>
+            <div class="hud-timer-track student-only"><div class="hud-timer-fill" id="hud-timer-fill"></div></div>
+            <div class="quiz-progress">
+                <div class="quiz-progress-track"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
+                <span class="quiz-progress-label" id="quiz-progress-label">Q 1/10</span>
+            </div>
             
             <div class="quiz-content">
                 <!-- Keep the prompt first so players understand the task before seeing the media. -->
@@ -397,9 +405,14 @@
                         <!-- Options/Inputs injected here -->
                     </div>
 
-                    <div class="host-controls host-only">
-                        <h3>Host Controls</h3>
-                        <p>Students are answering... (<span id="host-answers-count">0</span> / <span id="host-total-players">0</span>)</p>
+                    <div class="host-controls host-only host-presenter">
+                        <div class="host-presenter-box">
+                            <div class="host-presenter-count" id="host-answers-box">
+                                <span class="host-presenter-big" id="host-answers-count">0</span>
+                                <span class="host-presenter-total">/ <span id="host-total-players">0</span> players answered</span>
+                            </div>
+                            <div class="host-presenter-caption">Waiting for answers...</div>
+                        </div>
                         <button id="btn-host-next" class="btn-primary mt-4">Skip / Next</button>
                     </div>
                 </div>
@@ -445,7 +458,7 @@
         <!-- 7. Results Screen -->
         <section id="results-screen" class="screen">
             <div class="glass-container text-center" style="max-width: 900px;">
-                <h1>Final Results</h1>
+                <h1>🏆 Final Results</h1>
                 
                 <div class="student-only">
                     <div class="final-score-box" style="margin-top: 0; margin-bottom: 1rem; padding: 1rem;">

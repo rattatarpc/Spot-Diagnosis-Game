@@ -39,6 +39,79 @@ let timeLeft = 0;
 let hasAnswered = false;
 let hostPlayersListener = null;
 
+/* =====================================================================
+   GAME SHOW HELPERS (avatars, confetti, tally, timer/progress UI)
+===================================================================== */
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[ch]);
+}
+
+function avatarFor(name) {
+    const emojis = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐯', '🐨', '🐧', '🦉', '🐰', '🐻', '🐵', '🦋', '🐢', '🐳', '🦈', '🐝'];
+    const s = String(name || '');
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return emojis[h % emojis.length];
+}
+
+function playerChipHTML(name) {
+    return `<div class="player-chip"><span class="player-avatar">${avatarFor(name)}</span><span class="player-chip-name">${escapeHtml(name)}</span></div>`;
+}
+
+function burstConfetti() {
+    const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff', '#10b981'];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 60; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti-piece';
+        const size = 6 + Math.random() * 8;
+        c.style.width = size + 'px';
+        c.style.height = (size * 1.7) + 'px';
+        c.style.left = (Math.random() * 100) + 'vw';
+        c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        c.style.animationDelay = (Math.random() * 0.4) + 's';
+        c.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
+        frag.appendChild(c);
+    }
+    document.body.appendChild(frag);
+    setTimeout(() => { frag.remove(); }, 3000);
+}
+
+function animateTally(el, target, opts = {}) {
+    const { prefix = '', suffix = '', duration = 700 } = opts;
+    if (!el) return;
+    const t0 = performance.now();
+    function frame(now) {
+        const p = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.innerText = prefix + Math.round(target * eased) + suffix;
+        if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+}
+
+function setHudTimer(t) {
+    const el = document.getElementById('hud-timer');
+    if (el) el.innerText = t > 0 ? t : '∞';
+    const fill = document.getElementById('hud-timer-fill');
+    if (!fill) return;
+    const max = window._currentTimerMax && window._currentTimerMax > 0 ? window._currentTimerMax : t;
+    if (t > 0 && max > 0) {
+        fill.style.width = Math.max(0, Math.min(100, (t / max) * 100)) + '%';
+    } else {
+        fill.style.width = '100%';
+    }
+}
+
+function setQuizProgress(qIndex, total) {
+    const fill = document.getElementById('quiz-progress-fill');
+    const label = document.getElementById('quiz-progress-label');
+    if (fill) fill.style.width = total > 0 ? (((qIndex + 1) / total) * 100) + '%' : '0%';
+    if (label) label.innerText = `Q ${qIndex + 1}/${total}`;
+}
+
 const screens = {
     role: document.getElementById('role-screen'),
     join: document.getElementById('join-screen'),
@@ -165,12 +238,12 @@ const AudioController = (() => {
     function getCtx() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
+
             // Global volume (controlled by mute button)
             masterGain = audioCtx.createGain();
             masterGain.gain.value = 0.20;
             masterGain.connect(audioCtx.destination);
-            
+
             // BGM volume (controlled by style transitions)
             bgmGain = audioCtx.createGain();
             bgmGain.gain.value = 1.0;
@@ -337,7 +410,7 @@ const AudioController = (() => {
         chordIdx = 0;
         if (!audioCtx) return;
         stopBGM();
-        
+
         // Orphan the old bgmGain node by fading it out
         const oldBgmGain = bgmGain;
         if (oldBgmGain) {
@@ -345,7 +418,7 @@ const AudioController = (() => {
             oldBgmGain.gain.setValueAtTime(oldBgmGain.gain.value, audioCtx.currentTime);
             oldBgmGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
         }
-        
+
         // Create a new bgmGain node for the new style to prevent overlap
         bgmGain = audioCtx.createGain();
         bgmGain.gain.value = 0;
@@ -444,10 +517,10 @@ const levenshteinDistance = AppServices.levenshteinDistance;
 
 function getTypingAnswerScore(playerAns, q) {
     if (!playerAns) return 0;
-    
+
     const lAns = playerAns.toLowerCase().replace(/\s+/g, ' ').trim();
     const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-    
+
     let penalty = 0;
     if (q.rejectedWords && Array.isArray(q.rejectedWords)) {
         const cleanPlayer = lAns.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ');
@@ -461,20 +534,20 @@ function getTypingAnswerScore(playerAns, q) {
             }
         }
     }
-    
+
     const results = getTypingKeyResults(playerAns, q);
     let totalEarned = 0;
     for (let r of results) {
         if (r.matched) totalEarned += r.pts;
     }
-    
+
     if (q.partialCredit === false) {
         totalEarned = totalEarned > 0 ? 100 : 0;
     }
-    
+
     totalEarned -= penalty;
     if (totalEarned < 0) totalEarned = 0;
-    
+
     return totalEarned;
 }
 
@@ -502,7 +575,7 @@ function getTypingKeyResults(playerAns, q) {
         const exactMatch = (typeof itemObj === 'object' && itemObj.exact === true);
         const orderedMatch = (typeof itemObj === 'object' && itemObj.ordered === true);
         const followsPrevious = (typeof itemObj === 'object' && itemObj.followsPrevious === true);
-        
+
         const synonyms = text.split('/').map(s => normalize(s));
         let itemMatched = false;
         let matchedSyn  = null;
@@ -513,18 +586,18 @@ function getTypingKeyResults(playerAns, q) {
                 const cleanPlayer = lAns.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ');
                 const cleanSyn    = syn.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ');
                 const playerWords = cleanPlayer.split(/[\s]+/).filter(w => w.length > 0);
-                
+
                 let searchStart = 0;
                 let searchMax = playerWords.length - 1;
-                
+
                 if (followsPrevious && previousKeyEndIndex !== -1) {
                     searchStart = previousKeyEndIndex + 1;
                     searchMax = Math.min(playerWords.length - 1, searchStart + 10);
                 }
-                
+
                 const synWords = cleanSyn.split(/[\s]+/).filter(w => w.length > 0);
                 let foundEndIndex = -1;
-                
+
                 // First try: Strict word-boundary sequence match
                 for (let i = searchStart; i <= searchMax - synWords.length + 1; i++) {
                     let isExactSequence = true;
@@ -538,10 +611,10 @@ function getTypingKeyResults(playerAns, q) {
                         break;
                     }
                 }
-                
+
                 if (foundEndIndex !== -1) {
-                    itemMatched = true; 
-                    matchedSyn = syn; 
+                    itemMatched = true;
+                    matchedSyn = syn;
                     currentKeyEndIndex = foundEndIndex;
                     break;
                 } else if (exactMatch) {
@@ -555,7 +628,7 @@ function getTypingKeyResults(playerAns, q) {
                             let negationMatched = true;
                             let wordMatchIndices = [];
                             let overallMaxEnd = -1;
-                            
+
                             for (let sWord of synWords) {
                                 let indices = [];
                                 for (let pIndex = searchStart; pIndex <= searchMax; pIndex++) {
@@ -569,7 +642,7 @@ function getTypingKeyResults(playerAns, q) {
                                             if (levenshteinDistance(pWord, sWord) <= maxDist) isMatch = true;
                                         }
                                     }
-                                    
+
                                     if (isMatch) {
                                         indices.push(pIndex);
                                         if (pIndex > overallMaxEnd) overallMaxEnd = pIndex;
@@ -590,7 +663,7 @@ function getTypingKeyResults(playerAns, q) {
                             } else if (synWords.length >= 3) {
                                 required = synWords.length - 1;
                             }
-                            
+
                             let proximityValid = false;
                             if (matchCount >= required && negationMatched) {
                                 // Check if there's a valid combination of indices within a maximum spread
@@ -614,23 +687,23 @@ function getTypingKeyResults(playerAns, q) {
                                 }
                                 proximityValid = checkProximity(0, []);
                             }
-                            
-                            if (proximityValid) { 
-                                itemMatched = true; 
-                                matchedSyn = syn; 
+
+                            if (proximityValid) {
+                                itemMatched = true;
+                                matchedSyn = syn;
                                 currentKeyEndIndex = overallMaxEnd;
-                                break; 
+                                break;
                             }
                         }
                     }
                 }
             }
         }
-        
+
         if (itemMatched) {
             previousKeyEndIndex = currentKeyEndIndex;
         }
-        
+
         results.push({ text, pts, matched: itemMatched, matchedSyn });
     }
     return results;
@@ -709,7 +782,7 @@ function buildTypingFeedbackHTML(playerAns, q) {
 function switchScreen(screenName) {
     Object.values(screens).forEach(screen => screen.classList.remove('active'));
     screens[screenName].classList.add('active');
-    
+
     // Reset any leftover scroll so switching screens never leaves blank space
     document.getElementById('app').scrollTop = 0;
     screens[screenName].scrollTop = 0;
@@ -717,16 +790,16 @@ function switchScreen(screenName) {
     if (screenName === 'dashboard') {
         renderDashboard();
     }
-    
+
     // Hide global navigation on maker screen to avoid overlap with its custom navbar
     const globalNav = document.getElementById('global-nav-container');
     const globalControls = document.querySelector('.global-controls');
-    
+
     if (globalNav) {
         globalNav.style.display = 'block';
         if (globalControls) globalControls.style.display = 'flex';
     }
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -895,20 +968,20 @@ async function renderDashboard() {
     migrateOldCloudQuizzes();
     const list = document.getElementById('local-quizzes-list');
     const library = await getLocalQuizzes();
-    
+
     if (library.length === 0) {
         list.innerHTML = `<div style="text-align: center; color: #777; padding: 2rem;">No saved quizzes found in this browser.</div>`;
         return;
     }
-    
+
     list.innerHTML = '';
     library.forEach((quiz, index) => {
         const div = document.createElement('div');
         div.className = 'quiz-glass-card';
-        
+
         let firstQ = quiz.questions && quiz.questions.length > 0 ? quiz.questions[0] : null;
         let thumbHtml = '<div style="width: 80px; height: 80px; background: #eee; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#ccc; margin-right:15px;">❓</div>';
-        
+
         if (firstQ && firstQ.imageUrl) {
             if (firstQ.mediaType === 'video') {
                 thumbHtml = `<div style="width: 80px; height: 80px; background: #333; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:2rem; margin-right:15px;">🎥</div>`;
@@ -916,7 +989,7 @@ async function renderDashboard() {
                 thumbHtml = `<img src="${firstQ.imageUrl}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-right: 15px;">`;
             }
         }
-        
+
         div.innerHTML = `
             <div style="display:flex; align-items:center;">
                 ${thumbHtml}
@@ -961,7 +1034,7 @@ async function renderDashboard() {
             switchScreen('maker');
         });
     });
-    
+
     document.querySelectorAll('.btn-delete-quiz').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const idx = e.target.getAttribute('data-index');
@@ -973,7 +1046,7 @@ async function renderDashboard() {
                 confirmButtonColor: 'var(--danger)',
                 confirmButtonText: 'Yes, delete it!'
             });
-            
+
             if (result.isConfirmed) {
                 const library = await getLocalQuizzes();
                 library.splice(idx, 1);
@@ -982,15 +1055,15 @@ async function renderDashboard() {
             }
         });
     });
-    
+
     document.querySelectorAll('.btn-share-cloud').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const idx = e.target.getAttribute('data-index');
             const library = await getLocalQuizzes();
             const quiz = library[idx];
-            
+
             if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
-            
+
             const defaultCode = quiz.title ? quiz.title.toLowerCase().replace(/[^a-z0-9-]/g, '-') : "my-quiz";
             const result = await Swal.fire({
                 title: 'Share Quiz to Cloud',
@@ -1000,7 +1073,7 @@ async function renderDashboard() {
                 showCancelButton: true,
                 confirmButtonText: 'Upload & Get Code'
             });
-            
+
             if (result.isConfirmed && result.value) {
                 const code = result.value.trim();
                 try {
@@ -1066,7 +1139,7 @@ document.getElementById('btn-save-ai-settings').addEventListener('click', () => 
 
 document.getElementById('btn-dashboard-download').addEventListener('click', async () => {
     if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
-    
+
     const result = await Swal.fire({
         title: 'Download Shared Quiz',
         text: 'Enter the code or secret word:',
@@ -1074,7 +1147,7 @@ document.getElementById('btn-dashboard-download').addEventListener('click', asyn
         showCancelButton: true,
         confirmButtonText: 'Download'
     });
-    
+
     if (result.isConfirmed && result.value) {
         const code = result.value.trim();
         try {
@@ -1109,7 +1182,7 @@ document.getElementById('btn-save-library').addEventListener('click', async () =
         Swal.fire('Error', 'Add at least one question before saving!', 'error');
         return;
     }
-    
+
     // Validate all questions
     let invalidCount = 0;
     for (let i = 0; i < customQuizData.length; i++) {
@@ -1120,7 +1193,7 @@ document.getElementById('btn-save-library').addEventListener('click', async () =
             if (!q.options || q.options.filter(o => o.text.trim() || o.isImage).length < 2) invalidCount++;
         }
     }
-    
+
     if (invalidCount > 0) {
         Swal.fire('Warning', `You have ${invalidCount} incomplete question(s). Please fix them before saving.`, 'warning');
         return;
@@ -1128,7 +1201,7 @@ document.getElementById('btn-save-library').addEventListener('click', async () =
 
     const title = document.getElementById('maker-quiz-title').value.trim() || 'Untitled Quiz';
     const library = await getLocalQuizzes();
-    
+
     // Check if we are updating an existing quiz by title
     const existingIndex = library.findIndex(q => q.title === title);
     if (existingIndex !== -1) {
@@ -1140,7 +1213,7 @@ document.getElementById('btn-save-library').addEventListener('click', async () =
             questions: customQuizData
         });
     }
-    
+
     await saveLocalQuizzes(library);
     Swal.fire({
         toast: true,
@@ -1168,7 +1241,7 @@ document.getElementById('btn-import-question').addEventListener('click', async (
         opt.innerText = `${quiz.title || 'Untitled Quiz'} (${qsLength} Qs)`;
         importSelect.appendChild(opt);
     });
-    
+
     importList.innerHTML = `<div style="text-align: center; color: #777; padding: 2rem;">Please select a quiz from the dropdown.</div>`;
     btnImportAll.style.display = 'none';
     importModal.style.display = 'flex';
@@ -1185,11 +1258,11 @@ importSelect.addEventListener('change', async (e) => {
         btnImportAll.style.display = 'none';
         return;
     }
-    
+
     const library = await getLocalQuizzes();
     const quiz = library[idx];
     btnImportAll.style.display = 'block';
-    
+
     importList.innerHTML = '';
     const qsArray = quiz.questions || [];
     if (qsArray.length === 0) {
@@ -1207,9 +1280,9 @@ importSelect.addEventListener('change', async (e) => {
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
         div.style.alignItems = 'center';
-        
+
         let typeBadge = `<span style="font-size: 0.7rem; background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; margin-right: 8px;">${q.type === 'typing' ? 'Text' : (q.type==='true-false' ? 'T/F' : 'Multiple Choice')}</span>`;
-        
+
         div.innerHTML = `
             <div style="flex: 1; margin-right: 15px;">
                 ${typeBadge} <strong style="color: var(--text-main);">${q.text}</strong>
@@ -1218,7 +1291,7 @@ importSelect.addEventListener('change', async (e) => {
         `;
         importList.appendChild(div);
     });
-    
+
     document.querySelectorAll('.btn-import-single').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const qIdx = e.target.getAttribute('data-qidx');
@@ -1238,7 +1311,7 @@ importSelect.addEventListener('change', async (e) => {
             });
         });
     });
-    
+
     // Store selected quiz in button data
     btnImportAll.setAttribute('data-quiz-idx', idx);
 });
@@ -1247,11 +1320,11 @@ btnImportAll.addEventListener('click', async () => {
     const idx = btnImportAll.getAttribute('data-quiz-idx');
     const library = await getLocalQuizzes();
     const quiz = library[idx];
-    
+
     const qsToImport = JSON.parse(JSON.stringify(quiz.questions || []));
     customQuizData = customQuizData.concat(qsToImport);
     renderMakerList();
-    
+
     importModal.style.display = 'none';
     Swal.fire('Imported!', `Added ${qsToImport.length} questions to your quiz.`, 'success');
 });
@@ -1404,7 +1477,7 @@ function updateAIToggleUI() {
     optionsContainers.forEach(container => {
         container.style.display = isAIOn ? 'none' : 'flex';
     });
-    
+
     const rejectedWrapper = document.getElementById('maker-typing-rejected-wrapper');
     if (rejectedWrapper) {
         rejectedWrapper.style.display = isAIOn ? 'none' : 'block';
@@ -1442,7 +1515,7 @@ function addTypingKeyRow(text = '', points = 10, exact = false, ordered = false,
             <label class="toggle-label" style="font-size: 0.8rem; margin:0; display:flex; align-items:center; color:var(--text-main);">
                 <input type="checkbox" class="key-exact" ${exact ? 'checked' : ''}>
                 <span class="toggle-switch" style="transform: scale(0.7); transform-origin: left center; margin-right: 5px;"></span>
-                Exact 
+                Exact
                 <i class="fa fa-question-circle" style="margin-left: 4px; color: var(--primary); cursor: pointer;" onclick="Swal.fire({
                     title: 'Exact Mode',
                     html: '<p align=\\'left\\'>Exact mode requires the exact sequence of words to appear somewhere in the student\\'s answer. Spelling mistakes are NOT allowed.</p><p align=\\'left\\'><b>However, it still ignores:</b><br>- Extra words in their answer<br>- Capital letters<br>- Punctuation (commas, periods)</p><p align=\\'left\\' style=\\'color:var(--text-muted)\\'>Example: If your key is <i>Heart Attack</i>, a student typing <i>The patient had a hEART attack today.</i> is still marked 100% correct!</p>',
@@ -1458,17 +1531,17 @@ function addTypingKeyRow(text = '', points = 10, exact = false, ordered = false,
             ` : ''}
         </div>
     `;
-    
+
     const exactCb = row.querySelector('.key-exact');
     const orderedCb = row.querySelector('.key-ordered');
     exactCb.addEventListener('change', () => { if (exactCb.checked) orderedCb.checked = false; });
     orderedCb.addEventListener('change', () => { if (orderedCb.checked) exactCb.checked = false; });
-    
+
     row.querySelector('.btn-remove-key').addEventListener('click', () => {
         row.remove();
     });
     typingKeysContainer.appendChild(row);
-    
+
     // Ensure newly added row honors the current AI toggle state
     updateAIToggleUI();
 }
@@ -1511,7 +1584,7 @@ window.editQuestion = (index) => {
     document.getElementById('maker-content-area').style.display = "block";
 
     document.getElementById('maker-q-type').value = q.type;
-    
+
     if (q.type === 'info') {
         document.getElementById('maker-form-title').innerText = "Edit Info Slide";
         document.getElementById('maker-form-container').dataset.type = 'info';
@@ -1538,7 +1611,7 @@ window.editQuestion = (index) => {
     const hasMedia = !!q.imageUrl;
     document.getElementById('maker-add-media-toggle').checked = hasMedia;
     document.getElementById('maker-media-fields').style.display = hasMedia ? 'none' : 'none'; // Don't show URL fields if they already added media, just show the preview
-    
+
     // Use the common render function for the maker preview
     renderMediaCommon(q, 'maker', false);
 
@@ -1557,7 +1630,7 @@ window.editQuestion = (index) => {
             if (opt) {
                 document.getElementById(`mc-opt-${i}`).value = typeof opt === 'string' ? opt : opt.text;
                 // isImage is detected automatically - no checkbox needed
-                
+
                 const qCorrectRaw = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
                 const optRaw = typeof opt === 'string' ? opt : opt.text;
                 if (optRaw === qCorrectRaw) {
@@ -1615,10 +1688,10 @@ window.editQuestion = (index) => {
 window.deleteQuestion = (index) => {
     if(confirm("Delete this question?")) {
         customQuizData.splice(index, 1);
-        
+
         const editIndexInput = document.getElementById('edit-q-index');
         const currentIndex = parseInt(editIndexInput.value);
-        
+
         if (currentIndex === index) {
             // The currently edited question was deleted, so close the editor
             resetMakerForm();
@@ -1626,7 +1699,7 @@ window.deleteQuestion = (index) => {
             // A question before the currently edited one was deleted, shift the index down
             editIndexInput.value = currentIndex - 1;
         }
-        
+
         renderMakerList();
         if (customQuizData.length === 0) {
             document.getElementById('btn-host-quiz').disabled = true;
@@ -1642,9 +1715,9 @@ document.getElementById('btn-close-maker-form').addEventListener('click', () => 
 
 document.getElementById('btn-show-maker-form').addEventListener('click', async () => {
     saveActiveQuestion();
-    
+
     window.tempSelectedType = null;
-    
+
     const result = await Swal.fire({
         title: 'Select Question Type',
         html: `
@@ -1661,7 +1734,7 @@ document.getElementById('btn-show-maker-form').addEventListener('click', async (
             popup: 'glass-container'
         }
     });
-    
+
     if (result.isConfirmed && window.tempSelectedType) {
         const selectedType = window.tempSelectedType;
         customQuizData.push({
@@ -1698,7 +1771,7 @@ document.getElementById('btn-show-info-form').addEventListener('click', () => {
 function resetMakerForm(defaultType = 'question') {
     document.getElementById('edit-q-index').value = "-1";
     document.getElementById('maker-form-container').style.display = "none";
-    
+
     const statusEl = document.getElementById('maker-save-status');
     if (statusEl) {
         statusEl.classList.remove('is-saved', 'is-dirty', 'is-error');
@@ -1706,7 +1779,7 @@ function resetMakerForm(defaultType = 'question') {
     }
     document.getElementById('maker-content-area').style.display = "none";
     document.getElementById('maker-q-type').value = "";
-    
+
     document.getElementById('maker-q-text').value = '';
     document.getElementById('maker-q-text').placeholder = 'Tap to add question';
     document.getElementById('maker-context').value = '';
@@ -1728,7 +1801,7 @@ function resetMakerForm(defaultType = 'question') {
         document.getElementById(`mc-file-preview-${i}`).innerText = '';
         mcUploadedImages[i] = null;
     }
-    
+
     if (defaultType === 'info') {
         document.getElementById('maker-form-title').innerText = "Add Info Slide";
         document.getElementById('maker-form-container').dataset.type = 'info';
@@ -1766,13 +1839,13 @@ window.saveActiveQuestion = async () => {
         const freePoint = document.getElementById('maker-free-point').checked;
 
         const mediaType = document.getElementById('maker-media-type').value;
-        
+
         let imageUrl = document.getElementById('maker-img-url').value;
         const fileInput = document.getElementById('maker-img-file');
-        
+
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
-            
+
             if (mediaType === 'video') {
                 if (file.size > 5 * 1024 * 1024) {
                     throw new Error("Video file is too large! Please keep videos under 5MB or upload to YouTube and paste the link.");
@@ -1781,7 +1854,7 @@ window.saveActiveQuestion = async () => {
                     throw new Error("Apple .mov videos are not supported by most browsers! Please convert to vdo or upload to YouTube and paste the link instead.");
                 }
             }
-            
+
             imageUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -1819,7 +1892,7 @@ window.saveActiveQuestion = async () => {
                 reader.onerror = (e) => reject(new Error("Failed to read file"));
                 reader.readAsDataURL(file);
             });
-            
+
             // Clear the file input so it doesn't get re-processed
             fileInput.value = '';
             document.getElementById('maker-img-url').value = imageUrl;
@@ -1827,7 +1900,7 @@ window.saveActiveQuestion = async () => {
 
         // Update the live preview immediately on save
         renderMediaCommon({ imageUrl: imageUrl, mediaType: mediaType }, 'maker', false);
-        
+
         if (imageUrl) {
             document.getElementById('maker-add-media-toggle').checked = true;
             document.getElementById('maker-media-fields').style.display = 'none';
@@ -1846,7 +1919,7 @@ window.saveActiveQuestion = async () => {
             let correctOptObj = null;
             const selectedRadioEl = document.querySelector('input[name="mc-correct"]:checked');
             const selectedRadio = selectedRadioEl ? selectedRadioEl.value : null;
-            
+
             for(let i=0; i<5; i++){
                 const val = document.getElementById(`mc-opt-${i}`).value.trim();
                 // Detect image automatically: data URLs or http image links
@@ -1862,11 +1935,11 @@ window.saveActiveQuestion = async () => {
             // No longer throwing error on auto-save
             // if (opts.length < 2) throw new Error("Please provide at least 2 multiple choice options.");
             // if (!correctOptObj && !freePoint) throw new Error("The selected correct answer is blank!");
-            
+
             q.options = opts;
             q.correctAnswer = correctOptObj || opts[0];
             q.acceptedAnswers = [q.correctAnswer];
-            
+
         } else if (type === 'true-false') {
             const tfRadioEl = document.querySelector('input[name="tf-correct"]:checked');
             const val = tfRadioEl ? tfRadioEl.value : null;
@@ -1898,34 +1971,34 @@ window.saveActiveQuestion = async () => {
             });
             // No longer throwing error on auto-save
             // if(objs.length === 0 && !freePoint) throw new Error("Please provide at least one correct answer key.");
-            
-            q.correctAnswer = objs[0] || {text:"", isImage:false}; 
+
+            q.correctAnswer = objs[0] || {text:"", isImage:false};
             q.acceptedAnswers = objs;
             q.forgiving = true; // Hardcoded default, now controlled per key via exact/ordered
             if (document.getElementById('maker-typing-ai-grading')) {
                 q.aiGrading = document.getElementById('maker-typing-ai-grading').checked;
             }
-            
+
             const rejectedInput = document.getElementById('maker-typing-rejected');
             if (rejectedInput && rejectedInput.value.trim()) {
                 q.rejectedWords = rejectedInput.value.split(',').map(w => w.trim()).filter(w => w.length > 0);
             } else {
                 delete q.rejectedWords;
             }
-            
+
             q.partialCredit = true;
         }
 
         if (editIndex >= 0) {
             customQuizData[editIndex] = q;
         }
-        
+
         renderMakerList();
-        
+
         if (customQuizData.length > 0) {
             document.getElementById('btn-host-quiz').disabled = false;
         }
-        
+
         hideMakerError();
         markMakerSaved();
     } catch (err) {
@@ -2028,13 +2101,13 @@ window.hideMakerError = () => {
 
 window.forceSaveActiveQuestion = () => {
     // Re-run save logic but actually throw/show errors this time
-    saveActiveQuestion(); 
-    
+    saveActiveQuestion();
+
     // Manual validation since saveActiveQuestion is now silent
     const editIndex = parseInt(document.getElementById('edit-q-index').value);
     const q = customQuizData[editIndex];
     if (!q) return;
-    
+
     let errorMsg = null;
     if (!q.text.trim() && q.type !== 'info') errorMsg = "Please provide a question text.";
     if (q.type === 'multiple-choice') {
@@ -2045,7 +2118,7 @@ window.forceSaveActiveQuestion = () => {
             errorMsg = "Please select a correct answer.";
         }
     }
-    
+
     if (errorMsg) {
         showMakerError(errorMsg);
         Swal.fire('Incomplete', errorMsg, 'warning');
@@ -2067,23 +2140,24 @@ window.renderPlayerScreen = (q, isPreview = false) => {
     document.getElementById('question-text').innerText = q.text || "No question text";
     document.getElementById('question-text').style.wordBreak = 'normal';
     document.getElementById('question-text').style.overflowWrap = 'break-word';
-    
+
     renderMediaCommon(q, 'ekg', true);
-    
+
     if (q.type !== 'info') {
         renderOptions('options-container', q, true, 0, false);
     } else {
         document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
     }
-    
+
     let timeLeft = q.timer;
-    document.getElementById('hud-timer').innerText = timeLeft > 0 ? timeLeft : "∞";
-    
+    window._currentTimerMax = timeLeft;
+    setHudTimer(timeLeft);
+
     clearInterval(window.localTimer);
     if (timeLeft > 0 && !isPreview) {
         window.localTimer = setInterval(() => {
             timeLeft--;
-            document.getElementById('hud-timer').innerText = timeLeft;
+            setHudTimer(timeLeft);
             if (timeLeft <= 0) clearInterval(window.localTimer);
         }, 1000);
     }
@@ -2092,19 +2166,19 @@ window.renderPlayerScreen = (q, isPreview = false) => {
 window.previewActiveQuestion = () => {
     saveActiveQuestion(); // Ensure latest state is saved
     const editIndex = parseInt(document.getElementById('edit-q-index').value);
-    
+
     // Set up a mini game state just for this question
     window.currentQuizData = JSON.parse(JSON.stringify(customQuizData)); // deep copy
     window.currentQuestionIndex = editIndex;
-    
+
     // Switch to player screen but we are host, so it acts like a test
     document.getElementById('maker-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
-    
+
     document.getElementById('global-nav-container').style.display = 'none';
     const globalControls = document.querySelector('.global-controls');
     if (globalControls) globalControls.style.display = 'flex';
-    
+
     // Give them a back button overlay to return to maker
     let backBtn = document.getElementById('preview-back-btn');
     if (!backBtn) {
@@ -2134,7 +2208,7 @@ window.previewActiveQuestion = () => {
         document.body.appendChild(backBtn);
     }
     backBtn.style.display = 'block';
-    
+
     renderPlayerScreen(customQuizData[editIndex], true);
 };
 
@@ -2179,19 +2253,19 @@ window.handleDragLeave = (e) => {
 window.handleDrop = (e, targetIndex) => {
     e.stopPropagation();
     e.currentTarget.style.borderTop = '1px solid var(--glass-border)';
-    
+
     if (draggedQuestionIndex === -1 || draggedQuestionIndex === targetIndex) {
         return false;
     }
-    
+
     // Perform reorder
     const item = customQuizData.splice(draggedQuestionIndex, 1)[0];
     customQuizData.splice(targetIndex, 0, item);
-    
+
     // Update edit-q-index if needed
     const editIndexInput = document.getElementById('edit-q-index');
     let currentIndex = parseInt(editIndexInput.value);
-    
+
     if (currentIndex === draggedQuestionIndex) {
         // We moved the active item
         currentIndex = targetIndex;
@@ -2206,7 +2280,7 @@ window.handleDrop = (e, targetIndex) => {
         }
     }
     editIndexInput.value = currentIndex;
-    
+
     renderMakerList();
     return false;
 };
@@ -2220,17 +2294,17 @@ window.handleDragEnd = (e) => {
 window.renderMakerList = () => {
     const list = document.getElementById('questions-list');
     const editIndex = parseInt(document.getElementById('edit-q-index').value);
-    
+
     list.innerHTML = customQuizData.map((q, i) => {
         let typeLabel = 'Quiz';
         if (q.type === 'info') typeLabel = 'Slide';
         else if (q.type === 'multiple-choice') typeLabel = 'Multiple Choice';
         else if (q.type === 'typing') typeLabel = 'Typing';
         else if (q.type === 'true-false') typeLabel = 'True/False';
-        
+
         return `
-        <div class="maker-thumbnail ${editIndex === i ? 'active' : ''}" 
-             onclick="selectQuestion(${i})" 
+        <div class="maker-thumbnail ${editIndex === i ? 'active' : ''}"
+             onclick="selectQuestion(${i})"
              draggable="true"
              ondragstart="handleDragStart(event, ${i})"
              ondragover="handleDragOver(event)"
@@ -2250,7 +2324,7 @@ window.renderMakerList = () => {
         </div>
         `;
     }).join('');
-    
+
     // Auto-enable or disable the Host button based on data
     const hostBtn = document.getElementById('btn-host-quiz');
     if (hostBtn) {
@@ -2266,7 +2340,7 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
     if (document.getElementById('maker-form-container').style.display === 'block') {
         saveActiveQuestion();
     }
-    
+
     // Validate all questions
     let invalidCount = 0;
     for (let i = 0; i < customQuizData.length; i++) {
@@ -2277,7 +2351,7 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
             if (!q.options || q.options.filter(o => o.text.trim() || o.isImage).length < 2) invalidCount++;
         }
     }
-    
+
     if (invalidCount > 0) {
         Swal.fire('Warning', `You have ${invalidCount} incomplete question(s). Please fix them before hosting.`, 'warning');
         return;
@@ -2285,11 +2359,11 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
 
     if (!db) return alert("Firebase not configured!");
     const quizTitle = document.getElementById('maker-quiz-title').value.trim() || 'Spot Diagnosis Game';
-    
+
     roomCode = Math.floor(100000 + Math.random() * 900000).toString();
     document.getElementById('display-room-code').innerText = roomCode;
     document.getElementById('lobby-quiz-title').innerText = quizTitle;
-    
+
     const joinUrl = window.location.href.split('?')[0] + "?room=" + roomCode;
     document.getElementById('qrcode').innerHTML = "";
     document.getElementById('qrcode').classList.add('zoomable');
@@ -2297,7 +2371,7 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
         text: joinUrl,
         width: 300, height: 300
     });
-    
+
     let debugText = document.getElementById('qr-debug-text');
     if (!debugText) {
         debugText = document.createElement('div');
@@ -2323,10 +2397,10 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
         const players = snapshot.val() || {};
         const count = Object.keys(players).length;
         document.getElementById('lobby-player-count').innerText = count;
-        document.getElementById('host-total-players').innerText = count; 
-        
-        document.getElementById('lobby-players-list').innerHTML = Object.keys(players).map(name => 
-            `<div class="player-chip">${name}</div>`
+        document.getElementById('host-total-players').innerText = count;
+
+        document.getElementById('lobby-players-list').innerHTML = Object.keys(players).map(name =>
+            playerChipHTML(name)
         ).join('');
     });
 
@@ -2337,7 +2411,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
     if (!db) return alert("Firebase not configured!");
     roomCode = document.getElementById('join-room-code').value.trim();
     playerName = document.getElementById('join-player-name').value.trim();
-    
+
     if (!roomCode || !playerName) return alert("Enter Code and Name");
 
     // Audio was already unlocked on 'Join a Room' click
@@ -2345,7 +2419,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
     const snap = await db.ref(`rooms/${roomCode}`).get();
     if (!snap.exists()) return alert("Room not found!");
     const roomData = snap.val();
-    
+
     document.getElementById('display-room-code').innerText = roomCode;
     document.getElementById('lobby-quiz-title').innerText = roomData.quizTitle || 'Spot Diagnosis Game';
 
@@ -2358,7 +2432,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
 
     // BUGFIX: Save playerName+room to sessionStorage so page refresh can auto-rejoin
     sessionStorage.setItem('playerName_' + roomCode, playerName);
-    
+
     // BUGFIX: Update the URL so if the user refreshes, the app knows which room to check for
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?room=" + roomCode;
     window.history.replaceState({path: newUrl}, '', newUrl);
@@ -2368,14 +2442,18 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
         if (state === 'starting_countdown') {
             switchScreen('countdown');
             let c = 3;
-            document.getElementById('countdown-number').innerText = c;
+            const numEl = document.getElementById('countdown-number');
+            numEl.classList.remove('go');
+            numEl.innerText = c;
             AudioController.playTick();
             const cdInt = setInterval(() => {
                 c--;
                 if(c > 0) {
-                    document.getElementById('countdown-number').innerText = c;
+                    numEl.innerText = c;
                     AudioController.playTick();
                 } else {
+                    numEl.classList.add('go');
+                    numEl.innerText = 'GO!';
                     clearInterval(cdInt);
                 }
             }, 1000);
@@ -2403,17 +2481,17 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
             showReviewDetail(idx);
         }
     });
-    
+
     db.ref(`rooms/${roomCode}/players`).on('value', (snapshot) => {
         const players = snapshot.val() || {};
         const count = Object.keys(players).length;
         const countEl = document.getElementById('lobby-player-count');
         if(countEl) countEl.innerText = count;
-        
+
         const listEl = document.getElementById('lobby-players-list');
         if(listEl) {
-            listEl.innerHTML = Object.keys(players).map(name => 
-                `<div class="player-chip">${name}</div>`
+            listEl.innerHTML = Object.keys(players).map(name =>
+                playerChipHTML(name)
             ).join('');
         }
     });
@@ -2492,7 +2570,7 @@ if (urlParams.has('room')) {
                 const listEl = document.getElementById('lobby-players-list');
                 if (listEl) {
                     listEl.innerHTML = Object.keys(players).map(name =>
-                        `<div class="player-chip">${name}</div>`
+                        playerChipHTML(name)
                     ).join('');
                 }
             });
@@ -2510,7 +2588,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
     const imgEl = document.getElementById(`${prefix}-image`);
     const vidEl = document.getElementById(`${prefix}-video`);
     let ytEl = document.getElementById(`${prefix}-youtube`);
-    
+
     if (mediaContainer && !q.imageUrl) {
         mediaContainer.style.display = 'none';
         if (vidEl) vidEl.pause();
@@ -2520,7 +2598,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
         }
         return;
     }
-    
+
     if (mediaContainer) {
         if (mediaContainer.dataset.currentUrl === q.imageUrl && mediaContainer.dataset.currentType === q.mediaType) {
             return; // Media hasn't changed, skip re-rendering to prevent page shaking
@@ -2529,7 +2607,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
         mediaContainer.dataset.currentType = q.mediaType || '';
         mediaContainer.style.display = prefix === 'ekg' ? 'flex' : 'block';
     }
-    
+
     if (!ytEl && vidEl) {
         ytEl = document.createElement('iframe');
         ytEl.id = `${prefix}-youtube`;
@@ -2542,11 +2620,11 @@ function renderMediaCommon(q, prefix, autoplay = false) {
         ytEl.setAttribute('allow', 'autoplay; encrypted-media');
         vidEl.parentNode.insertBefore(ytEl, vidEl.nextSibling);
     }
-    
+
     if (imgEl) imgEl.style.display = 'none';
     if (vidEl) { vidEl.style.display = 'none'; vidEl.pause(); }
     if (ytEl) { ytEl.style.display = 'none'; ytEl.src = ''; }
-    
+
     if (q.mediaType === 'video') {
         const isYoutube = q.imageUrl.includes('youtube.com') || q.imageUrl.includes('youtu.be');
         if (isYoutube && ytEl) {
@@ -2569,33 +2647,33 @@ function renderMediaCommon(q, prefix, autoplay = false) {
     }
 }
 
-function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false) {
+function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false, myAnswer = null) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
-    
+
     if (q.type === 'multiple-choice' || q.type === 'true-false') {
         q.options.forEach((optRaw, idx) => {
             const btn = document.createElement('button');
             btn.className = 'option-btn kahoot-btn';
-            
+
             const isImg = typeof optRaw === 'string' ? false : optRaw.isImage;
             const text = typeof optRaw === 'string' ? optRaw : optRaw.text;
-            
+
             const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff'];
             const shapes = ['▲', '♦', '●', '■', '★'];
-            
+
             btn.style.backgroundColor = colors[idx % colors.length];
-            
+
             let contentHtml = "";
             if (isImg) {
                 contentHtml = `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px; margin-left:10px;">`;
             } else {
                 contentHtml = `<span class="kahoot-answer-text">${text}</span>`;
             }
-            
+
             btn.innerHTML = `<span class="kahoot-shape">${shapes[idx % shapes.length]}</span> ${contentHtml}`;
-            
+
             if (isFeedback) {
                 let isCorrectAnswer = false;
                 if (!q.freePoint) {
@@ -2606,9 +2684,17 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
                     // For free points, all answers are considered correct/undimmed
                     isCorrectAnswer = true;
                 }
-                
-                if (!isCorrectAnswer) {
+
+                // Stagger the reveal for a game-show cascade effect
+                btn.style.animationDelay = (idx * 0.08) + 's';
+
+                if (isCorrectAnswer) {
+                    btn.classList.add('reveal-correct');
+                } else {
                     btn.classList.add('dimmed');
+                    if (myAnswer != null && text === myAnswer) {
+                        btn.classList.add('reveal-wrong');
+                    }
                 }
             } else if (isInteractive) {
                 btn.onclick = () => submitAnswer(text, q, qIndex);
@@ -2654,30 +2740,34 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
    GAME LOOP (HOST)
 ===================================================================== */
 function startQuestionFlow() {
-    db.ref(`rooms/${roomCode}`).update({ 
+    db.ref(`rooms/${roomCode}`).update({
         gameState: 'starting_countdown',
-        currentQuestionIndex: currentQuestionIndex 
+        currentQuestionIndex: currentQuestionIndex
     });
     switchScreen('countdown');
     let count = 3;
-    document.getElementById('countdown-number').innerText = count;
-    
+    const countEl = document.getElementById('countdown-number');
+    countEl.classList.remove('go');
+    countEl.innerText = count;
+
     const cdInt = setInterval(() => {
         count--;
         if (count > 0) {
-            document.getElementById('countdown-number').innerText = count;
+            countEl.innerText = count;
         } else {
             clearInterval(cdInt);
+            countEl.classList.add('go');
+            countEl.innerText = 'GO!';
             db.ref(`rooms/${roomCode}`).update({ gameState: 'question_preview' });
             switchScreen('preview');
-            
+
             const q = customQuizData[currentQuestionIndex];
             document.getElementById('preview-q-num').innerText = `Question ${currentQuestionIndex + 1}`;
             document.getElementById('preview-q-text').innerText = q.text;
             document.getElementById('preview-q-text').style.wordBreak = 'normal';
             document.getElementById('preview-q-text').style.overflowWrap = 'break-word';
             document.getElementById('preview-media-container').style.display = 'none';
-            
+
             setTimeout(() => {
                 startNextQuestion();
             }, 5000);
@@ -2710,7 +2800,7 @@ async function startNextQuestion() {
             gameState: 'playing',
             questionStartTime: Date.now()
         });
-        
+
         // Reset players hasAnswered state safely
         const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
         const players = pSnap.val() || {};
@@ -2718,7 +2808,7 @@ async function startNextQuestion() {
         for (let p in players) {
             updates[`${p}/hasAnswered`] = -1;
         }
-        
+
         // Only update if there are players, to prevent empty update errors
         if (Object.keys(updates).length > 0) {
             await db.ref(`rooms/${roomCode}/players`).update(updates);
@@ -2729,44 +2819,47 @@ async function startNextQuestion() {
     document.getElementById('question-text').innerText = q.text;
     document.getElementById('question-text').style.wordBreak = 'normal';
     document.getElementById('question-text').style.overflowWrap = 'break-word';
-    
+
     // Render Media (Img, Video, Youtube, or None)
     renderMediaCommon(q, 'ekg', false);
-    
+
     if (q.type !== 'info') {
         renderOptions('options-container', q, false, currentQuestionIndex, false);
     } else {
         document.getElementById('options-container').innerHTML = ''; // Clear options
     }
-    
+
     timeLeft = q.timer;
-    document.getElementById('hud-timer').innerText = timeLeft > 0 ? timeLeft : "∞";
-    
+    window._currentTimerMax = timeLeft;
+    setHudTimer(timeLeft);
+    setQuizProgress(currentQuestionIndex, customQuizData.length);
+
     if (q.type === 'info') {
         document.getElementById('host-answers-count').parentElement.style.display = 'none';
     } else {
         document.getElementById('host-answers-count').parentElement.style.display = 'block';
         document.getElementById('host-answers-count').innerText = "0";
     }
-    
+
     if (currentQuestionIndex === customQuizData.length - 1) {
         document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next (Finish Quiz)" : "Skip (Finish Quiz)";
     } else {
         document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next Slide" : "Skip / Next";
     }
-    
+
     if (hostPlayersListener) {
         db.ref(`rooms/${roomCode}/players`).off('value', hostPlayersListener);
         hostPlayersListener = null;
     }
-    
+
     if (q.type !== 'info') {
         hostPlayersListener = (snapshot) => {
             const pList = snapshot.val() || {};
             const total = Object.keys(pList).length;
             const answered = Object.values(pList).filter(p => p.hasAnswered === currentQuestionIndex).length;
             document.getElementById('host-answers-count').innerText = answered;
-            
+            document.getElementById('host-total-players').innerText = total;
+
             if (total > 0 && answered === total) endQuestion();
         };
         db.ref(`rooms/${roomCode}/players`).on('value', hostPlayersListener);
@@ -2776,14 +2869,14 @@ async function startNextQuestion() {
     if (timeLeft > 0) {
         localTimer = setInterval(() => {
             timeLeft--;
-            document.getElementById('hud-timer').innerText = timeLeft;
+            setHudTimer(timeLeft);
             if (timeLeft <= 0) {
                 clearInterval(localTimer);
                 endQuestion();
             }
         }, 1000);
     }
-    
+
     switchScreen('quiz');
     } catch (e) {
         alert("Failed to start question: " + e.message);
@@ -2798,7 +2891,7 @@ async function endQuestion() {
         hostPlayersListener = null;
     }
     document.getElementById('ekg-video').pause();
-    
+
     const q = customQuizData[currentQuestionIndex];
     if (q && q.type === 'info') {
         // Skip feedback for info slides, go directly to next question/results
@@ -2816,20 +2909,20 @@ async function runAIGrading(q, qIndex) {
     const apiKey = localStorage.getItem('geminiApiKey') || HARDCODED_GEMINI_KEY;
     const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = pSnap.val() || {};
-    
-    let answersToGrade = []; 
+
+    let answersToGrade = [];
     for (let pName in players) {
         const pData = players[pName];
         if (pData.answers && pData.answers[qIndex] !== undefined && pData.answers[qIndex] !== null) {
             answersToGrade.push({ playerName: pName, answer: pData.answers[qIndex] });
         }
     }
-    
+
     if (answersToGrade.length === 0) return;
-    
+
     const maxPoints = getTypingMaxPoints(q);
     const updates = {};
-    
+
     if (!apiKey) {
         // Fallback to local regex matching if no API key is set
         console.warn("No API key found. Falling back to local grading.");
@@ -2841,9 +2934,9 @@ async function runAIGrading(q, qIndex) {
         await db.ref().update(updates);
         return;
     }
-    
+
     const model = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
-    
+
     Swal.fire({
         title: 'AI is grading answers...',
         text: 'Please wait a moment',
@@ -2885,18 +2978,18 @@ async function runAIGrading(q, qIndex) {
         promptText += `${id}: ${JSON.stringify(ans.answer)}\n`;
         promptText += `Local pre-check for ${id} (use as a hint, verify independently): ${JSON.stringify(localResults)}\n`;
     });
-    
+
     try {
         // Use official Google SDK to support the new AQ. authorization keys
         const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
         const genAI = new GoogleGenerativeAI(apiKey);
         const generativeModel = genAI.getGenerativeModel({ model: model });
-        
+
         const result = await generativeModel.generateContent({
             contents: [{ role: 'user', parts: [{ text: promptText }] }],
             generationConfig: { responseMimeType: "application/json" }
         });
-        
+
         const rawJsonStr = result.response.text();
         const parsed = JSON.parse(rawJsonStr);
         const aiAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
@@ -2931,7 +3024,7 @@ async function runAIGrading(q, qIndex) {
                 updates[scorePath] = pts;
             }
         });
-        
+
         if (Object.keys(updates).length > 0) {
             await db.ref().update(updates);
         }
@@ -2959,7 +3052,7 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
     const players = pSnap.val() || {};
     const answersCount = {};
     let totalAnswers = 0;
-    
+
     // Initialize options with 0
     if (q.type === 'multiple-choice') {
         q.options.forEach(opt => {
@@ -2981,7 +3074,7 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
 
     if (true) {
         let chartHTML = `<h4 style="color:var(--text-main); margin-bottom: 0.5rem; text-align:center;">Responses:</h4>`;
-        
+
         let cText = "";
         if (q.type === 'multiple-choice' || q.type === 'true-false') {
             cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
@@ -2990,7 +3083,7 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
         for (let ans in answersCount) {
             const count = answersCount[ans];
             const pct = totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0;
-            
+
             let isCorrectAnswer = false;
             let barColor = 'var(--danger)';
             if (q.type === 'multiple-choice' || q.type === 'true-false') {
@@ -3014,12 +3107,12 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                 isCorrectAnswer = (earned === max && max > 0);
                 barColor = (earned > 0 && earned < max) ? '#eab308' : (isCorrectAnswer ? 'var(--success)' : 'var(--danger)');
             }
-            
+
             let labelHtml = ans;
             if (ans.startsWith('http://') || ans.startsWith('https://')) {
                 labelHtml = `<img src="${ans}" style="max-height:30px; vertical-align:middle;">`;
             }
-            
+
             chartHTML += `
                 <div style="margin-bottom: 12px;">
                     <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 4px; display:flex; justify-content:space-between;">
@@ -3041,13 +3134,13 @@ async function showHostFeedback() {
     const q = customQuizData[currentQuestionIndex];
     document.getElementById('feedback-title').innerText = "Time's Up!";
     document.getElementById('feedback-title').className = "";
-    
+
     // Render the choices, highlighting the correct one
     renderOptions('feedback-options-container', q, false, currentQuestionIndex, true);
-    
+
     // Render the bar chart
     await renderFeedbackChart('feedback-chart', q, currentQuestionIndex);
-    
+
     if (currentQuestionIndex === customQuizData.length - 1) {
         document.getElementById('btn-host-continue').innerText = "Finish Quiz";
     } else {
@@ -3063,7 +3156,7 @@ let studentCurrentPointsEarned = 0;
 async function loadStudentQuestion() {
     hasAnswered = false;
     studentCurrentPointsEarned = 0;
-    
+
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
     const q = room.quizData[room.currentQuestionIndex];
@@ -3074,32 +3167,34 @@ async function loadStudentQuestion() {
         qNumEl.innerText = `Question ${room.currentQuestionIndex + 1} / ${room.quizData.length}`;
         qNumEl.style.display = 'block';
     }
-    
+
     document.getElementById('clinical-context').innerText = q.context || "";
     document.getElementById('question-text').innerText = q.text;
     document.getElementById('question-text').style.wordBreak = 'normal';
     document.getElementById('question-text').style.overflowWrap = 'break-word';
-    
+
     renderMediaCommon(q, 'ekg', true);
-    
+
     if (q.type !== 'info') {
         renderOptions('options-container', q, true, room.currentQuestionIndex, false);
     } else {
         document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
     }
-    
+
     timeLeft = q.timer;
-    document.getElementById('hud-timer').innerText = timeLeft > 0 ? timeLeft : "∞";
-    
+    window._currentTimerMax = timeLeft;
+    setHudTimer(timeLeft);
+    setQuizProgress(room.currentQuestionIndex, room.quizData.length);
+
     clearInterval(localTimer);
     if (timeLeft > 0) {
         localTimer = setInterval(() => {
             timeLeft--;
-            document.getElementById('hud-timer').innerText = timeLeft;
+            setHudTimer(timeLeft);
             if (timeLeft <= 0) clearInterval(localTimer);
         }, 1000);
     }
-    
+
     switchScreen('quiz');
 }
 
@@ -3118,9 +3213,9 @@ function renderAnswerSubmitted() {
 async function submitAnswer(answer, q, qIndex) {
     if (hasAnswered) return;
     hasAnswered = true;
-    
+
     renderAnswerSubmitted();
-    
+
     let isCorrect = false;
     let scoreFrac = 0;
     let typingRawEarned = 0;
@@ -3140,7 +3235,7 @@ async function submitAnswer(answer, q, qIndex) {
             }
         }
     }
-    
+
     // For AI grading, we set studentCurrentPointsEarned to a special flag 'pending_ai'
     if (q.type === 'typing' && q.aiGrading && !q.freePoint) {
         studentCurrentPointsEarned = 'pending_ai';
@@ -3158,7 +3253,7 @@ async function submitAnswer(answer, q, qIndex) {
     } else {
         studentCurrentPointsEarned = 0;
     }
-    
+
     // We store the answer in 'lastAnswer' for the host tally and in 'answers' history for review.
     let updateObj = {
         hasAnswered: qIndex,
@@ -3172,29 +3267,29 @@ async function submitAnswer(answer, q, qIndex) {
         }
     };
     updateObj[`answers/${qIndex}`] = answer;
-    
+
     await db.ref(`rooms/${roomCode}/players/${playerName}`).update(updateObj);
 }
 
 async function showStudentFeedback() {
     clearInterval(localTimer);
     document.getElementById('ekg-video').pause();
-    
+
     // Fetch state first to avoid flashing old question data
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
     const q = room.quizData[room.currentQuestionIndex];
-    
+
     const title = document.getElementById('feedback-title');
     const pts = document.getElementById('feedback-points');
     const myAnsEl = document.getElementById('feedback-your-answer');
-    
-    // Render the choices, highlighting the correct one (non-interactive)
-    renderOptions('feedback-options-container', q, false, room.currentQuestionIndex, true);
-    
-    // Fetch player's answer for this question
+
+    // Fetch player's answer for this question (also used for reveal + score)
     const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/answers/${room.currentQuestionIndex}`).get();
     const myAns = pSnap.exists() ? pSnap.val() : null;
+
+    // Render the choices, highlighting the correct one (non-interactive)
+    renderOptions('feedback-options-container', q, false, room.currentQuestionIndex, true, myAns);
 
     // For typing questions: show the rich two-panel highlight feedback
     const typingPanel = document.getElementById('feedback-typing-panel');
@@ -3210,7 +3305,7 @@ async function showStudentFeedback() {
         myAnsEl.style.display = 'block';
         myAnsEl.innerText = myAns ? `Your Answer: ${myAns}` : 'Your Answer: None';
     }
-    
+
     // Render the bar chart
     await renderFeedbackChart('feedback-chart', q, room.currentQuestionIndex);
 
@@ -3234,18 +3329,19 @@ async function showStudentFeedback() {
     } else if (studentCurrentPointsEarned > 0) {
         title.innerText = "Correct!";
         title.className = "correct";
-        pts.innerText = `+${studentCurrentPointsEarned} Points`;
         pts.className = "correct";
         AudioController.playCorrect();
-        
+        animateTally(pts, studentCurrentPointsEarned, { prefix: '+', suffix: ' Points', duration: 900 });
+        burstConfetti();
+
         const currentScore = pSnap.val().score || 0;
         const newScore = currentScore + studentCurrentPointsEarned;
-        
+
         await db.ref(`rooms/${roomCode}/players/${playerName}`).update({
             score: newScore,
             [`awardedPoints/${room.currentQuestionIndex}`]: studentCurrentPointsEarned
         });
-        
+
         const scoreUI = document.getElementById('hud-score');
         scoreUI.innerText = newScore;
         scoreUI.classList.remove('score-bump');
@@ -3258,7 +3354,7 @@ async function showStudentFeedback() {
         pts.className = "incorrect";
         AudioController.playWrong();
     }
-    
+
     // Wait briefly for all clients to update scores, then update rank
     setTimeout(async () => {
         const snap = await db.ref(`rooms/${roomCode}/players`).get();
@@ -3271,9 +3367,9 @@ async function showStudentFeedback() {
             if (rankNum % 10 === 1 && rankNum % 100 !== 11) suffix = "st";
             else if (rankNum % 10 === 2 && rankNum % 100 !== 12) suffix = "nd";
             else if (rankNum % 10 === 3 && rankNum % 100 !== 13) suffix = "rd";
-            
+
             document.getElementById('hud-rank').innerText = `${rankNum}${suffix}`;
-            
+
             // Re-bump score just to trigger animation on rank change if desired
             const scoreUI = document.getElementById('hud-score');
             scoreUI.classList.remove('score-bump');
@@ -3286,12 +3382,12 @@ async function showStudentFeedback() {
 async function showResults() {
     switchScreen('results');
     clearInterval(localTimer);
-    
+
     const snap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = snap.val() || {};
-    
+
     const sorted = Object.entries(players).sort((a,b) => b[1].score - a[1].score);
-    
+
     if (role === 'student') {
         document.getElementById('final-score-value').innerText = players[playerName]?.score || 0;
     }
@@ -3305,20 +3401,20 @@ async function showResults() {
         if(nameEl) nameEl.innerText = '';
         if(scoreEl) scoreEl.innerText = '';
     }
-    
+
     const titleEl = document.getElementById('podium-title');
     if(titleEl) titleEl.style.opacity = '0';
-    
+
     const othersTitle = document.getElementById('others-title');
     if(othersTitle) othersTitle.style.display = 'none';
-    
+
     const othersList = document.getElementById('full-leaderboard-list');
     const toggleBtn = document.getElementById('btn-toggle-leaderboard');
     if (othersList) {
         if (sorted.length > 3) {
-            othersList.innerHTML = sorted.slice(3).map((p, i) => 
+            othersList.innerHTML = sorted.slice(3).map((p, i) =>
                 `<li style="background: rgba(255,255,255,0.1); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span>#${i+4} ${p[0]}</span> <span>${p[1].score} pts</span>
+                    <span>#${i+4} ${avatarFor(p[0])} ${escapeHtml(p[0])}</span> <span>${p[1].score} pts</span>
                 </li>`
             ).join('');
             if(othersTitle) othersTitle.style.display = 'block';
@@ -3352,15 +3448,15 @@ async function showResults() {
 
     // Populate podium data
     if (sorted[0]) {
-        document.getElementById('podium-name-1').innerText = sorted[0][0];
+        document.getElementById('podium-name-1').innerText = `${avatarFor(sorted[0][0])} ${sorted[0][0]}`;
         document.getElementById('podium-score-1').innerText = sorted[0][1].score + ' pts';
     }
     if (sorted[1]) {
-        document.getElementById('podium-name-2').innerText = sorted[1][0];
+        document.getElementById('podium-name-2').innerText = `${avatarFor(sorted[1][0])} ${sorted[1][0]}`;
         document.getElementById('podium-score-2').innerText = sorted[1][1].score + ' pts';
     }
     if (sorted[2]) {
-        document.getElementById('podium-name-3').innerText = sorted[2][0];
+        document.getElementById('podium-name-3').innerText = `${avatarFor(sorted[2][0])} ${sorted[2][0]}`;
         document.getElementById('podium-score-3').innerText = sorted[2][1].score + ' pts';
     }
 
@@ -3444,7 +3540,7 @@ document.getElementById('btn-back-to-review').addEventListener('click', () => {
 async function renderReviewList() {
     const listEl = document.getElementById('review-list');
     listEl.innerHTML = '';
-    
+
     // Make sure we have the latest quiz data for students
     if (customQuizData.length === 0) {
         const snap = await db.ref(`rooms/${roomCode}/quizData`).get();
@@ -3452,7 +3548,7 @@ async function renderReviewList() {
             customQuizData = snap.val();
         }
     }
-    
+
     let studentAnswers = {};
     if (role === 'student') {
         const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/answers`).get();
@@ -3460,7 +3556,7 @@ async function renderReviewList() {
             studentAnswers = pSnap.val();
         }
     }
-    
+
     customQuizData.forEach((q, idx) => {
         const item = document.createElement('div');
         item.className = 'review-item';
@@ -3470,7 +3566,7 @@ async function renderReviewList() {
                 showReviewDetail(idx);
             }
         };
-        
+
         let mediaHtml = '';
         if (q.imageUrl) {
             if (q.mediaType === 'video') {
@@ -3479,12 +3575,12 @@ async function renderReviewList() {
                 mediaHtml = `<img src="${q.imageUrl}" style="max-height:150px; border-radius:8px; margin-bottom:1rem;"><br>`;
             }
         }
-        
+
         let correctHtml = '';
         if (q.type === 'multiple-choice' || q.type === 'true-false') {
             const cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
             const cImg = typeof q.correctAnswer === 'string' ? false : q.correctAnswer.isImage;
-            
+
             if (cImg) {
                 correctHtml = `<div class="review-answer">Correct Answer:<br><img src="${cText}" style="max-height:50px; margin-top:5px; border-radius:4px;"></div>`;
             } else {
@@ -3498,12 +3594,12 @@ async function renderReviewList() {
             }).join(', ');
             correctHtml = `<div class="review-answer">Accepted Answers: ${accepted}</div>`;
         }
-        
+
         if (role === 'student') {
             const myAns = studentAnswers[idx] || 'No Answer';
             correctHtml += `<div class="review-answer" style="margin-top: 10px; color: #1565c0;">Your Answer: ${myAns}</div>`;
         }
-        
+
         item.innerHTML = `
             <div class="review-question">Q${idx + 1}: ${q.text}</div>
             ${mediaHtml}
@@ -3530,12 +3626,12 @@ function showReviewDetail(idx) {
 function populateReviewDetail(idx) {
     currentQuestionIndex = idx;
     switchScreen('feedback');
-    
+
     // Hide standard host continue button, show back button
     const btnContinue = document.getElementById('btn-host-continue');
     const btnBack = document.getElementById('btn-back-to-review');
     const feedbackTitle = document.getElementById('feedback-title');
-    
+
     if (btnContinue) btnContinue.style.display = 'none';
     if (btnBack) btnBack.style.display = role === 'host' ? 'inline-block' : 'none';
     if (feedbackTitle) feedbackTitle.style.display = 'none';
@@ -3549,7 +3645,7 @@ function populateReviewDetail(idx) {
         textEl.innerText = qData.text;
         renderMediaCommon(qData, 'feedback', false);
     }
-    
+
     // Populate standard feedback data directly to ensure Host and Student see exactly the same layout
     renderOptions('feedback-options-container', qData, false, currentQuestionIndex, true);
     renderFeedbackChart('feedback-chart', qData, currentQuestionIndex);
@@ -3601,10 +3697,10 @@ async function exportToPDF() {
         <body>
             <h1>Quiz Review Document</h1>
     `;
-    
+
     customQuizData.forEach((q, idx) => {
         printContents += `<div class="q-block"><div class="q-text">Q${idx + 1}: ${q.text}</div>`;
-        
+
         if (q.imageUrl) {
             if (q.mediaType === 'video') {
                 printContents += `<p><em>[Video Attachment: ${q.imageUrl}]</em></p>`;
@@ -3612,7 +3708,7 @@ async function exportToPDF() {
                 printContents += `<img class="q-media" src="${q.imageUrl}" />`;
             }
         }
-        
+
         let cText = "";
         if (q.type === 'multiple-choice' || q.type === 'true-false') {
             cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
@@ -3629,18 +3725,18 @@ async function exportToPDF() {
             }).join(', ');
             printContents += `<div class="q-answer">Accepted Answers: ${accepted}</div>`;
         }
-        
+
         if (role === 'student') {
             const myAns = studentAnswers[idx] || 'No Answer';
             printContents += `<div class="q-my-answer">Your Answer: ${myAns}</div>`;
-            
+
             if ((!q.type || q.type === 'typing') && studentAnswers[idx]) {
                 const results = getTypingKeyResults(myAns, q);
                 let html = '<div style="margin-top: 10px; font-size: 0.95rem; background: #f8f9fa; padding: 10px; border-left: 4px solid #ccc;">';
                 html += '<div style="font-weight: bold; margin-bottom: 5px;">Grading Breakdown:</div>';
-                
+
                 let missedKeys = [];
-                
+
                 results.forEach(res => {
                     if (res.matched) {
                         html += `<div style="color: #2e7d32; margin-bottom: 3px;">✓ <strong>${res.text}</strong> <span style="font-size: 0.85em;">(+${res.pts} pts)</span></div>`;
@@ -3649,19 +3745,19 @@ async function exportToPDF() {
                         missedKeys.push(`<strong>${res.text}</strong> (+${res.pts} pts)`);
                     }
                 });
-                
+
                 if (missedKeys.length > 0) {
                     html += `<div style="margin-top: 8px; color: #b45309; font-size: 0.9em;">💡 To get more points, add: ${missedKeys.join(', ')}</div>`;
                 }
-                
+
                 html += '</div>';
                 printContents += html;
             }
         }
-        
+
         printContents += `</div>`;
     });
-    
+
     printContents += `
         <script>
             window.onload = function() { window.print(); window.close(); }
@@ -3728,10 +3824,10 @@ function setupCustomDropdowns() {
 
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-select-wrapper';
-        
+
         const trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
-        
+
         const optionsContainer = document.createElement('div');
         optionsContainer.className = 'custom-options';
 
@@ -3745,17 +3841,17 @@ function setupCustomDropdowns() {
             customOption.className = 'custom-option';
             customOption.dataset.value = option.value;
             customOption.innerText = option.text;
-            
+
             if (index === select.selectedIndex) customOption.classList.add('selected');
 
             customOption.addEventListener('click', (e) => {
                 e.stopPropagation();
                 select.selectedIndex = index;
                 select.dispatchEvent(new Event('change'));
-                
+
                 optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
                 customOption.classList.add('selected');
-                
+
                 updateTrigger();
                 wrapper.classList.remove('open');
             });

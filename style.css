@@ -1,5 +1,5 @@
 :root {
-    --bg-color: #0f172a;
+    --bg-color: #0a0e1a;
     --primary: #3b82f6;
     --primary-hover: #2563eb;
     --secondary: #8b5cf6;
@@ -9,13 +9,17 @@
     --danger: #ef4444;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --glass-bg: rgba(30, 41, 59, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(15, 23, 42, 0.5);
+    --glass-bg: rgba(23, 30, 50, 0.62);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --input-bg: rgba(15, 23, 42, 0.55);
+    --panel-bg: rgba(16, 22, 40, 0.78);
+    --arena-glow-1: rgba(59, 130, 246, 0.30);
+    --arena-glow-2: rgba(139, 92, 246, 0.30);
+    --font-display: 'Anton', 'Outfit', sans-serif;
 }
 
 body.light-theme {
-    --bg-color: #f1f5f9;
+    --bg-color: #f4f6fb;
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
     --secondary: #6366f1;
@@ -25,73 +29,88 @@ body.light-theme {
     --danger: #dc2626;
     --text-main: #0f172a;
     --text-muted: #475569;
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(0, 0, 0, 0.1);
-    --input-bg: rgba(255, 255, 255, 0.9);
+    --glass-bg: rgba(255, 255, 255, 0.82);
+    --glass-border: rgba(0, 0, 0, 0.12);
+    --input-bg: rgba(255, 255, 255, 0.95);
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --arena-glow-1: rgba(37, 99, 235, 0.14);
+    --arena-glow-2: rgba(99, 102, 241, 0.14);
 }
 
 body.pastel-theme {
-    --bg-color: #fdf2ff;
-    --primary: #d8a5f5;
-    --primary-hover: #c084fc;
-    --secondary: #fbc8df;
-    --secondary-hover: #f9a8d4;
-    --accent: #fbc8df;
-    --success: #a7f3d0;
-    --danger: #fecaca;
+    --bg-color: #fbeefd;
+    --primary: #c76bf3;
+    --primary-hover: #b450e6;
+    --secondary: #f27fc0;
+    --secondary-hover: #e967b0;
+    --accent: #f27fc0;
+    --success: #34d399;
+    --danger: #fb7185;
     --text-main: #581c87;
     --text-muted: #a855f7;
-    --glass-bg: rgba(255, 248, 255, 0.82);
-    --glass-border: rgba(216, 165, 245, 0.35);
-    --input-bg: rgba(255, 255, 255, 0.9);
+    --glass-bg: rgba(255, 250, 255, 0.85);
+    --glass-border: rgba(199, 107, 243, 0.35);
+    --input-bg: rgba(255, 255, 255, 0.92);
+    --panel-bg: rgba(255, 255, 255, 0.88);
+    --arena-glow-1: rgba(216, 165, 245, 0.45);
+    --arena-glow-2: rgba(251, 200, 223, 0.5);
 }
 
 body.earth-theme {
-    --bg-color: #f5f0e8;
-    --primary: #92400e;
-    --primary-hover: #78350f;
-    --secondary: #4d7c0f;
-    --secondary-hover: #3f6212;
-    --accent: #a8956a;
-    --success: #4d7c0f;
+    --bg-color: #f2ecdf;
+    --primary: #9a4d0e;
+    --primary-hover: #7c3d08;
+    --secondary: #5b7a1e;
+    --secondary-hover: #476114;
+    --accent: #a07a3f;
+    --success: #3f6212;
     --danger: #b45309;
     --text-main: #292524;
     --text-muted: #78716c;
-    --glass-bg: rgba(250, 246, 240, 0.85);
-    --glass-border: rgba(146, 64, 14, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.75);
+    --glass-bg: rgba(250, 245, 237, 0.85);
+    --glass-border: rgba(146, 64, 14, 0.25);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --panel-bg: rgba(250, 246, 240, 0.9);
+    --arena-glow-1: rgba(180, 122, 40, 0.25);
+    --arena-glow-2: rgba(107, 142, 35, 0.22);
 }
 
 body.warm-theme {
-    --bg-color: #fff7ed;
-    --primary: #ea580c;
-    --primary-hover: #c2410c;
-    --secondary: #d97706;
-    --secondary-hover: #b45309;
-    --accent: #d97706;
+    --bg-color: #ffeeda;
+    --primary: #e55c0d;
+    --primary-hover: #c2430a;
+    --secondary: #e08a00;
+    --secondary-hover: #b87400;
+    --accent: #f27f0d;
     --success: #65a30d;
-    --danger: #dc2626;
+    --danger: #e11d48;
     --text-main: #431407;
     --text-muted: #9a3412;
-    --glass-bg: rgba(255, 251, 245, 0.85);
-    --glass-border: rgba(234, 88, 12, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.75);
+    --glass-bg: rgba(255, 249, 242, 0.85);
+    --glass-border: rgba(229, 92, 13, 0.28);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --panel-bg: rgba(255, 250, 244, 0.9);
+    --arena-glow-1: rgba(255, 120, 30, 0.28);
+    --arena-glow-2: rgba(250, 190, 60, 0.3);
 }
 
 body.cool-theme {
-    --bg-color: #f0f9ff;
+    --bg-color: #e8f4ff;
     --primary: #0284c7;
     --primary-hover: #0369a1;
-    --secondary: #6366f1;
-    --secondary-hover: #4f46e5;
+    --secondary: #4f46e5;
+    --secondary-hover: #4338ca;
     --accent: #6366f1;
     --success: #059669;
     --danger: #dc2626;
     --text-main: #0c4a6e;
     --text-muted: #0369a1;
     --glass-bg: rgba(240, 249, 255, 0.85);
-    --glass-border: rgba(2, 132, 199, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(2, 132, 199, 0.25);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --panel-bg: rgba(250, 252, 255, 0.9);
+    --arena-glow-1: rgba(2, 132, 199, 0.2);
+    --arena-glow-2: rgba(99, 102, 241, 0.18);
 }
 
 
@@ -105,13 +124,42 @@ body.cool-theme {
 body {
     background-color: var(--bg-color);
     background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, var(--arena-glow-1) 0px, transparent 55%),
+        radial-gradient(at 100% 100%, var(--arena-glow-2) 0px, transparent 55%);
     background-attachment: fixed;
     color: var(--text-main);
     min-height: 100vh;
     overflow-x: hidden;
     transition: background-color 0.4s, color 0.4s;
+}
+
+/* Game show display font for titles, scores and numbers.
+   Kept off user content (questions/answers/names) so Thai text
+   and mixed content keep Outfit + system fallbacks. */
+h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+}
+.nav-title,
+.title-gradient,
+.dynamic-gradient-title,
+.countdown-number,
+#hud-timer,
+#hud-score,
+#hud-rank,
+#feedback-title,
+#feedback-points,
+#final-score-value,
+.podium-block,
+.podium-name,
+.player-count,
+.room-code-display {
+    font-family: var(--font-display);
+}
+
+/* User content stays in Outfit (supports Thai fallback). */
+#question-text, #preview-q-text, #feedback-question-text {
+    font-family: 'Outfit', sans-serif;
 }
 
 #app {
@@ -2011,4 +2059,379 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     .quiz-glass-card { flex-direction: column; align-items: stretch; padding: 1rem; }
     .quiz-glass-card > div:last-child { justify-content: flex-start !important; }
     .btn-pill { min-height: 2.75rem; justify-content: center; }
+}
+
+/* =====================================================================
+   GAME SHOW ARENA — Milestone 1 visual identity
+   ===================================================================== */
+
+/* Surfaces: stronger panels on the arena background */
+.glass-container {
+    border-radius: 24px;
+    box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.quiz-content .glass-container,
+.question-prompt,
+.question-container {
+    background: var(--panel-bg);
+}
+
+/* Primary CTA: game-show look */
+.btn-primary {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.22);
+    box-shadow: 0 6px 18px -6px var(--accent);
+}
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -8px var(--accent);
+}
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+    border-bottom-width: 1px;
+}
+
+/* HUD */
+.hud {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 0.7rem 1.2rem;
+    margin-bottom: 0.6rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.hud-item {
+    font-size: 1.05rem;
+    font-weight: 700;
+    min-width: 0;
+}
+.hud .player-info, .hud .score-info {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+}
+body.light-theme .hud .player-info,
+body.light-theme .hud .score-info { background: rgba(0, 0, 0, 0.06); }
+.hud .timer-info {
+    font-size: inherit;
+    color: var(--text-main);
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.2rem;
+}
+#hud-timer {
+    font-size: 2.2rem;
+    line-height: 1;
+    color: var(--accent);
+}
+.timer-unit { font-size: 1rem; opacity: 0.7; }
+#hud-rank, #hud-score { color: var(--primary); }
+
+/* Timer deplete bar */
+.hud-timer-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+body.light-theme .hud-timer-track { background: rgba(0, 0, 0, 0.12); }
+.hud-timer-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--success), var(--accent));
+    transition: width 0.5s linear;
+}
+
+/* Question progress */
+.quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    margin-bottom: 0.7rem;
+}
+.quiz-progress-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
+.quiz-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 999px;
+    transition: width 0.5s ease;
+}
+.quiz-progress-label {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+}
+
+/* Countdown */
+.countdown-wrap {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.countdown-label {
+    font-size: 1.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+}
+.countdown-number {
+    font-size: 9rem;
+    line-height: 1;
+    color: var(--primary);
+    margin: 1.5rem 0;
+    animation: countPop 1s infinite;
+    text-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+}
+.countdown-number.go {
+    color: var(--success);
+    animation: goPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.countdown-sub {
+    color: var(--text-muted);
+    letter-spacing: 0.35em;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+@keyframes countPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+}
+@keyframes goPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Player chips with emoji avatars */
+.players-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+.player-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.player-avatar { font-size: 1.2rem; line-height: 1; }
+
+/* Answer buttons: bigger, game-show energy */
+.kahoot-btn {
+    border-radius: 16px;
+    box-shadow: 0 5px 0 rgba(0, 0, 0, 0.28);
+    min-width: 0;
+}
+.kahoot-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 rgba(0, 0, 0, 0.28);
+    filter: brightness(1.06);
+}
+.kahoot-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+}
+
+/* Reveal motion on feedback */
+.kahoot-btn.reveal-correct {
+    animation: correctPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 0 4px var(--success), 0 8px 24px rgba(34, 197, 94, 0.55);
+    filter: none;
+}
+.kahoot-btn.reveal-wrong {
+    animation: wrongShake 0.5s ease;
+}
+@keyframes correctPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+@keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-9px); }
+    40% { transform: translateX(9px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+}
+
+/* Feedback theatrics */
+#feedback-title {
+    font-size: 5.5rem;
+    line-height: 1.05;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+#feedback-points {
+    font-size: 2.6rem;
+    color: var(--success);
+    font-weight: 800;
+    text-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+#feedback-points.incorrect { color: var(--danger); text-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+
+.answer-submitted {
+    background: var(--panel-bg);
+    border: 2px solid var(--success);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.answer-submitted .answer-submitted-icon {
+    animation: goPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Confetti */
+.confetti-piece {
+    position: fixed;
+    top: -24px;
+    z-index: 20000;
+    pointer-events: none;
+    border-radius: 2px;
+    opacity: 0;
+    animation: confettiFall 1.6s ease-in forwards;
+}
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(108vh) rotate(720deg); opacity: 0.6; }
+}
+
+/* Host presenter */
+.host-presenter { text-align: center; }
+.host-presenter-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+.host-presenter-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.6rem;
+}
+.host-presenter-big {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    line-height: 1;
+    color: var(--success);
+}
+.host-presenter-total { font-size: 1.3rem; color: var(--text-muted); }
+.host-presenter-caption {
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+/* Podium polish */
+.podium-block {
+    font-family: var(--font-display);
+    text-shadow: none;
+    box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.35), 0 -5px 18px rgba(0, 0, 0, 0.35);
+}
+.podium-name {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+#podium-1 .podium-block { background: linear-gradient(135deg, #fde047, #f59e0b); }
+#podium-2 .podium-block { background: linear-gradient(135deg, #e2e8f0, #94a3b8); }
+#podium-3 .podium-block { background: linear-gradient(135deg, #fdba74, #b45309); }
+.final-score-box {
+    background: var(--panel-bg);
+    border: 2px solid var(--primary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Nav pill */
+.global-home .nav-header {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem 0.3rem 0.35rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+.nav-title {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Connection pill */
+.connection-status {
+    background: var(--panel-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Dashboard cards */
+.quiz-glass-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Settings modal */
+.settings-panel {
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+/* Room code */
+.room-code-display {
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+}
+.room-code-display .highlight {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    letter-spacing: 0.12em;
+}
+
+@media (max-width: 768px) {
+    .hud { padding: 0.55rem 0.7rem; }
+    #hud-timer { font-size: 1.7rem; }
+    .countdown-number { font-size: 6.5rem; }
+    #feedback-title { font-size: 3.4rem; }
+    #feedback-points { font-size: 1.9rem; }
+    .host-presenter-big { font-size: 3.6rem; }
+    .podium-name { font-size: 1.1rem; }
+    .room-code-display .highlight { font-size: 1.8rem; }
+    .player-chip { padding: 0.4rem 0.8rem; font-size: 0.9rem; }
 }
