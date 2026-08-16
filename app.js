@@ -143,6 +143,7 @@ function fxSpawn(intensity = 1) {
         const p = document.createElement('span');
         p.className = 'fx-particle fx-' + kind;
         p.style.left = (kind === 'cloud' ? -20 : 0) + (Math.random() * (kind === 'cloud' ? 80 : 100)) + 'vw';
+        p.style.top = (kind === 'cloud' ? Math.random() * 75 : Math.random() * 100) + 'vh';
         const size = 0.7 + Math.random() * 0.9;
         p.style.scale = String(size);
         p.style.animationDuration = (kind === 'star' || kind === 'cloud')
@@ -153,6 +154,7 @@ function fxSpawn(intensity = 1) {
             p.style.setProperty('--fx-drift', (Math.random() * 60 - 30) + 'vw');
         } else if (kind === 'cloud') {
             p.style.setProperty('--fx-drift', (100 + Math.random() * 60) + 'vw');
+            p.style.setProperty('--fx-y-drift', (Math.random() * 20 - 10) + 'vh');
         } else {
             p.style.setProperty('--fx-drift', (kind === 'leaf' || kind === 'petal' ? -80 : 30) + Math.random() * 120 + 'px');
         }
@@ -1548,6 +1550,7 @@ themeSelect.addEventListener('change', () => {
         document.body.classList.add(`${chosen}-theme`);
     }
     localStorage.setItem('spotDiagnosisTheme', chosen);
+    if (typeof fxSpawn === 'function') fxSpawn(chosen === 'dark' ? 1 : 1);
 });
 
 // Restore saved theme on load (default to light; unknown values fall back to light)
