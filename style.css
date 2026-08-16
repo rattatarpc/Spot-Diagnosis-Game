@@ -2607,6 +2607,64 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 .maker-type-tab-toggle:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
 .maker-type-tab-toggle.tab-off { opacity: 0.5; text-decoration: line-through; }
 
+/* Collapsed tabs: keep the pill but hide the tab labels */
+.maker-type-tabs.collapsed .maker-type-tab { display: none; }
+.maker-type-tabs.collapsed {
+    flex: 0 0 auto;
+    width: auto;
+    padding: 5px;
+}
+
+/* Sidebar header + collapse */
+.maker-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 12px 6px;
+}
+.maker-sidebar-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.maker-sidebar-toggle {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+}
+.maker-sidebar-toggle:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+/* Collapsed sidebar: shrink to a thin strip */
+.maker-sidebar.collapsed {
+    width: 46px !important;
+}
+.maker-sidebar.collapsed .maker-sidebar-title,
+.maker-sidebar.collapsed #questions-list,
+.maker-sidebar.collapsed .maker-sidebar-actions {
+    display: none;
+}
+.maker-sidebar.collapsed .maker-sidebar-header {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+}
+.maker-sidebar.collapsed .maker-sidebar-toggle {
+    margin: 0;
+    border: none;
+    background: transparent;
+}
+
 /* When choosing a new question type, only the tabs show — make them prominent */
 .maker-choose-type .maker-type-tabs {
     padding: 8px;

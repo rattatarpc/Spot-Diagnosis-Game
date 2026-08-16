@@ -1729,22 +1729,41 @@ makerTypeTabs.forEach(tab => {
     });
 });
 
-/* --- Toggle visibility of the Slide tab (persisted) --- */
-const btnToggleSlideTab = document.getElementById('btn-toggle-slide-tab');
-const slideTab = document.getElementById('tab-slide');
-function applySlideTabVisibility() {
-    const hidden = localStorage.getItem('spotDiagnosisHideSlideTab') === '1';
-    if (slideTab) slideTab.style.display = hidden ? 'none' : '';
-    if (btnToggleSlideTab) btnToggleSlideTab.classList.toggle('tab-off', hidden);
+/* --- Collapse / expand the question type tabs --- */
+const btnCollapseTabs = document.getElementById('btn-collapse-tabs');
+const makerTabsEl = document.getElementById('maker-type-tabs');
+function applyTabsCollapse() {
+    if (!makerTabsEl) return;
+    const collapsed = localStorage.getItem('spotDiagnosisCollapseTabs') === '1';
+    makerTabsEl.classList.toggle('collapsed', collapsed);
+    if (btnCollapseTabs) btnCollapseTabs.innerText = collapsed ? '▼' : '▲';
 }
-if (btnToggleSlideTab) {
-    btnToggleSlideTab.addEventListener('click', () => {
-        const hidden = localStorage.getItem('spotDiagnosisHideSlideTab') === '1';
-        localStorage.setItem('spotDiagnosisHideSlideTab', hidden ? '0' : '1');
-        applySlideTabVisibility();
+if (btnCollapseTabs) {
+    btnCollapseTabs.addEventListener('click', () => {
+        const collapsed = localStorage.getItem('spotDiagnosisCollapseTabs') === '1';
+        localStorage.setItem('spotDiagnosisCollapseTabs', collapsed ? '0' : '1');
+        applyTabsCollapse();
     });
 }
-applySlideTabVisibility();
+applyTabsCollapse();
+
+/* --- Collapse / expand the left sidebar (question list) --- */
+const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+const makerSidebar = document.getElementById('maker-sidebar');
+function applySidebarCollapse() {
+    if (!makerSidebar) return;
+    const collapsed = localStorage.getItem('spotDiagnosisCollapseSidebar') === '1';
+    makerSidebar.classList.toggle('collapsed', collapsed);
+    if (btnToggleSidebar) btnToggleSidebar.innerText = collapsed ? '▶' : '◀';
+}
+if (btnToggleSidebar) {
+    btnToggleSidebar.addEventListener('click', () => {
+        const collapsed = localStorage.getItem('spotDiagnosisCollapseSidebar') === '1';
+        localStorage.setItem('spotDiagnosisCollapseSidebar', collapsed ? '0' : '1');
+        applySidebarCollapse();
+    });
+}
+applySidebarCollapse();
 
 /* --- "+ Add choice": reveal hidden MC rows 4-5 (row 3 always visible) --- */
 const btnAddOption = document.getElementById('btn-add-option');
