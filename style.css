@@ -1610,17 +1610,6 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
         padding: 14px !important;
         font-size: 1.35rem !important;
     }
-
-    #maker-form-container > div:last-child {
-        flex-wrap: wrap;
-        justify-content: stretch !important;
-        margin-bottom: 16px !important;
-    }
-
-    #maker-form-container > div:last-child button {
-        flex: 1 1 30%;
-        min-width: 100px;
-    }
 }
 
 /* PC / Desktop layout */
@@ -2525,6 +2514,29 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 .btn-save-question:hover:not(:disabled) {
     background: var(--success) !important;
     filter: brightness(1.08);
+}
+
+/* Maker action buttons: consistent row, uniform size */
+.maker-form-actions {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+.maker-form-actions .btn-action {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    margin-left: 0 !important;
+    padding: 0.5rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 999px !important;
+}
+.maker-form-actions .btn-danger {
+    padding: 0.5rem 0.9rem !important;
+    font-size: 1rem !important;
 }
 
 .maker-live-editor {
