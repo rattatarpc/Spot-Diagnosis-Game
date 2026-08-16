@@ -1890,14 +1890,12 @@ window.editQuestion = (index) => {
     if (q.type === 'info') {
         document.getElementById('maker-form-title').innerText = "Edit Info Slide";
         document.getElementById('maker-form-container').dataset.type = 'info';
-        document.getElementById('maker-q-type-group').style.display = 'none';
         document.getElementById('maker-free-point-group').style.display = 'none';
         document.getElementById('maker-context-group').style.display = 'none';
         document.getElementById('maker-info-text-group').style.display = 'flex';
         document.getElementById('maker-q-text').placeholder = 'Slide Title (optional)';
     } else {
         document.getElementById('maker-form-container').dataset.type = 'question';
-        document.getElementById('maker-q-type-group').style.display = 'block';
         document.getElementById('maker-free-point-group').style.display = 'block';
         document.getElementById('maker-context-group').style.display = 'flex';
         document.getElementById('maker-info-text-group').style.display = 'none';
@@ -2110,7 +2108,6 @@ function resetMakerForm(defaultType = 'question') {
     if (defaultType === 'info') {
         document.getElementById('maker-form-title').innerText = "Add Info Slide";
         document.getElementById('maker-form-container').dataset.type = 'info';
-        document.getElementById('maker-q-type-group').style.display = 'none';
         document.getElementById('maker-free-point-group').style.display = 'none';
         document.getElementById('maker-context-group').style.display = 'none';
         document.getElementById('maker-info-text-group').style.display = 'flex';
@@ -2123,7 +2120,6 @@ function resetMakerForm(defaultType = 'question') {
         document.getElementById('maker-form-title').innerText = "Add New Question";
         document.getElementById('maker-form-container').dataset.type = 'question';
         document.getElementById('maker-q-type').value = '';
-        document.getElementById('maker-q-type-group').style.display = 'block';
         document.getElementById('maker-free-point-group').style.display = 'block';
         document.getElementById('maker-context-group').style.display = 'flex';
         document.getElementById('maker-info-text-group').style.display = 'none';

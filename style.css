@@ -2554,6 +2554,9 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 }
 
 /* Question type tabs (segmented control) */
+#maker-q-type-group {
+    display: none !important;
+}
 .maker-type-tabs {
     display: flex;
     gap: 6px;
