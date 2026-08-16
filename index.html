@@ -155,7 +155,7 @@
 
                         <!-- Question type tabs (kept in sync with the hidden select) -->
                         <div class="maker-type-tabs" id="maker-type-tabs" role="tablist">
-                            <button type="button" class="maker-type-tab active" data-type="multiple-choice">Quiz</button>
+                            <button type="button" class="maker-type-tab active" data-type="multiple-choice">Multiple Choice</button>
                             <button type="button" class="maker-type-tab" data-type="true-false">True / False</button>
                             <button type="button" class="maker-type-tab" data-type="typing">Typing</button>
                             <button type="button" class="maker-type-tab" data-type="info">Slide</button>
@@ -194,6 +194,12 @@
                                 <textarea id="maker-q-text" placeholder="Tap to add question" style="font-size: 1.5rem; font-weight: normal; text-align: center; padding: 10px 15px; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; margin-bottom: 15px; display: block; background: var(--input-bg); color: var(--text-main); resize: vertical; min-height: 50px; height: 56px; line-height: 1.2;"></textarea>
                                 <div id="maker-q-text-error" class="field-error" style="display:none;"></div>
 
+                                <!-- Clinical Context (below question, above media) -->
+                                <div class="input-group" id="maker-context-group" style="background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; display:flex; flex-direction:column; box-sizing: border-box;">
+                                    <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Clinical Context</label>
+                                    <textarea id="maker-context" placeholder="Optional context..." style="width:100%; min-height:60px; resize:none; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
+                                </div>
+
                                 <!-- Media: unified drop/paste (type auto-detected) -->
                                 <div class="maker-media-zone">
                                     <div id="maker-media-container" style="display:none; width:100%; height:100%; justify-content:center; align-items:center;">
@@ -203,8 +209,8 @@
                                     </div>
                                     <input type="checkbox" id="maker-add-media-toggle" style="display:none;">
                                     <div id="maker-media-fields" style="display:none; width:100%; max-width: 400px; margin-top: 10px; background:var(--glass-bg); padding:15px; border-radius: 8px; border:1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                                        <!-- Kept hidden: type is auto-detected from the file/URL -->
-                                        <select id="maker-media-type" style="display:none;">
+                                        <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Media Type</label>
+                                        <select id="maker-media-type" style="width:100%; padding:8px; border-radius: 4px; margin:6px 0 12px;">
                                             <option value="image">Image</option>
                                             <option value="video">Video</option>
                                         </select>
@@ -216,7 +222,7 @@
                                         <div style="font-size:0.9rem; text-align:center; margin:10px 0; color:var(--text-muted);">OR</div>
                                         <input type="file" id="maker-img-file" accept="image/*,video/*" style="width:100%; font-size:0.9rem; color:var(--text-main);">
                                     </div>
-                                    <button class="btn-primary" id="btn-change-media" onclick="document.getElementById('maker-add-media-toggle').click();" style="display:block; padding: 10px; font-size: 0.9rem; border-radius: 8px;">📸 Add Media</button>
+                                    <button class="btn-secondary" id="btn-change-media" onclick="document.getElementById('maker-add-media-toggle').click();" style="display:block; padding: 10px; font-size: 0.9rem; border-radius: 8px; color: var(--text-main);">📸 Add Media</button>
                                 </div>
 
                                 <!-- Answers Section -->
@@ -226,35 +232,35 @@
                                     <div id="maker-mc-options" style="display:flex; flex-direction:column; gap:10px;">
                                         <div class="mc-option-row" data-opt="0" style="background:#e21b3c; border-radius:8px; padding:10px; position:relative; min-height: 60px; display:flex; align-items:center;">
                                             <input type="radio" name="mc-correct" value="0" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
-                                            <input type="text" id="mc-opt-0" placeholder="Add answer 1" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="text" id="mc-opt-0" placeholder="Choice 1" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-0" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-0" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row" data-opt="1" style="background:#1368ce; border-radius:8px; padding:10px; position:relative; min-height: 60px; display:flex; align-items:center;">
                                             <input type="radio" name="mc-correct" value="1" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
-                                            <input type="text" id="mc-opt-1" placeholder="Add answer 2" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="text" id="mc-opt-1" placeholder="Choice 2" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-1" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-1" style="display:none;"></span>
                                         </div>
-                                        <div class="mc-option-row mc-opt-extra" data-opt="2" style="display:none; background:#d89e00; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                        <div class="mc-option-row mc-opt-extra" data-opt="2" style="display:flex; background:#d89e00; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
                                             <input type="radio" name="mc-correct" value="2" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
-                                            <input type="text" id="mc-opt-2" placeholder="Add answer 3 (optional)" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="text" id="mc-opt-2" placeholder="Choice 3" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-2" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-2" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row mc-opt-extra" data-opt="3" style="display:none; background:#26890c; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
                                             <input type="radio" name="mc-correct" value="3" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
-                                            <input type="text" id="mc-opt-3" placeholder="Add answer 4 (optional)" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="text" id="mc-opt-3" placeholder="Choice 4" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-3" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-3" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row mc-opt-extra" data-opt="4" style="display:none; background:#8b3dff; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
                                             <input type="radio" name="mc-correct" value="4" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
-                                            <input type="text" id="mc-opt-4" placeholder="Add answer 5 (optional)" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="text" id="mc-opt-4" placeholder="Choice 5" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-4" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-4" style="display:none;"></span>
                                         </div>
-                                        <button type="button" id="btn-add-option" class="btn-text" style="align-self:flex-start;">+ Add option</button>
+                                        <button type="button" id="btn-add-option" class="btn-text" style="align-self:flex-start;">+ Add choice</button>
                                         <div class="field-hint">Select the correct answer with the radio button.</div>
                                     </div>
                                     <div id="maker-mc-error" class="field-error" style="display:none;"></div>
@@ -326,10 +332,6 @@
                                 <div id="maker-free-point-group" style="background:var(--glass-bg); padding:10px 15px; border-radius:8px; border: 1px solid var(--glass-border); display:flex; flex-direction:row; justify-content:space-between; align-items:center;">
                                     <label for="maker-free-point" style="font-size:0.9rem; margin:0; margin-right: 10px; color: var(--text-main); white-space:nowrap; font-weight:bold;">Free Point</label>
                                     <input type="checkbox" id="maker-free-point" style="transform: scale(1.5); margin:0;">
-                                </div>
-                                <div class="input-group" id="maker-context-group" style="background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; display:flex; flex-direction:column; box-sizing: border-box;">
-                                    <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Clinical Context</label>
-                                    <textarea id="maker-context" placeholder="Optional context..." style="width:100%; min-height:60px; resize:none; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
                                 </div>
                             </div>
                         </div>

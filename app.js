@@ -1708,17 +1708,20 @@ makerTypeTabs.forEach(tab => {
     });
 });
 
-/* --- "+ Add option": reveal hidden MC rows 3-5 --- */
+/* --- "+ Add choice": reveal hidden MC rows 4-5 (row 3 always visible) --- */
 const btnAddOption = document.getElementById('btn-add-option');
 function syncOptionRows() {
     const extraRows = document.querySelectorAll('.mc-opt-extra');
+    // Row data-opt="2" (3rd choice) is always shown; only 4-5 toggle.
     let foundEmptySlot = false;
     extraRows.forEach((row) => {
         const hasValue = document.getElementById(`mc-opt-${row.dataset.opt}`).value.trim() !== '';
-        if (hasValue) {
+        if (row.dataset.opt === '2') {
+            row.style.display = 'flex';
+        } else if (hasValue) {
             row.style.display = 'flex';
         } else if (!foundEmptySlot) {
-            // Reveal the next empty slot so the "+ Add option" target is visible
+            // Reveal the next empty slot so the "+ Add choice" target is visible
             row.style.display = 'flex';
             foundEmptySlot = true;
         } else {
@@ -1742,7 +1745,7 @@ if (btnAddOption) {
     });
 }
 
-/* --- Media type auto-detection (replaces the hidden select) --- */
+/* --- Media type auto-detection (as a default, user can override) --- */
 const mediaTypeSelect = document.getElementById('maker-media-type');
 function detectMediaType(url, file) {
     const name = (file && file.name) || (url || '');
@@ -1755,18 +1758,16 @@ function detectMediaType(url, file) {
     if (/youtube\.com|youtu\.be/.test(lower)) return 'video';
     return 'image';
 }
-// Keep the hidden select in sync as the user types/picks a file
 const makerImgUrlInput = document.getElementById('maker-img-url');
 const makerImgFileInput = document.getElementById('maker-img-file');
-function syncMediaType() {
-    if (mediaTypeSelect && (makerImgUrlInput || makerImgFileInput)) {
-        mediaTypeSelect.value = detectMediaType(makerImgUrlInput ? makerImgUrlInput.value : '', makerImgFileInput && makerImgFileInput.files[0]);
-    }
+let mediaTypeTouched = false;
+function syncMediaType() {    // Only auto-detect until the user picks a type themselves.
+    if (mediaTypeTouched || !mediaTypeSelect) return;
+    mediaTypeSelect.value = detectMediaType(makerImgUrlInput ? makerImgUrlInput.value : '', makerImgFileInput && makerImgFileInput.files[0]);
 }
 if (makerImgUrlInput) makerImgUrlInput.addEventListener('input', syncMediaType);
 if (makerImgFileInput) makerImgFileInput.addEventListener('change', syncMediaType);
-// Also detect on the hidden select when media is saved
-const originalMediaTypeGet = null;
+if (mediaTypeSelect) mediaTypeSelect.addEventListener('change', () => { mediaTypeTouched = true; });
 
 const typingKeysContainer = document.getElementById('typing-keys-container');
 const btnAddTypingKey = document.getElementById('btn-add-typing-key');
@@ -1907,6 +1908,7 @@ window.editQuestion = (index) => {
     document.getElementById('maker-timer').value = q.timer;
     document.getElementById('maker-free-point').checked = q.freePoint;
     document.getElementById('maker-media-type').value = q.mediaType || 'image';
+    mediaTypeTouched = false;
     document.getElementById('maker-img-url').value = q.imageUrl || "";
     const hasMedia = !!q.imageUrl;
     document.getElementById('maker-add-media-toggle').checked = hasMedia;
@@ -2102,7 +2104,9 @@ function resetMakerForm(defaultType = 'question') {
         document.getElementById(`mc-file-preview-${i}`).innerText = '';
         mcUploadedImages[i] = null;
     }
-    document.querySelectorAll('.mc-opt-extra').forEach(row => row.style.display = 'none');
+    document.querySelectorAll('.mc-opt-extra').forEach(row => {
+        row.style.display = row.dataset.opt === '2' ? 'flex' : 'none';
+    });
     setMakerTypeTab('multiple-choice');
 
     if (defaultType === 'info') {
