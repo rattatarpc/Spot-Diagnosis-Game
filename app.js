@@ -8,6 +8,10 @@ const HARDCODED_AI_PROVIDER = 'groq';          // 'gemini' | 'groq' | 'openroute
 const HARDCODED_AI_KEY = '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';
 const HARDCODED_AI_MODEL = 'llama-3.3-70b-versatile';
 
+// True while the maker preview is showing a single question. Blocks advancing
+// through the quiz, submitting answers, and other live-game actions.
+let previewMode = false;
+
 /* =====================================================================
    🔥 FIREBASE CONFIGURATION 🔥
 ===================================================================== */
@@ -115,6 +119,85 @@ function setQuizProgress(qIndex, total) {
     if (fill) fill.style.width = total > 0 ? (((qIndex + 1) / total) * 100) + '%' : '0%';
     if (label) label.innerText = `Q ${qIndex + 1}/${total}`;
 }
+
+/* =====================================================================
+   AMBIENT FX (decorative background particles)
+   Particle shape/color is driven by the active theme body class in CSS;
+   here we only spawn .fx-particle spans with inline position/size/delay.
+   ===================================================================== */
+const FX_KINDS = {
+    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'snow', cool: 'ice'
+};
+
+function fxSpawn(intensity = 1) {
+    const container = document.getElementById('ambient-fx');
+    if (!container) return;
+    const bodyClass = [...document.body.classList].find(c => c.endsWith('-theme'));
+    const theme = FX_KINDS[bodyClass] ? bodyClass.replace('-theme', '') : 'dark';
+    const kind = FX_KINDS[theme];
+    const isSmall = window.innerWidth < 768;
+    const base = isSmall ? 18 : 32;
+    const count = Math.round(base * intensity);
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('span');
+        p.className = 'fx-particle fx-' + kind;
+        p.style.left = (Math.random() * 100) + 'vw';
+        const size = 0.7 + Math.random() * 0.9;
+        if (kind === 'star' || kind === 'cloud') {
+            p.style.scale = String(size);
+        } else {
+            p.style.scale = String(size);
+        }
+        p.style.animationDuration = (kind === 'star' || kind === 'cloud')
+            ? (7 + Math.random() * 8) + 's'
+            : (9 + Math.random() * 10) + 's';
+        p.style.animationDelay = (-Math.random() * 20) + 's';
+        p.style.setProperty('--fx-drift', (kind === 'leaf' || kind === 'petal' ? -80 : 30) + Math.random() * 120 + 'px');
+        p.style.setProperty('--fx-opacity', (theme === 'dark' ? 0.75 : 0.55).toFixed(2));
+        container.appendChild(p);
+    }
+}
+
+function fxBurst() {
+    const container = document.getElementById('ambient-fx');
+    if (!container) return;
+    for (let i = 0; i < 14; i++) {
+        const p = document.createElement('span');
+        const kind = (document.querySelector('.fx-particle')?.className || 'fx-star').split(' ')[1] || 'fx-star';
+        p.className = 'fx-particle ' + kind;
+        p.style.left = (50 + (Math.random() - 0.5) * 20) + 'vw';
+        p.style.top = '50%';
+        p.style.scale = String(0.8 + Math.random() * 1.2);
+        p.style.setProperty('--fx-opacity', '0.95');
+        const drift = (Math.random() - 0.5) * 140;
+        p.style.setProperty('--fx-drift', drift + 'px');
+        p.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
+        container.appendChild(p);
+    }
+    setTimeout(() => { fxSpawn(1); }, 3000);
+}
+
+function fxInit() {
+    if (fxInit._done) return;
+    fxInit._done = true;
+    const toggle = document.getElementById('settings-effects-toggle');
+    if (toggle) {
+        const saved = localStorage.getItem('spotDiagnosisFx');
+        const off = saved === 'off';
+        document.body.classList.toggle('fx-off', off);
+        toggle.checked = !off;
+        toggle.addEventListener('change', () => {
+            const isOff = !toggle.checked;
+            document.body.classList.toggle('fx-off', isOff);
+            localStorage.setItem('spotDiagnosisFx', isOff ? 'off' : 'on');
+        });
+    }
+    fxSpawn(1);
+}
+
+if (document.getElementById('ambient-fx')) { fxInit(); }
+document.addEventListener('DOMContentLoaded', fxInit);
 
 const screens = {
     role: document.getElementById('role-screen'),
@@ -786,6 +869,13 @@ function buildTypingFeedbackHTML(playerAns, q) {
 function switchScreen(screenName) {
     Object.values(screens).forEach(screen => screen.classList.remove('active'));
     screens[screenName].classList.add('active');
+
+    // Ambient background FX: only on casual/waiting screens
+    const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
+    document.body.classList.toggle('fx-active', fxScreens.includes(screenName));
+    // Countdown gets a denser effect + is the burst moment
+    if (screenName === 'countdown') fxSpawn(1.5);
+    else if (fxScreens.includes(screenName)) fxSpawn(1);
 
     // Reset any leftover scroll so switching screens never leaves blank space
     document.getElementById('app').scrollTop = 0;
@@ -2223,7 +2313,7 @@ window.renderPlayerScreen = (q, isPreview = false) => {
     renderMediaCommon(q, 'ekg', true);
 
     if (q.type !== 'info') {
-        renderOptions('options-container', q, true, 0, false);
+        renderOptions('options-container', q, !isPreview, 0, false);
     } else {
         document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
     }
@@ -2250,6 +2340,8 @@ window.previewActiveQuestion = () => {
     window.currentQuizData = JSON.parse(JSON.stringify(customQuizData)); // deep copy
     window.currentQuestionIndex = editIndex;
 
+    previewMode = true;
+
     // Switch to player screen but we are host, so it acts like a test
     document.getElementById('maker-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
@@ -2257,6 +2349,10 @@ window.previewActiveQuestion = () => {
     document.getElementById('global-nav-container').style.display = 'none';
     const globalControls = document.querySelector('.global-controls');
     if (globalControls) globalControls.style.display = 'flex';
+
+    // Hide live-game host controls so preview is a static view only
+    const hostControls = document.querySelector('.host-controls');
+    if (hostControls) hostControls.style.display = 'none';
 
     // Give them a back button overlay to return to maker
     let backBtn = document.getElementById('preview-back-btn');
@@ -2270,10 +2366,14 @@ window.previewActiveQuestion = () => {
         backBtn.style.left = '20px';
         backBtn.style.zIndex = '9999';
         backBtn.onclick = () => {
+            previewMode = false;
             document.getElementById('quiz-screen').classList.remove('active');
             document.getElementById('maker-screen').classList.add('active');
             backBtn.style.display = 'none';
             document.getElementById('global-nav-container').style.display = 'block';
+            // Restore host controls for real games
+            const hostControls = document.querySelector('.host-controls');
+            if (hostControls) hostControls.style.display = '';
             // Stop any playing audio
             if (window.backgroundMusic) {
                 window.backgroundMusic.pause();
@@ -2533,6 +2633,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
                 } else {
                     numEl.classList.add('go');
                     numEl.innerText = 'GO!';
+                    fxBurst();
                     clearInterval(cdInt);
                 }
             }, 1000);
@@ -2793,6 +2894,16 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
             btn.onclick = () => submitAnswer(input.value.trim(), q, qIndex);
             wrap.append(input, btn);
             container.appendChild(wrap);
+        } else if (!isFeedback && previewMode) {
+            // Non-interactive preview: show the typing box as players would see it
+            const wrap = document.createElement('div');
+            wrap.className = 'typing-input-container';
+            const input = document.createElement('textarea');
+            input.placeholder = 'Type your answer here...';
+            input.rows = 6;
+            input.disabled = true;
+            wrap.appendChild(input);
+            container.appendChild(wrap);
         } else if (isFeedback) {
             const div = document.createElement('div');
             div.style.padding = '20px';
@@ -2837,6 +2948,7 @@ function startQuestionFlow() {
             clearInterval(cdInt);
             countEl.classList.add('go');
             countEl.innerText = 'GO!';
+            fxBurst();
             db.ref(`rooms/${roomCode}`).update({ gameState: 'question_preview' });
             switchScreen('preview');
 
@@ -2859,10 +2971,12 @@ document.getElementById('btn-start-game').addEventListener('click', () => {
 });
 
 document.getElementById('btn-host-next').addEventListener('click', () => {
+    if (previewMode) return;
     endQuestion();
 });
 
 document.getElementById('btn-host-continue').addEventListener('click', () => {
+    if (previewMode) return;
     currentQuestionIndex++;
     if (currentQuestionIndex < customQuizData.length) {
         startQuestionFlow();
@@ -3323,6 +3437,7 @@ function renderAnswerSubmitted() {
 }
 
 async function submitAnswer(answer, q, qIndex) {
+    if (previewMode) return;
     if (hasAnswered) return;
     hasAnswered = true;
 

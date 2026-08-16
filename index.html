@@ -30,6 +30,8 @@
         })();
     </script>
     <div id="app">
+        <!-- Ambient background particles (decorative, per-theme) -->
+        <div id="ambient-fx" class="ambient-fx" aria-hidden="true"></div>
         <!-- Global Nav Menu -->
         <div class="global-home" id="global-nav-container">
             <div class="nav-header" id="btn-global-home" title="Navigation Menu">
@@ -363,7 +365,6 @@
             <div class="glass-container text-center countdown-wrap">
                 <h2 class="countdown-label">Get Ready!</h2>
                 <div id="countdown-number" class="countdown-number">5</div>
-                <div class="countdown-sub">3... 2... 1...</div>
             </div>
         </section>
 
@@ -656,6 +657,13 @@
             <div class="form-group" style="margin-bottom:0;">
                 <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music</label>
                 <button id="btn-music-toggle" class="btn-secondary" style="width:100%; font-size:1rem; padding:0.9rem;">🔊</button>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0; margin-top:1.2rem;">
+                <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
+                    <span>Floating Effects</span>
+                    <input type="checkbox" id="settings-effects-toggle" style="transform: scale(1.4); accent-color: var(--primary);">
+                </label>
             </div>
         </div>
     </div>
