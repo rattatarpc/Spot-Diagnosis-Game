@@ -2423,6 +2423,92 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     letter-spacing: 0.12em;
 }
 
+/* =====================================================================
+   GROUP C — MAKER (Game Show Arena look)
+   ===================================================================== */
+.maker-navbar {
+    background: var(--panel-bg) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+.maker-navbar .btn-primary {
+    border-radius: 999px;
+}
+.maker-navbar .btn-secondary {
+    border-radius: 999px;
+}
+
+.maker-sidebar {
+    background: var(--panel-bg) !important;
+    box-shadow: inset -1px 0 0 var(--glass-border);
+}
+.maker-editor-area {
+    background: var(--panel-bg) !important;
+}
+.maker-sidebar-actions {
+    background: var(--panel-bg) !important;
+}
+#maker-form-container {
+    background: var(--panel-bg) !important;
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.3);
+}
+#maker-context-group,
+#maker-info-text-group,
+#maker-typing-correct,
+#maker-media-fields,
+#maker-free-point-group {
+    background: var(--glass-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px;
+}
+
+.maker-thumbnail {
+    border-radius: 14px !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.maker-thumbnail:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.maker-thumbnail.active {
+    box-shadow: 0 0 0 3px var(--primary), 0 10px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+.mc-option-row {
+    border-radius: 14px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    transition: transform 0.2s;
+}
+.mc-option-row:hover {
+    transform: translateY(-2px);
+}
+.mc-option-row input[type="text"] {
+    font-weight: 800;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+#maker-tf-options .tf-lbl {
+    border-radius: 14px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-action {
+    border-radius: 999px !important;
+    border: 1px solid var(--glass-border);
+}
+.btn-action.btn-danger {
+    border-radius: 999px !important;
+}
+
+.maker-live-editor {
+    border-radius: 16px;
+}
+
 @media (max-width: 768px) {
     .hud { padding: 0.55rem 0.7rem; }
     #hud-timer { font-size: 1.7rem; }
