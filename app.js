@@ -145,16 +145,19 @@ function fxBuildConfig(theme, burst = false) {
         interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } }, modes: {} }
     };
 
-    // Emoji font stack so glyphs render in color on all platforms
-    const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+    // Twemoji SVG assets (rendered as colorful particle images)
+    const TWEMOJI = 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg';
 
-    // Falling emoji (snowflakes, petals, leaves)
-    const emojiFall = (emojis, sizeMin, sizeMax, count, opts = {}) => ({
+    // Falling image particles (snowflakes, petals, leaves, clouds, stars)
+    const imageFall = (codes, sizeMin, sizeMax, count, opts = {}) => ({
         particles: {
             number: { value: isSmall ? Math.round(count * 0.55) : count, density: { enable: true, area: 900 } },
             shape: {
-                type: 'emoji',
-                options: { emoji: { value: emojis, font: EMOJI_FONT } }
+                type: 'image',
+                options: {
+                    image: codes.map(code => ({ src: `${TWEMOJI}/${code}.svg`, width: sizeMax, height: sizeMax })),
+                    replaceColor: false
+                }
             },
             opacity: { value: opts.opacity ?? 0.95, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
             size: { value: { min: sizeMin, max: sizeMax }, random: { enable: true, minimumValue: sizeMin * 0.6 }, animation: { enable: true, speed: 4, minimumValue: sizeMin * 0.5, sync: false } },
@@ -175,7 +178,7 @@ function fxBuildConfig(theme, burst = false) {
     });
 
     const shapes = {
-        snow: emojiFall(['❄️', '❅', '❆'], 12, 20, 40, { speedMin: 0.6, speedMax: 1.2, drift: -0.5, driftMax: 0.5, rotSpeed: 3 }),
+        snow: imageFall(['2744', '2746'], 10, 18, 36, { speedMin: 0.6, speedMax: 1.2, drift: -0.5, driftMax: 0.5, rotSpeed: 3 }),
         fire: {
             particles: {
                 number: { value: isSmall ? 20 : 36, density: { enable: true, area: 800 } },
@@ -197,10 +200,10 @@ function fxBuildConfig(theme, burst = false) {
             },
             ...base
         },
-        petal: emojiFall(['🌸', '🌺', '🌷'], 16, 26, 34, { speedMin: 0.5, speedMax: 1.0, drift: -0.7, driftMax: 0.7, rotSpeed: 5 }),
-        leaf: emojiFall(['🍃', '🍂', '🌿'], 18, 30, 28, { speedMin: 0.4, speedMax: 0.9, drift: -0.8, driftMax: 0.8, rotSpeed: 5 }),
-        cloud: emojiFall(['☁️'], 60, 110, 8, { speedMin: 0.3, speedMax: 0.5, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
-        star: emojiFall(['✨', '⭐', '🌟'], 8, 14, 26, { speedMin: 0.2, speedMax: 0.5, drift: -0.3, driftMax: 0.3, rotSpeed: 0, opacity: 0.9 })
+        petal: imageFall(['1f338', '1f33a', '1f337'], 14, 24, 32, { speedMin: 0.5, speedMax: 1.0, drift: -0.7, driftMax: 0.7, rotSpeed: 5 }),
+        leaf: imageFall(['1f343', '1f342', '1f33f'], 16, 28, 26, { speedMin: 0.4, speedMax: 0.9, drift: -0.8, driftMax: 0.8, rotSpeed: 5 }),
+        cloud: imageFall(['2601'], 50, 90, 8, { speedMin: 0.3, speedMax: 0.5, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
+        star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speedMin: 0.2, speedMax: 0.5, drift: -0.3, driftMax: 0.3, rotSpeed: 0, opacity: 0.9 })
     };
 
     // Countdown burst: denser + faster
