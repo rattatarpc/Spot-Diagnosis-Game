@@ -294,7 +294,7 @@
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">
                                     <div>
                                         <strong style="color:var(--text-main); display:flex; align-items:center; gap:5px;">✨ Use AI Auto-Grading</strong>
-                                        <div style="font-size:0.8rem; color:var(--text-muted);">Smartly evaluate synonyms and concepts using Gemini API</div>
+                                        <div style="font-size:0.8rem; color:var(--text-muted);">Smartly evaluate synonyms and concepts using AI</div>
                                     </div>
                                     <label class="switch" style="position:relative; display:inline-block; width:50px; height:24px;">
                                         <input type="checkbox" id="maker-typing-ai-grading" checked style="opacity:0; width:0; height:0;">
@@ -603,20 +603,25 @@
             <span id="close-ai-settings" style="position:absolute; top:10px; right:20px; font-size:2rem; cursor:pointer; color:white;">&times;</span>
             <h2 style="margin-bottom:1rem; color:#8b3dff;">✨ AI Auto-Grading Settings</h2>
             <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem;">
-                Enter your Google Gemini API Key to enable smart grading for "Fill in the Blank" questions. The AI will understand synonyms, typos, and clinical context.
+                Enter an AI API Key to enable smart grading for "Fill in the Blank" questions. The AI will understand synonyms, typos, and clinical context.
                 <br><br>
-                <a href="https://aistudio.google.com/" target="_blank" style="color:var(--primary); text-decoration:underline;">Get a free API Key here</a>
+                Pick a provider: <strong>Gemini</strong>, <strong>Groq</strong>, or <strong>OpenRouter</strong> (last two offer free keys with no credit card and work worldwide).
             </p>
             <div class="form-group">
-                <label>Gemini API Key</label>
+                <label>AI Provider</label>
+                <select id="ai-provider" class="form-control">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="groq">Groq (Free)</option>
+                    <option value="openrouter">OpenRouter (Free models)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="ai-api-key-label">API Key</label>
                 <input type="password" id="ai-api-key" placeholder="AIzaSy..." class="form-control" autocomplete="off">
             </div>
             <div class="form-group">
                 <label>AI Model</label>
-                <select id="ai-model" class="form-control">
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest & Free)</option>
-                    <option value="gemini-1.5-pro">Gemini 1.5 Pro (Smarter & Free)</option>
-                </select>
+                <select id="ai-model" class="form-control"></select>
             </div>
             <button id="btn-save-ai-settings" class="btn-primary mt-3" style="width:100%; background:#8b3dff; border:none;">Save Settings</button>
         </div>

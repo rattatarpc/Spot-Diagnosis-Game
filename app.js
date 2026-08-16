@@ -1,8 +1,12 @@
 /* =====================================================================
    GLOBAL VARIABLES & CONFIG
 ===================================================================== */
-// Hardcoded Gemini API Key for internal use (Leave blank "" if not using)
-const HARDCODED_GEMINI_KEY = "";
+// Embedded AI config — set ONCE so every deployment has AI grading with no per-user setup.
+// WARNING: these values ship to the browser and are readable by anyone. Use a free API key
+// and accept that others could use it up to its quota.
+const HARDCODED_AI_PROVIDER = 'groq';          // 'gemini' | 'groq' | 'openrouter'
+const HARDCODED_AI_KEY = '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';
+const HARDCODED_AI_MODEL = 'llama-3.3-70b-versatile';
 
 /* =====================================================================
    🔥 FIREBASE CONFIGURATION 🔥
@@ -1112,27 +1116,99 @@ document.getElementById('btn-create-new-quiz').addEventListener('click', () => {
 });
 
 // AI Settings Logic
+const AI_PROVIDERS = {
+    gemini: {
+        label: 'Google Gemini',
+        keyPlaceholder: 'AIzaSy...',
+        keyPrefix: 'AIza',
+        keyLink: 'https://aistudio.google.com/apikey',
+        defaultModel: 'gemini-1.5-flash',
+        models: [
+            { value: 'gemini-1.5-flash', text: 'Gemini 1.5 Flash (Fastest & Free)' },
+            { value: 'gemini-1.5-pro', text: 'Gemini 1.5 Pro (Smarter & Free)' }
+        ]
+    },
+    groq: {
+        label: 'Groq',
+        keyPlaceholder: 'gsk_...',
+        keyPrefix: 'gsk_',
+        keyLink: 'https://console.groq.com/keys',
+        defaultModel: 'llama-3.3-70b-versatile',
+        models: [
+            { value: 'llama-3.3-70b-versatile', text: 'Llama 3.3 70B (Smart)' },
+            { value: 'llama-3.1-8b-instant', text: 'Llama 3.1 8B (Fast)' }
+        ]
+    },
+    openrouter: {
+        label: 'OpenRouter',
+        keyPlaceholder: 'sk-or-...',
+        keyPrefix: 'sk-or-',
+        keyLink: 'https://openrouter.ai/keys',
+        defaultModel: 'deepseek/deepseek-chat-v3-0324:free',
+        models: [
+            { value: 'deepseek/deepseek-chat-v3-0324:free', text: 'DeepSeek V3 (Free)' },
+            { value: 'meta-llama/llama-3.3-70b-instruct:free', text: 'Llama 3.3 70B (Free)' },
+            { value: 'google/gemma-2-9b-it:free', text: 'Gemma 2 9B (Free)' }
+        ]
+    }
+};
+
+function populateModelOptions(providerKey) {
+    const provider = AI_PROVIDERS[providerKey];
+    const select = document.getElementById('ai-model');
+    select.innerHTML = '';
+    provider.models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.value;
+        opt.textContent = m.text;
+        select.appendChild(opt);
+    });
+}
+
 const aiSettingsModal = document.getElementById('ai-settings-modal');
 document.getElementById('btn-ai-settings').addEventListener('click', () => {
-    document.getElementById('ai-api-key').value = localStorage.getItem('geminiApiKey') || HARDCODED_GEMINI_KEY || '';
-    document.getElementById('ai-model').value = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+    const provider = localStorage.getItem('aiProvider') || HARDCODED_AI_PROVIDER;
+    document.getElementById('ai-provider').value = provider;
+    populateModelOptions(provider);
+    const p = AI_PROVIDERS[provider];
+    document.getElementById('ai-api-key').value = localStorage.getItem('aiApiKey') || HARDCODED_AI_KEY || '';
+    document.getElementById('ai-api-key').placeholder = p.keyPlaceholder;
+    document.getElementById('ai-api-key-label').textContent = `${p.label} API Key`;
+    document.getElementById('ai-model').value = localStorage.getItem('aiModel') || HARDCODED_AI_MODEL || p.defaultModel;
     aiSettingsModal.style.display = 'flex';
+});
+document.getElementById('ai-provider').addEventListener('change', () => {
+    const provider = AI_PROVIDERS[document.getElementById('ai-provider').value];
+    populateModelOptions(provider ? document.getElementById('ai-provider').value : 'gemini');
+    document.getElementById('ai-api-key').placeholder = provider.keyPlaceholder;
+    document.getElementById('ai-api-key-label').textContent = `${provider.label} API Key`;
 });
 document.getElementById('close-ai-settings').addEventListener('click', () => {
     aiSettingsModal.style.display = 'none';
 });
 document.getElementById('btn-save-ai-settings').addEventListener('click', () => {
+    const provider = document.getElementById('ai-provider').value;
     const key = document.getElementById('ai-api-key').value.trim();
     const model = document.getElementById('ai-model').value;
+    const p = AI_PROVIDERS[provider];
+    if (key && !key.startsWith(p.keyPrefix)) {
+        Swal.fire('Invalid API Key', `${p.label} API keys should start with "${p.keyPrefix}". Check you pasted the right key (see ${p.keyLink}).`, 'warning');
+        return;
+    }
     if (key) {
-        localStorage.setItem('geminiApiKey', key);
-        localStorage.setItem('geminiModel', model);
+        localStorage.setItem('aiProvider', provider);
+        localStorage.setItem('aiApiKey', key);
+        localStorage.setItem('aiModel', model);
         Swal.fire('Saved!', 'AI Settings have been saved.', 'success');
         aiSettingsModal.style.display = 'none';
     } else {
-        localStorage.removeItem('geminiApiKey');
-        localStorage.setItem('geminiModel', model);
-        Swal.fire('Saved', 'API Key removed. AI grading is disabled.', 'info');
+        localStorage.removeItem('aiProvider');
+        localStorage.removeItem('aiApiKey');
+        localStorage.setItem('aiModel', model);
+        const message = HARDCODED_AI_KEY
+            ? 'Using the embedded API key bundled with the app.'
+            : 'API Key removed. AI grading is disabled.';
+        Swal.fire('Saved', message, 'info');
         aiSettingsModal.style.display = 'none';
     }
 });
@@ -2908,8 +2984,51 @@ async function endQuestion() {
     }
 }
 
+// Ask an AI provider to grade a rubric question. Returns the raw text of its
+// response (which callers JSON.parse). Provider can be 'gemini', 'groq', or
+// 'openrouter' (the latter two use an OpenAI-compatible chat API).
+async function callAIModel(provider, model, apiKey, promptText) {
+    if (provider === 'gemini') {
+        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const generativeModel = genAI.getGenerativeModel({ model: model });
+        const result = await generativeModel.generateContent({
+            contents: [{ role: 'user', parts: [{ text: promptText }] }],
+            generationConfig: { responseMimeType: "application/json" }
+        });
+        return result.response.text();
+    }
+
+    const baseUrl = provider === 'groq'
+        ? 'https://api.groq.com/openai/v1'
+        : 'https://openrouter.ai/api/v1';
+    const resp = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.href, 'X-Title': 'Spot Diagnosis Game' } : {})
+        },
+        body: JSON.stringify({
+            model: model,
+            messages: [{ role: 'user', content: promptText }],
+            temperature: 0,
+            response_format: { type: 'json_object' }
+        })
+    });
+    if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`AI API error ${resp.status}: ${errText.slice(0, 300)}`);
+    }
+    const data = await resp.json();
+    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if (!content) throw new Error('AI returned an empty response.');
+    return content;
+}
+
 async function runAIGrading(q, qIndex) {
-    const apiKey = localStorage.getItem('geminiApiKey') || HARDCODED_GEMINI_KEY;
+    const apiKey = localStorage.getItem('aiApiKey') || HARDCODED_AI_KEY;
+    const provider = localStorage.getItem('aiProvider') || HARDCODED_AI_PROVIDER;
     const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = pSnap.val() || {};
 
@@ -2938,7 +3057,7 @@ async function runAIGrading(q, qIndex) {
         return;
     }
 
-    const model = localStorage.getItem('geminiModel') || 'gemini-1.5-flash';
+    const model = localStorage.getItem('aiModel') || HARDCODED_AI_MODEL || AI_PROVIDERS[provider].defaultModel;
 
     Swal.fire({
         title: 'AI is grading answers...',
@@ -2983,17 +3102,7 @@ async function runAIGrading(q, qIndex) {
     });
 
     try {
-        // Use official Google SDK to support the new AQ. authorization keys
-        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const generativeModel = genAI.getGenerativeModel({ model: model });
-
-        const result = await generativeModel.generateContent({
-            contents: [{ role: 'user', parts: [{ text: promptText }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        });
-
-        const rawJsonStr = result.response.text();
+        const rawJsonStr = await callAIModel(provider, model, apiKey, promptText);
         const parsed = JSON.parse(rawJsonStr);
         const aiAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
         if (!Array.isArray(aiAnswers)) throw new Error('AI returned an invalid grading format.');
