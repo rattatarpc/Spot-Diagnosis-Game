@@ -121,65 +121,142 @@ function setQuizProgress(qIndex, total) {
 }
 
 /* =====================================================================
-   AMBIENT FX (decorative background particles)
-   Particle shape/color is driven by the active theme body class in CSS;
-   here we only spawn .fx-particle spans with inline position/size/delay.
+   AMBIENT FX (decorative background particles via tsParticles)
    ===================================================================== */
 const FX_KINDS = {
     dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'snow', cool: 'ice'
 };
 
-function fxSpawn(intensity = 1) {
-    const container = document.getElementById('ambient-fx');
-    if (!container) return;
+function fxCurrentTheme() {
     const bodyClass = [...document.body.classList].find(c => c.endsWith('-theme'));
-    const theme = bodyClass ? bodyClass.replace('-theme', '') : 'dark';
+    return bodyClass ? bodyClass.replace('-theme', '') : 'dark';
+}
+
+function fxBuildConfig(theme, burst = false) {
     const kind = FX_KINDS[theme] || 'star';
     const isSmall = window.innerWidth < 768;
-    const base = isSmall ? 18 : 32;
-    const count = Math.round(base * intensity);
-    container.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-        const p = document.createElement('span');
-        p.className = 'fx-particle fx-' + kind;
-        p.style.left = (kind === 'cloud' ? -20 : 0) + (Math.random() * (kind === 'cloud' ? 80 : 100)) + 'vw';
-        p.style.top = (kind === 'cloud' ? Math.random() * 75 : Math.random() * 100) + 'vh';
-        const size = 0.7 + Math.random() * 0.9;
-        p.style.scale = String(size);
-        p.style.animationDuration = (kind === 'star' || kind === 'cloud')
-            ? (7 + Math.random() * 8) + 's'
-            : (9 + Math.random() * 10) + 's';
-        p.style.animationDelay = (-Math.random() * 20) + 's';
-        if (kind === 'star') {
-            p.style.setProperty('--fx-drift', (Math.random() * 60 - 30) + 'vw');
-        } else if (kind === 'cloud') {
-            p.style.setProperty('--fx-drift', (100 + Math.random() * 60) + 'vw');
-            p.style.setProperty('--fx-y-drift', (Math.random() * 20 - 10) + 'vh');
-        } else {
-            p.style.setProperty('--fx-drift', (kind === 'leaf' || kind === 'petal' ? -80 : 30) + Math.random() * 120 + 'px');
+
+    // Shared physics
+    const base = {
+        fullScreen: { enable: false },
+        fpsLimit: 60,
+        detectRetina: true,
+        pauseOnBlur: false,
+        interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } }, modes: {} }
+    };
+
+    // Falling shapes (snow / ice / petal / leaf)
+    const fallingShape = (shape, size, drift, opacity, wobble = 0) => ({
+        particles: {
+            number: { value: isSmall ? 22 : 45, density: { enable: true, area: 800 } },
+            color: { value: '#ffffff' },
+            shape: { type: shape },
+            opacity: { value: opacity, animation: { enable: true, speed: 0.6, minimumValue: 0.05, sync: false } },
+            size: { value: size, random: { enable: true, minimumValue: size * 0.4 }, animation: { enable: true, speed: 4, minimumValue: 0.3, sync: false } },
+            links: { enable: false },
+            move: {
+                enable: true,
+                speed: { min: 0.6, max: 1.4 },
+                direction: 'bottom',
+                random: false,
+                straight: false,
+                outModes: { default: 'out', bottom: 'out', top: 'none' },
+                drift: drift
+            },
+            rotate: { value: wobble ? { min: 0, max: 360 } : 0, animation: { enable: wobble, speed: 4, sync: false } },
+            shadow: { enable: false }
+        },
+        ...base
+    });
+
+    const shapes = {
+        snow: fallingShape('circle', 5, { min: -0.4, max: 0.4 }, 0.7),
+        ice: fallingShape('star', 6, { min: -0.3, max: 0.3 }, 0.75),
+        petal: fallingShape('circle', 7, { min: -0.7, max: 0.7 }, 0.8, true),
+        leaf: fallingShape('circle', 7, { min: -0.7, max: 0.7 }, 0.8, true),
+        cloud: {
+            particles: {
+                number: { value: isSmall ? 6 : 12, density: { enable: true, area: 900 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'circle' },
+                opacity: { value: 0.18, animation: { enable: true, speed: 0.4, minimumValue: 0.05, sync: false } },
+                size: { value: { min: 40, max: 90 }, animation: { enable: true, speed: 3, minimumValue: 10, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.3, max: 0.7 },
+                    direction: 'none',
+                    random: true,
+                    straight: true,
+                    outModes: { default: 'out', right: 'out' },
+                    drift: 0.5
+                }
+            },
+            ...base
+        },
+        star: {
+            particles: {
+                number: { value: isSmall ? 14 : 28, density: { enable: true, area: 900 } },
+                color: { value: '#ffffff' },
+                shape: { type: 'star', options: { star: { sides: 4, inset: 2 } } },
+                opacity: { value: 0.9, animation: { enable: true, speed: 0.8, minimumValue: 0.1, sync: false } },
+                size: { value: { min: 1, max: 2.5 }, animation: { enable: true, speed: 3, minimumValue: 0.2, sync: false } },
+                links: { enable: false },
+                move: {
+                    enable: true,
+                    speed: { min: 0.2, max: 0.5 },
+                    direction: 'none',
+                    random: true,
+                    straight: true,
+                    outModes: { default: 'out' },
+                    drift: 0.2
+                },
+                twinkle: { enable: true, lines: { color: 'random', enable: false, frequency: 0.05, opacity: 1 } }
+            },
+            ...base
         }
-        p.style.setProperty('--fx-opacity', (theme === 'dark' ? 0.75 : 0.55).toFixed(2));
-        container.appendChild(p);
+    };
+
+    // Countdown burst: denser + faster
+    if (burst) {
+        Object.keys(shapes).forEach(k => {
+            if (!shapes[k]) return;
+            if (shapes[k].particles.number) shapes[k].particles.number.value = Math.round((shapes[k].particles.number.value || 30) * 1.6);
+            if (shapes[k].particles.move && shapes[k].particles.move.speed) {
+                if (typeof shapes[k].particles.move.speed === 'number') shapes[k].particles.move.speed *= 2;
+                else if (shapes[k].particles.move.speed && shapes[k].particles.move.speed.max) shapes[k].particles.move.speed.max *= 2;
+            }
+        });
+    }
+
+    return shapes[kind];
+}
+
+async function fxSpawn(intensity = 1) {
+    if (typeof tsParticles === 'undefined') return;
+    const container = document.getElementById('ambient-fx');
+    if (!container) return;
+    try {
+        await tsParticles.load({ element: container, options: fxBuildConfig(fxCurrentTheme(), intensity > 1) });
+    } catch (e) {
+        console.warn('tsParticles init failed:', e);
     }
 }
 
 function fxBurst() {
+    if (typeof tsParticles === 'undefined') return;
+    fxDestroy();
+    fxSpawn(1.6);
+    setTimeout(() => { fxDestroy(); fxSpawn(1); }, 3000);
+}
+
+function fxDestroy() {
+    if (typeof tsParticles === 'undefined') return;
     const container = document.getElementById('ambient-fx');
-    if (!container) return;
-    for (let i = 0; i < 14; i++) {
-        const p = document.createElement('span');
-        const kind = (document.querySelector('.fx-particle')?.className || 'fx-star').split(' ')[1] || 'fx-star';
-        p.className = 'fx-particle ' + kind;
-        p.style.left = (50 + (Math.random() - 0.5) * 20) + 'vw';
-        p.style.top = '50%';
-        p.style.scale = String(0.8 + Math.random() * 1.2);
-        p.style.setProperty('--fx-opacity', '0.95');
-        const drift = (Math.random() - 0.5) * 140;
-        p.style.setProperty('--fx-drift', drift + 'px');
-        p.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
-        container.appendChild(p);
+    if (container && tsParticles.dom) {
+        const instance = tsParticles.dom().find(p => p.container && p.container.element === container);
+        if (instance) instance.destroy();
     }
-    setTimeout(() => { fxSpawn(1); }, 3000);
 }
 
 function fxInit() {
@@ -195,13 +272,17 @@ function fxInit() {
             const isOff = !toggle.checked;
             document.body.classList.toggle('fx-off', isOff);
             localStorage.setItem('spotDiagnosisFx', isOff ? 'off' : 'on');
+            if (isOff) fxDestroy();
+            else if (document.body.classList.contains('fx-active')) fxSpawn(1);
         });
     }
     // Make FX visible on load if the initially-active screen is an FX screen.
     const activeScreen = Object.entries(screens).find(([, el]) => el.classList.contains('active'))?.[0];
     const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
     document.body.classList.toggle('fx-active', fxScreens.includes(activeScreen));
-    fxSpawn(1);
+    if (document.body.classList.contains('fx-active') && !document.body.classList.contains('fx-off')) {
+        fxSpawn(1);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', fxInit);
@@ -879,10 +960,20 @@ function switchScreen(screenName) {
 
     // Ambient background FX: only on casual/waiting screens
     const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
-    document.body.classList.toggle('fx-active', fxScreens.includes(screenName));
-    // Countdown gets a denser effect + is the burst moment
-    if (screenName === 'countdown') fxSpawn(1.5);
-    else if (fxScreens.includes(screenName)) fxSpawn(1);
+    const fxNowOn = fxScreens.includes(screenName);
+    const fxWasOn = document.body.classList.contains('fx-active');
+    document.body.classList.toggle('fx-active', fxNowOn);
+    const fxAllowed = !document.body.classList.contains('fx-off');
+    if (fxNowOn !== fxWasOn || screenName === 'countdown') {
+        if (fxNowOn && fxAllowed) {
+            fxDestroy();
+            // Countdown gets a denser effect
+            if (screenName === 'countdown') fxSpawn(1.6);
+            else fxSpawn(1);
+        } else if (!fxNowOn) {
+            fxDestroy();
+        }
+    }
 
     // Reset any leftover scroll so switching screens never leaves blank space
     document.getElementById('app').scrollTop = 0;
@@ -1570,7 +1661,12 @@ themeSelect.addEventListener('change', () => {
         document.body.classList.add(`${chosen}-theme`);
     }
     localStorage.setItem('spotDiagnosisTheme', chosen);
-    if (typeof fxSpawn === 'function') fxSpawn(chosen === 'dark' ? 1 : 1);
+    if (typeof fxDestroy === 'function' && typeof fxSpawn === 'function') {
+        fxDestroy();
+        if (document.body.classList.contains('fx-active') && !document.body.classList.contains('fx-off')) {
+            fxSpawn(1);
+        }
+    }
 });
 
 // Restore saved theme on load (default to light; unknown values fall back to light)
