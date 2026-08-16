@@ -2566,6 +2566,10 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     padding: 5px;
     width: 100%;
     box-sizing: border-box;
+    margin-top: 12px;
+    align-items: center;
+    z-index: 2;
+    position: relative;
 }
 .maker-type-tab {
     flex: 1;
@@ -2585,6 +2589,32 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white;
     box-shadow: 0 4px 10px -3px var(--accent);
+}
+/* Toggle button that shows/hides the Slide tab */
+.maker-type-tab-toggle {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+}
+.maker-type-tab-toggle:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+.maker-type-tab-toggle.tab-off { opacity: 0.5; text-decoration: line-through; }
+
+/* When choosing a new question type, only the tabs show — make them prominent */
+.maker-choose-type .maker-type-tabs {
+    padding: 8px;
+    margin: 2rem 0 1rem;
+}
+.maker-choose-type .maker-type-tab {
+    font-size: 1.05rem;
+    padding: 1rem 0.5rem;
 }
 
 /* Field hints */

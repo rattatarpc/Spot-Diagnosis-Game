@@ -136,8 +136,7 @@
                         <!-- Thumbnails injected here -->
                     </div>
                     <div class="maker-sidebar-actions" style="padding: 10px; border-top: 1px solid var(--glass-border); display:flex; gap: 5px; background: transparent;">
-                        <button id="btn-show-maker-form" class="btn-primary" style="flex:1; padding: 0.5rem; font-size:0.8rem;">+ New Question</button>
-                        <button id="btn-show-info-form" class="btn-secondary" style="flex:1; padding: 0.5rem; font-size:0.8rem;">+ Slide</button>
+                        <button id="btn-add-new" class="btn-primary" style="flex:1; padding: 0.5rem; font-size:0.8rem;">＋ Add New</button>
                     </div>
                 </div>
 
@@ -158,7 +157,8 @@
                             <button type="button" class="maker-type-tab active" data-type="multiple-choice">Multiple Choice</button>
                             <button type="button" class="maker-type-tab" data-type="true-false">True / False</button>
                             <button type="button" class="maker-type-tab" data-type="typing">Typing</button>
-                            <button type="button" class="maker-type-tab" data-type="info">Slide</button>
+                            <button type="button" class="maker-type-tab" data-type="info" id="tab-slide">Slide</button>
+                            <button type="button" id="btn-toggle-slide-tab" class="maker-type-tab-toggle" title="Show / hide Slide tab" aria-label="Show or hide the Slide tab">🗂️</button>
                         </div>
                         <!-- Hidden select kept for JS compat; tabs drive its value -->
                         <div id="maker-q-type-group" style="display:none;">

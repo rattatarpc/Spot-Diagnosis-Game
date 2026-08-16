@@ -1347,7 +1347,7 @@ document.getElementById('btn-dashboard-download').addEventListener('click', asyn
 
 document.getElementById('btn-save-library').addEventListener('click', async () => {
     // Ensure active question is saved
-    if (document.getElementById('maker-form-container').style.display === 'block') {
+    if (document.getElementById('maker-form-container').style.display !== 'none') {
         saveActiveQuestion();
     }
 
@@ -1672,6 +1672,27 @@ function setMakerTypeTab(type) {
 makerTypeTabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const type = tab.dataset.type;
+
+        // New-question flow: first tab click creates the question of that type
+        if (window._makerTypeStep === 'choose') {
+            window._makerTypeStep = null;
+            document.getElementById('maker-form-container').classList.remove('maker-choose-type');
+            document.querySelectorAll('.maker-form-grid, .maker-form-actions').forEach(el => el.style.display = '');
+            customQuizData.push({
+                type: type,
+                text: '',
+                context: '',
+                timer: type === 'info' ? 0 : 30,
+                freePoint: false,
+                imageUrl: '',
+                mediaType: 'image',
+                options: type === 'multiple-choice' ? ['', '', '', '', ''] : [],
+                correctAnswer: type === 'multiple-choice' ? '0' : ''
+            });
+            selectQuestion(customQuizData.length - 1);
+            return;
+        }
+
         document.getElementById('maker-q-type').value = type;
         setMakerTypeTab(type);
         // Re-apply the panel visibility for the chosen type
@@ -1707,6 +1728,23 @@ makerTypeTabs.forEach(tab => {
         markMakerDirty();
     });
 });
+
+/* --- Toggle visibility of the Slide tab (persisted) --- */
+const btnToggleSlideTab = document.getElementById('btn-toggle-slide-tab');
+const slideTab = document.getElementById('tab-slide');
+function applySlideTabVisibility() {
+    const hidden = localStorage.getItem('spotDiagnosisHideSlideTab') === '1';
+    if (slideTab) slideTab.style.display = hidden ? 'none' : '';
+    if (btnToggleSlideTab) btnToggleSlideTab.classList.toggle('tab-off', hidden);
+}
+if (btnToggleSlideTab) {
+    btnToggleSlideTab.addEventListener('click', () => {
+        const hidden = localStorage.getItem('spotDiagnosisHideSlideTab') === '1';
+        localStorage.setItem('spotDiagnosisHideSlideTab', hidden ? '0' : '1');
+        applySlideTabVisibility();
+    });
+}
+applySlideTabVisibility();
 
 /* --- "+ Add choice": reveal hidden MC rows 4-5 (row 3 always visible) --- */
 const btnAddOption = document.getElementById('btn-add-option');
@@ -1882,7 +1920,7 @@ window.editQuestion = (index) => {
     const q = customQuizData[index];
     document.getElementById('edit-q-index').value = index;
     document.getElementById('maker-form-title').innerText = "Edit Question";
-    document.getElementById('maker-form-container').style.display = "block";
+    document.getElementById('maker-form-container').style.display = "flex";
     document.getElementById('maker-content-area').style.display = "block";
 
     document.getElementById('maker-q-type').value = q.type;
@@ -2016,18 +2054,18 @@ document.getElementById('btn-close-maker-form').addEventListener('click', () => 
     resetMakerForm();
 });
 
-document.getElementById('btn-show-maker-form').addEventListener('click', async () => {
+/* --- "Add New" button: choose New Question (shows type tabs first) or Slide --- */
+document.getElementById('btn-add-new').addEventListener('click', async () => {
     saveActiveQuestion();
 
-    window.tempSelectedType = null;
+    window.tempAddChoice = null;
 
     const result = await Swal.fire({
-        title: 'Select Question Type',
+        title: 'What do you want to add?',
         html: `
             <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-                <button class="btn-primary" onclick="window.tempSelectedType='multiple-choice'; Swal.clickConfirm();" style="padding:15px; font-size:1.1rem; border-radius:8px;">Multiple Choice</button>
-                <button class="btn-primary" onclick="window.tempSelectedType='true-false'; Swal.clickConfirm();" style="padding:15px; font-size:1.1rem; border-radius:8px;">True / False</button>
-                <button class="btn-primary" onclick="window.tempSelectedType='typing'; Swal.clickConfirm();" style="padding:15px; font-size:1.1rem; border-radius:8px;">Typing (Fill in the blank)</button>
+                <button class="btn-primary" onclick="window.tempAddChoice='question'; Swal.clickConfirm();" style="padding:15px; font-size:1.1rem; border-radius:8px;">New Question</button>
+                <button class="btn-secondary" onclick="window.tempAddChoice='slide'; Swal.clickConfirm();" style="padding:15px; font-size:1.1rem; border-radius:8px;">Present Slide</button>
             </div>
         `,
         showCancelButton: true,
@@ -2038,37 +2076,38 @@ document.getElementById('btn-show-maker-form').addEventListener('click', async (
         }
     });
 
-    if (result.isConfirmed && window.tempSelectedType) {
-        const selectedType = window.tempSelectedType;
+    if (!result.isConfirmed || !window.tempAddChoice) return;
+    const choice = window.tempAddChoice;
+
+    if (choice === 'slide') {
         customQuizData.push({
-            type: selectedType,
+            type: 'info',
             text: '',
             context: '',
-            timer: 30,
+            timer: 0,
             freePoint: false,
             imageUrl: '',
             mediaType: 'image',
-            options: selectedType === 'multiple-choice' ? ['', '', '', '', ''] : [],
-            correctAnswer: selectedType === 'multiple-choice' ? '0' : ''
+            options: [],
+            correctAnswer: ''
         });
         selectQuestion(customQuizData.length - 1);
+        return;
     }
-});
 
-document.getElementById('btn-show-info-form').addEventListener('click', () => {
-    saveActiveQuestion();
-    customQuizData.push({
-        type: 'info',
-        text: '',
-        context: '',
-        timer: 0,
-        freePoint: false,
-        imageUrl: '',
-        mediaType: 'image',
-        options: [],
-        correctAnswer: ''
-    });
-    selectQuestion(customQuizData.length - 1);
+    // New Question: reveal only the type tabs, wait for a tab click
+    window._makerTypeStep = 'choose';
+    const frm = document.getElementById('maker-form-container');
+    frm.classList.add('maker-choose-type');
+    document.getElementById('maker-empty-state').style.display = 'none';
+    frm.dataset.type = 'question';
+    document.getElementById('maker-form-title').innerText = "Choose Question Type";
+    frm.style.display = "flex";
+    document.getElementById('maker-content-area').style.display = 'none';
+    // Hide everything except the tabs
+    document.querySelectorAll('.maker-form-grid, .maker-form-actions').forEach(el => el.style.display = 'none');
+    setMakerTypeTab(null);
+    document.getElementById('maker-q-type').value = '';
 });
 
 function resetMakerForm(defaultType = 'question') {
@@ -2675,7 +2714,7 @@ window.renderMakerList = () => {
 ===================================================================== */
 document.getElementById('btn-host-quiz').addEventListener('click', async () => {
     // Ensure active question is saved
-    if (document.getElementById('maker-form-container').style.display === 'block') {
+    if (document.getElementById('maker-form-container').style.display !== 'none') {
         saveActiveQuestion();
     }
 
