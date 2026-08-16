@@ -248,6 +248,22 @@ function fxDestroy() {
     }
 }
 
+/* Play/pause the background video (dark theme, FX screens only) */
+function fxVideoSync() {
+    const video = document.getElementById('bg-video');
+    if (!video) return;
+    const theme = fxCurrentTheme();
+    const shouldPlay = theme === 'dark'
+        && document.body.classList.contains('fx-active')
+        && !document.body.classList.contains('fx-off');
+    if (shouldPlay) {
+        const p = video.play();
+        if (p && p.catch) p.catch(() => {});
+    } else {
+        video.pause();
+    }
+}
+
 function fxInit() {
     if (fxInit._done) return;
     fxInit._done = true;
@@ -263,6 +279,7 @@ function fxInit() {
             localStorage.setItem('spotDiagnosisFx', isOff ? 'off' : 'on');
             if (isOff) fxDestroy();
             else if (document.body.classList.contains('fx-active')) fxSpawn(1);
+            fxVideoSync();
         });
     }
     // Make FX visible on load if the initially-active screen is an FX screen.
@@ -272,6 +289,7 @@ function fxInit() {
     if (document.body.classList.contains('fx-active') && !document.body.classList.contains('fx-off')) {
         fxSpawn(1);
     }
+    fxVideoSync();
 }
 
 document.addEventListener('DOMContentLoaded', fxInit);
@@ -963,6 +981,7 @@ function switchScreen(screenName) {
             fxDestroy();
         }
     }
+    if (typeof fxVideoSync === 'function') fxVideoSync();
 
     // Reset any leftover scroll so switching screens never leaves blank space
     document.getElementById('app').scrollTop = 0;
@@ -1656,6 +1675,7 @@ themeSelect.addEventListener('change', () => {
             fxSpawn(1);
         }
     }
+    if (typeof fxVideoSync === 'function') fxVideoSync();
 });
 
 // Restore saved theme on load (default to light; unknown values fall back to light)
