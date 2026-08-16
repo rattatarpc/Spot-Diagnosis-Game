@@ -21,7 +21,7 @@
         // Default is light; only known themes are honoured, otherwise light.
         (function () {
             try {
-                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool'];
+                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool', 'video'];
                 var t = localStorage.getItem('spotDiagnosisTheme');
                 if (allowed.indexOf(t) !== -1) {
                     document.body.classList.add(t + '-theme');
@@ -664,6 +664,7 @@
                     <option value="earth">🌿 Earth</option>
                     <option value="warm">🔥 Warm</option>
                     <option value="cool">❄️ Cool</option>
+                    <option value="video">🎬 Video</option>
                 </select>
             </div>
 

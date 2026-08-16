@@ -124,7 +124,7 @@ function setQuizProgress(qIndex, total) {
    AMBIENT FX (decorative background particles via tsParticles)
    ===================================================================== */
 const FX_KINDS = {
-    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'fire', cool: 'snow'
+    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'fire', cool: 'snow', video: 'none'
 };
 
 function fxCurrentTheme() {
@@ -225,6 +225,8 @@ async function fxSpawn(intensity = 1) {
     if (typeof tsParticles === 'undefined') return;
     const container = document.getElementById('ambient-fx');
     if (!container) return;
+    // Video theme: the video is the effect, no particles needed
+    if (FX_KINDS[fxCurrentTheme()] === 'none') return;
     try {
         await tsParticles.load({ element: container, options: fxBuildConfig(fxCurrentTheme(), intensity > 1) });
     } catch (e) {
@@ -248,12 +250,12 @@ function fxDestroy() {
     }
 }
 
-/* Play/pause the background video (dark theme, FX screens only) */
+/* Play/pause the background video (Video theme, FX screens only) */
 function fxVideoSync() {
     const video = document.getElementById('bg-video');
     if (!video) return;
     const theme = fxCurrentTheme();
-    const shouldPlay = theme === 'dark'
+    const shouldPlay = theme === 'video'
         && document.body.classList.contains('fx-active')
         && !document.body.classList.contains('fx-off');
     if (shouldPlay) {
@@ -1659,12 +1661,13 @@ if (mediaDropzone && makerImgFileEl) {
    THEME SELECTOR
 ===================================================================== */
 const themeSelect = document.getElementById('theme-select');
-const themes = ['dark', 'light', 'pastel', 'earth', 'warm', 'cool'];
+const themes = ['dark', 'light', 'pastel', 'earth', 'warm', 'cool', 'video'];
+const THEME_CLASSES = ['light-theme', 'pastel-theme', 'earth-theme', 'warm-theme', 'cool-theme', 'video-theme'];
 
 themeSelect.addEventListener('change', () => {
     const chosen = themeSelect.value;
     // Remove all theme classes first
-    document.body.classList.remove('light-theme', 'pastel-theme', 'earth-theme', 'warm-theme', 'cool-theme');
+    document.body.classList.remove(...THEME_CLASSES);
     if (chosen !== 'dark') {
         document.body.classList.add(`${chosen}-theme`);
     }
