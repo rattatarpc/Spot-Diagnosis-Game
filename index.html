@@ -15,11 +15,17 @@
 </head>
 <body>
     <script>
-        // Apply saved theme before first paint to avoid a dark flash
+        // Apply saved theme before first paint to avoid a dark flash.
+        // Default is light; only known themes are honoured, otherwise light.
         (function () {
             try {
-                var t = localStorage.getItem('spotDiagnosisTheme') || 'light';
-                if (t && t !== 'dark') document.body.classList.add(t + '-theme');
+                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool'];
+                var t = localStorage.getItem('spotDiagnosisTheme');
+                if (allowed.indexOf(t) !== -1) {
+                    document.body.classList.add(t + '-theme');
+                } else if (t !== 'dark') {
+                    document.body.classList.add('light-theme');
+                }
             } catch (e) {}
         })();
     </script>
@@ -46,7 +52,7 @@
         <audio id="bgm-player" loop preload="none"></audio>
 
         <!-- 1. Role Selection Screen -->
-        <section id="role-screen" class="screen">
+        <section id="role-screen" class="screen active">
             <div class="glass-container text-center">
                 <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
                 <h1 class="title-gradient">Spot Diagnosis</h1>

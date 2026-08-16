@@ -1379,9 +1379,12 @@ themeSelect.addEventListener('change', () => {
     localStorage.setItem('spotDiagnosisTheme', chosen);
 });
 
-// Restore saved theme on load (default to light on first visit)
+// Restore saved theme on load (default to light; unknown values fall back to light)
 const savedTheme = localStorage.getItem('spotDiagnosisTheme');
-const initialTheme = savedTheme || 'light';
+let initialTheme = 'light';
+if (themes.includes(savedTheme)) {
+    initialTheme = savedTheme;
+}
 if (initialTheme !== 'dark') {
     document.body.classList.add(`${initialTheme}-theme`);
 }
