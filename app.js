@@ -133,8 +133,8 @@ function fxSpawn(intensity = 1) {
     const container = document.getElementById('ambient-fx');
     if (!container) return;
     const bodyClass = [...document.body.classList].find(c => c.endsWith('-theme'));
-    const theme = FX_KINDS[bodyClass] ? bodyClass.replace('-theme', '') : 'dark';
-    const kind = FX_KINDS[theme];
+    const theme = bodyClass ? bodyClass.replace('-theme', '') : 'dark';
+    const kind = FX_KINDS[theme] || 'star';
     const isSmall = window.innerWidth < 768;
     const base = isSmall ? 18 : 32;
     const count = Math.round(base * intensity);
@@ -142,18 +142,20 @@ function fxSpawn(intensity = 1) {
     for (let i = 0; i < count; i++) {
         const p = document.createElement('span');
         p.className = 'fx-particle fx-' + kind;
-        p.style.left = (Math.random() * 100) + 'vw';
+        p.style.left = (kind === 'cloud' ? -20 : 0) + (Math.random() * (kind === 'cloud' ? 80 : 100)) + 'vw';
         const size = 0.7 + Math.random() * 0.9;
-        if (kind === 'star' || kind === 'cloud') {
-            p.style.scale = String(size);
-        } else {
-            p.style.scale = String(size);
-        }
+        p.style.scale = String(size);
         p.style.animationDuration = (kind === 'star' || kind === 'cloud')
             ? (7 + Math.random() * 8) + 's'
             : (9 + Math.random() * 10) + 's';
         p.style.animationDelay = (-Math.random() * 20) + 's';
-        p.style.setProperty('--fx-drift', (kind === 'leaf' || kind === 'petal' ? -80 : 30) + Math.random() * 120 + 'px');
+        if (kind === 'star') {
+            p.style.setProperty('--fx-drift', (Math.random() * 60 - 30) + 'vw');
+        } else if (kind === 'cloud') {
+            p.style.setProperty('--fx-drift', (100 + Math.random() * 60) + 'vw');
+        } else {
+            p.style.setProperty('--fx-drift', (kind === 'leaf' || kind === 'petal' ? -80 : 30) + Math.random() * 120 + 'px');
+        }
         p.style.setProperty('--fx-opacity', (theme === 'dark' ? 0.75 : 0.55).toFixed(2));
         container.appendChild(p);
     }
