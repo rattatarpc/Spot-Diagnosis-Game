@@ -2517,6 +2517,15 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     filter: brightness(0.92);
     transform: translateY(-1px);
 }
+.btn-save-question {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+    color: white !important;
+}
+.btn-save-question:hover:not(:disabled) {
+    background: var(--success) !important;
+    filter: brightness(1.08);
+}
 
 .maker-live-editor {
     border-radius: 16px;
