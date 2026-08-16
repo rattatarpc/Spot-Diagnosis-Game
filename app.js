@@ -145,53 +145,37 @@ function fxBuildConfig(theme, burst = false) {
         interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } }, modes: {} }
     };
 
-    // Falling shapes (snow / ice / petal / leaf)
-    const fallingShape = (shape, size, drift, opacity, wobble = 0) => ({
+    // Emoji font stack so glyphs render in color on all platforms
+    const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+
+    // Falling emoji (snowflakes, petals, leaves)
+    const emojiFall = (emojis, sizeMin, sizeMax, count, opts = {}) => ({
         particles: {
-            number: { value: isSmall ? 22 : 45, density: { enable: true, area: 800 } },
-            color: { value: '#ffffff' },
-            shape: { type: shape },
-            opacity: { value: opacity, animation: { enable: true, speed: 0.6, minimumValue: 0.05, sync: false } },
-            size: { value: size, random: { enable: true, minimumValue: size * 0.4 }, animation: { enable: true, speed: 4, minimumValue: 0.3, sync: false } },
+            number: { value: isSmall ? Math.round(count * 0.55) : count, density: { enable: true, area: 900 } },
+            shape: {
+                type: 'emoji',
+                options: { emoji: { value: emojis, font: EMOJI_FONT } }
+            },
+            opacity: { value: opts.opacity ?? 0.95, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
+            size: { value: { min: sizeMin, max: sizeMax }, random: { enable: true, minimumValue: sizeMin * 0.6 }, animation: { enable: true, speed: 4, minimumValue: sizeMin * 0.5, sync: false } },
             links: { enable: false },
             move: {
                 enable: true,
-                speed: { min: 0.6, max: 1.4 },
+                speed: { min: opts.speedMin ?? 0.5, max: opts.speedMax ?? 1.1 },
                 direction: 'bottom',
                 random: false,
                 straight: false,
                 outModes: { default: 'out', bottom: 'out', top: 'none' },
-                drift: drift
+                drift: { min: opts.drift ?? -0.6, max: opts.driftMax ?? 0.6 }
             },
-            rotate: { value: wobble ? { min: 0, max: 360 } : 0, animation: { enable: wobble, speed: 4, sync: false } },
+            rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: opts.rotSpeed ?? 4, sync: false } },
             shadow: { enable: false }
         },
         ...base
     });
 
     const shapes = {
-        snow: {
-            particles: {
-                number: { value: isSmall ? 24 : 48, density: { enable: true, area: 800 } },
-                color: { value: '#ffffff' },
-                shape: { type: 'star', options: { star: { sides: 6, inset: 3 } } },
-                opacity: { value: 0.75, animation: { enable: true, speed: 0.6, minimumValue: 0.05, sync: false } },
-                size: { value: { min: 4, max: 8 }, random: { enable: true, minimumValue: 3 }, animation: { enable: true, speed: 4, minimumValue: 1, sync: false } },
-                links: { enable: false },
-                move: {
-                    enable: true,
-                    speed: { min: 0.5, max: 1.2 },
-                    direction: 'bottom',
-                    random: false,
-                    straight: false,
-                    outModes: { default: 'out', bottom: 'out', top: 'none' },
-                    drift: { min: -0.4, max: 0.4 }
-                },
-                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 3, sync: false } },
-                shadow: { enable: false }
-            },
-            ...base
-        },
+        snow: emojiFall(['❄️', '❅', '❆'], 12, 20, 40, { speedMin: 0.6, speedMax: 1.2, drift: -0.5, driftMax: 0.5, rotSpeed: 3 }),
         fire: {
             particles: {
                 number: { value: isSmall ? 20 : 36, density: { enable: true, area: 800 } },
@@ -213,92 +197,10 @@ function fxBuildConfig(theme, burst = false) {
             },
             ...base
         },
-        ice: fallingShape('star', 6, { min: -0.3, max: 0.3 }, 0.75),
-        petal: {
-            particles: {
-                number: { value: isSmall ? 24 : 40, density: { enable: true, area: 800 } },
-                color: { value: ['#f9a8d4', '#f0abfc', '#fbcfe8'] },
-                shape: { type: 'star', options: { star: { sides: 5, inset: 2 } } },
-                opacity: { value: 0.8, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
-                size: { value: { min: 6, max: 10 }, random: { enable: true, minimumValue: 4 }, animation: { enable: true, speed: 4, minimumValue: 1.5, sync: false } },
-                links: { enable: false },
-                move: {
-                    enable: true,
-                    speed: { min: 0.5, max: 1.1 },
-                    direction: 'bottom',
-                    random: false,
-                    straight: false,
-                    outModes: { default: 'out', bottom: 'out', top: 'none' },
-                    drift: { min: -0.6, max: 0.6 }
-                },
-                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 4, sync: false } },
-                shadow: { enable: false }
-            },
-            ...base
-        },
-        leaf: {
-            particles: {
-                number: { value: isSmall ? 20 : 34, density: { enable: true, area: 800 } },
-                color: { value: ['#84cc16', '#65a30d', '#4d7c0f'] },
-                shape: { type: 'star', options: { star: { sides: 4, inset: 3 } } },
-                opacity: { value: 0.85, animation: { enable: true, speed: 0.6, minimumValue: 0.1, sync: false } },
-                size: { value: { min: 7, max: 12 }, random: { enable: true, minimumValue: 5 }, animation: { enable: true, speed: 4, minimumValue: 2, sync: false } },
-                links: { enable: false },
-                move: {
-                    enable: true,
-                    speed: { min: 0.4, max: 0.9 },
-                    direction: 'bottom',
-                    random: false,
-                    straight: false,
-                    outModes: { default: 'out', bottom: 'out', top: 'none' },
-                    drift: { min: -0.7, max: 0.7 }
-                },
-                rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 5, sync: false } },
-                shadow: { enable: false }
-            },
-            ...base
-        },
-        cloud: {
-            particles: {
-                number: { value: isSmall ? 6 : 12, density: { enable: true, area: 900 } },
-                color: { value: '#ffffff' },
-                shape: { type: 'circle' },
-                opacity: { value: 0.18, animation: { enable: true, speed: 0.4, minimumValue: 0.05, sync: false } },
-                size: { value: { min: 40, max: 90 }, animation: { enable: true, speed: 3, minimumValue: 10, sync: false } },
-                links: { enable: false },
-                move: {
-                    enable: true,
-                    speed: { min: 0.3, max: 0.7 },
-                    direction: 'none',
-                    random: true,
-                    straight: true,
-                    outModes: { default: 'out', right: 'out' },
-                    drift: 0.5
-                }
-            },
-            ...base
-        },
-        star: {
-            particles: {
-                number: { value: isSmall ? 14 : 28, density: { enable: true, area: 900 } },
-                color: { value: '#ffffff' },
-                shape: { type: 'star', options: { star: { sides: 4, inset: 2 } } },
-                opacity: { value: 0.9, animation: { enable: true, speed: 0.8, minimumValue: 0.1, sync: false } },
-                size: { value: { min: 1, max: 2.5 }, animation: { enable: true, speed: 3, minimumValue: 0.2, sync: false } },
-                links: { enable: false },
-                move: {
-                    enable: true,
-                    speed: { min: 0.2, max: 0.5 },
-                    direction: 'none',
-                    random: true,
-                    straight: true,
-                    outModes: { default: 'out' },
-                    drift: 0.2
-                },
-                twinkle: { enable: true, lines: { color: 'random', enable: false, frequency: 0.05, opacity: 1 } }
-            },
-            ...base
-        }
+        petal: emojiFall(['🌸', '🌺', '🌷'], 16, 26, 34, { speedMin: 0.5, speedMax: 1.0, drift: -0.7, driftMax: 0.7, rotSpeed: 5 }),
+        leaf: emojiFall(['🍃', '🍂', '🌿'], 18, 30, 28, { speedMin: 0.4, speedMax: 0.9, drift: -0.8, driftMax: 0.8, rotSpeed: 5 }),
+        cloud: emojiFall(['☁️'], 60, 110, 8, { speedMin: 0.3, speedMax: 0.5, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
+        star: emojiFall(['✨', '⭐', '🌟'], 8, 14, 26, { speedMin: 0.2, speedMax: 0.5, drift: -0.3, driftMax: 0.3, rotSpeed: 0, opacity: 0.9 })
     };
 
     // Countdown burst: denser + faster
