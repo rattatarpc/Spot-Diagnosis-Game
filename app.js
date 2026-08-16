@@ -1533,6 +1533,26 @@ document.getElementById('maker-img-url').addEventListener('input', async functio
     }
 });
 
+/* --- Media dropzone: click to pick, drag & drop a file --- */
+const mediaDropzone = document.getElementById('media-dropzone');
+const makerImgFileEl = document.getElementById('maker-img-file');
+if (mediaDropzone && makerImgFileEl) {
+    mediaDropzone.addEventListener('click', () => makerImgFileEl.click());
+    mediaDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        mediaDropzone.classList.add('dragover');
+    });
+    mediaDropzone.addEventListener('dragleave', () => mediaDropzone.classList.remove('dragover'));
+    mediaDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        mediaDropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            makerImgFileEl.files = e.dataTransfer.files;
+            makerImgFileEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    });
+}
+
 /* =====================================================================
    THEME & MUSIC TOGGLES
 ===================================================================== */
@@ -1643,6 +1663,110 @@ const qTypeSelect = document.getElementById('maker-q-type');
 const mcOptionsDiv = document.getElementById('maker-mc-options');
 const typingCorrectDiv = document.getElementById('maker-typing-correct');
 const tfOptionsDiv = document.getElementById('maker-tf-options');
+
+/* --- Question type tabs (sync with the hidden select) --- */
+const makerTypeTabs = document.querySelectorAll('.maker-type-tab');
+function setMakerTypeTab(type) {
+    makerTypeTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.type === type));
+}
+makerTypeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const type = tab.dataset.type;
+        document.getElementById('maker-q-type').value = type;
+        setMakerTypeTab(type);
+        // Re-apply the panel visibility for the chosen type
+        const formContainer = document.getElementById('maker-form-container');
+        formContainer.dataset.type = type === 'info' ? 'info' : 'question';
+        const isInfo = type === 'info';
+        const freePointGroup = document.getElementById('maker-free-point-group');
+        const contextGroup = document.getElementById('maker-context-group');
+        const infoTextGroup = document.getElementById('maker-info-text-group');
+        const qText = document.getElementById('maker-q-text');
+        if (isInfo) {
+            document.getElementById('maker-form-title').innerText = "Add Info Slide";
+            if (freePointGroup) freePointGroup.style.display = 'none';
+            if (contextGroup) contextGroup.style.display = 'none';
+            if (infoTextGroup) infoTextGroup.style.display = 'flex';
+            if (qText) qText.placeholder = 'Slide Title (optional)';
+        } else {
+            document.getElementById('maker-form-title').innerText = "Edit Question";
+            if (freePointGroup) freePointGroup.style.display = 'block';
+            if (contextGroup) contextGroup.style.display = 'flex';
+            if (infoTextGroup) infoTextGroup.style.display = 'none';
+            if (qText) qText.placeholder = 'Tap to add question';
+        }
+        mcOptionsDiv.style.display = type === 'multiple-choice' ? 'flex' : 'none';
+        tfOptionsDiv.style.display = type === 'true-false' ? 'grid' : 'none';
+        typingCorrectDiv.style.display = type === 'typing' ? 'block' : 'none';
+        if (type === 'typing' && typingKeysContainer.children.length === 0) {
+            addTypingKeyRow('', 10, false, false, false);
+        }
+        if (type === 'multiple-choice') {
+            syncOptionRows();
+        }
+        markMakerDirty();
+    });
+});
+
+/* --- "+ Add option": reveal hidden MC rows 3-5 --- */
+const btnAddOption = document.getElementById('btn-add-option');
+function syncOptionRows() {
+    const extraRows = document.querySelectorAll('.mc-opt-extra');
+    let foundEmptySlot = false;
+    extraRows.forEach((row) => {
+        const hasValue = document.getElementById(`mc-opt-${row.dataset.opt}`).value.trim() !== '';
+        if (hasValue) {
+            row.style.display = 'flex';
+        } else if (!foundEmptySlot) {
+            // Reveal the next empty slot so the "+ Add option" target is visible
+            row.style.display = 'flex';
+            foundEmptySlot = true;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    const anyHidden = [...extraRows].some(r => r.style.display === 'none');
+    if (btnAddOption) btnAddOption.style.display = anyHidden ? 'inline-block' : 'none';
+}
+if (btnAddOption) {
+    btnAddOption.addEventListener('click', () => {
+        const extraRows = [...document.querySelectorAll('.mc-opt-extra')];
+        const target = extraRows.find(r => r.style.display === 'none');
+        if (target) {
+            target.style.display = 'flex';
+            const input = document.getElementById(`mc-opt-${target.dataset.opt}`);
+            if (input) input.focus();
+        }
+        syncOptionRows();
+        markMakerDirty();
+    });
+}
+
+/* --- Media type auto-detection (replaces the hidden select) --- */
+const mediaTypeSelect = document.getElementById('maker-media-type');
+function detectMediaType(url, file) {
+    const name = (file && file.name) || (url || '');
+    const lower = name.toLowerCase();
+    if (file && file.type) {
+        if (file.type.startsWith('video/')) return 'video';
+        if (file.type.startsWith('image/')) return 'image';
+    }
+    if (/\.(mp4|webm|mov|avi|mkv)(\?|$)/.test(lower)) return 'video';
+    if (/youtube\.com|youtu\.be/.test(lower)) return 'video';
+    return 'image';
+}
+// Keep the hidden select in sync as the user types/picks a file
+const makerImgUrlInput = document.getElementById('maker-img-url');
+const makerImgFileInput = document.getElementById('maker-img-file');
+function syncMediaType() {
+    if (mediaTypeSelect && (makerImgUrlInput || makerImgFileInput)) {
+        mediaTypeSelect.value = detectMediaType(makerImgUrlInput ? makerImgUrlInput.value : '', makerImgFileInput && makerImgFileInput.files[0]);
+    }
+}
+if (makerImgUrlInput) makerImgUrlInput.addEventListener('input', syncMediaType);
+if (makerImgFileInput) makerImgFileInput.addEventListener('change', syncMediaType);
+// Also detect on the hidden select when media is saved
+const originalMediaTypeGet = null;
 
 const typingKeysContainer = document.getElementById('typing-keys-container');
 const btnAddTypingKey = document.getElementById('btn-add-typing-key');
@@ -1761,6 +1885,7 @@ window.editQuestion = (index) => {
     document.getElementById('maker-content-area').style.display = "block";
 
     document.getElementById('maker-q-type').value = q.type;
+    setMakerTypeTab(q.type);
 
     if (q.type === 'info') {
         document.getElementById('maker-form-title').innerText = "Edit Info Slide";
@@ -1799,7 +1924,7 @@ window.editQuestion = (index) => {
     }
 
     if (q.type === 'multiple-choice') {
-        mcOptionsDiv.style.display = 'block';
+        mcOptionsDiv.style.display = 'flex';
         typingCorrectDiv.style.display = 'none';
         tfOptionsDiv.style.display = 'none';
         for (let i=0; i<5; i++) {
@@ -1817,6 +1942,7 @@ window.editQuestion = (index) => {
                 document.getElementById(`mc-opt-${i}`).value = "";
             }
         }
+        syncOptionRows();
     } else if (q.type === 'true-false') {
         mcOptionsDiv.style.display = 'none';
         typingCorrectDiv.style.display = 'none';
@@ -1978,6 +2104,8 @@ function resetMakerForm(defaultType = 'question') {
         document.getElementById(`mc-file-preview-${i}`).innerText = '';
         mcUploadedImages[i] = null;
     }
+    document.querySelectorAll('.mc-opt-extra').forEach(row => row.style.display = 'none');
+    setMakerTypeTab('multiple-choice');
 
     if (defaultType === 'info') {
         document.getElementById('maker-form-title').innerText = "Add Info Slide";
@@ -2015,6 +2143,7 @@ window.saveActiveQuestion = async () => {
         const timer = parseInt(document.getElementById('maker-timer').value) || 0;
         const freePoint = document.getElementById('maker-free-point').checked;
 
+        syncMediaType();
         const mediaType = document.getElementById('maker-media-type').value;
 
         let imageUrl = document.getElementById('maker-img-url').value;
@@ -2205,6 +2334,28 @@ window.updateMakerSaveStatus = (state, msg) => {
 window.markMakerDirty = () => updateMakerSaveStatus('dirty');
 
 window.markMakerSaved = () => updateMakerSaveStatus('saved');
+
+/* --- Autosave: debounce saves of the working question to customQuizData --- */
+let makerAutosaveTimer = null;
+function scheduleMakerAutosave() {
+    markMakerDirty();
+    if (typeof syncOptionRows === 'function') syncOptionRows();
+    clearTimeout(makerAutosaveTimer);
+    makerAutosaveTimer = setTimeout(() => {
+        saveActiveQuestion();
+    }, 700);
+}
+document.querySelectorAll('#maker-form-container input, #maker-form-container textarea, #maker-form-container select').forEach(el => {
+    el.addEventListener('input', scheduleMakerAutosave);
+    el.addEventListener('change', scheduleMakerAutosave);
+});
+// Typing keys are added dynamically; mark dirty on the container via delegation
+const makerFormContainer = document.getElementById('maker-form-container');
+if (makerFormContainer) {
+    makerFormContainer.addEventListener('input', (e) => {
+        if (e.target.closest('.typing-key-row')) scheduleMakerAutosave();
+    });
+}
 
 function validateMakerForm() {
     const isInfo = document.getElementById('maker-form-container').dataset.type === 'info';
