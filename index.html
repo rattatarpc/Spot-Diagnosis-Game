@@ -166,7 +166,7 @@
                         <div class="maker-type-tabs" id="maker-type-tabs" role="tablist">
                             <button type="button" class="maker-type-tab active" data-type="multiple-choice">Multiple Choice</button>
                             <button type="button" class="maker-type-tab" data-type="true-false">True / False</button>
-                            <button type="button" class="maker-type-tab" data-type="typing">Typing</button>
+                            <button type="button" class="maker-type-tab" data-type="typing">Short Answer</button>
                             <button type="button" class="maker-type-tab" data-type="info" id="tab-slide">Slide</button>
                             <button type="button" id="btn-collapse-tabs" class="maker-type-tab-toggle" title="Collapse / expand question type tabs" aria-label="Collapse or expand the question type tabs">▲</button>
                         </div>
@@ -176,7 +176,7 @@
                                 <option value="" disabled selected>Type</option>
                                 <option value="multiple-choice">Quiz</option>
                                 <option value="true-false">True/False</option>
-                                <option value="typing">Typing</option>
+                                <option value="typing">Short Answer</option>
                             </select>
                         </div>
 
@@ -373,6 +373,13 @@
                 <div id="lobby-players-list" class="players-list"></div>
 
                 <!-- Only visible to Host -->
+                <div class="host-only" style="margin-top: 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                    <span style="font-size:1rem; color:var(--text-main); font-weight: bold;">Minimal Student View (Focus on Big Screen)</span>
+                    <label class="ios-toggle" style="margin: 0;">
+                        <input type="checkbox" id="toggle-minimal-view" checked>
+                        <span class="ios-toggle-slider"></span>
+                    </label>
+                </div>
                 <button id="btn-start-game" class="btn-primary mt-4 host-only">▶ Start Game</button>
                 <div class="student-only mt-4 waiting-text">Waiting for host to start...</div>
                 <div class="btn-back-floating-wrapper mt-4">
@@ -470,7 +477,15 @@
                 <div id="feedback-correct-answer" class="feedback-correct" style="display:none;"></div>
 
                 <div id="feedback-your-answer" class="feedback-correct" style="display:none; color: var(--secondary);"></div>
+                <div class="student-only mt-2" id="student-ai-reason-container" style="display:none;">
+                    <button id="btn-student-ai-reason" class="btn-secondary">🔍 View AI Concept Breakdown</button>
+                </div>
                 <div id="feedback-chart" class="mt-4" style="text-align: left;"></div>
+                
+                <div class="host-only mt-4" id="host-student-details-section">
+                    <button id="btn-toggle-student-details" class="btn-secondary" style="margin-bottom: 1rem;">👁 Show Student Details</button>
+                    <div id="host-student-details-container" style="display: none; text-align: left;"></div>
+                </div>
 
                 <div class="host-only mt-4">
                     <button id="btn-host-continue" class="btn-primary">Next Question</button>
@@ -687,11 +702,25 @@
                 </div>
                 <div class="form-group" id="settings-video-style-wrap" style="margin-bottom:1.2rem;">
                     <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Video Style</label>
-                    <div class="video-style-card" id="video-style-card">
-                        <video id="video-style-preview" muted loop playsinline webkit-playsinline preload="metadata">
-                            <source src="bg-dark.mp4" type="video/mp4">
-                        </video>
-                        <div class="video-style-name">Style 1</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem;">
+                        <div class="video-style-card" data-style="style1" title="Style 1">
+                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
+                                <source src="bg-dark.mp4" type="video/mp4">
+                            </video>
+                            <div class="video-style-name">Style 1</div>
+                        </div>
+                        <div class="video-style-card" data-style="style2" title="Style 2">
+                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
+                                <source src="25547-350507936_medium.mp4" type="video/mp4">
+                            </video>
+                            <div class="video-style-name">Style 2</div>
+                        </div>
+                        <div class="video-style-card" data-style="style3" title="Style 3">
+                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
+                                <source src="30356-380729027_medium.mp4" type="video/mp4">
+                            </video>
+                            <div class="video-style-name">Style 3</div>
+                        </div>
                     </div>
                 </div>
 
@@ -715,7 +744,7 @@
                         <span class="settings-row-sub">Background music & sound effects</span>
                     </div>
                     <label class="ios-toggle">
-                        <input type="checkbox" id="btn-music-toggle">
+                        <input type="checkbox" id="btn-music-toggle" checked>
                         <span class="ios-toggle-slider"></span>
                     </label>
                 </div>

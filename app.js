@@ -155,7 +155,7 @@ function fxBuildConfig(theme, burst = false) {
             shape: {
                 type: 'image',
                 options: {
-                    image: codes.map(code => ({ src: `${TWEMOJI}/${code}.svg`, width: sizeMax, height: sizeMax })),
+                    image: codes.map(code => ({ src: code.endsWith('.svg') ? code : `${TWEMOJI}/${code}.svg`, width: sizeMax, height: sizeMax })),
                     replaceColor: false
                 }
             },
@@ -165,10 +165,10 @@ function fxBuildConfig(theme, burst = false) {
             move: {
                 enable: true,
                 speed: opts.speed ?? 0.8,
-                direction: 'bottom',
+                direction: opts.direction ?? 'bottom',
                 random: false,
-                straight: false,
-                outModes: { default: 'out', bottom: 'out', top: 'none' },
+                straight: (opts.drift === 0),
+                outModes: (opts.direction === 'right') ? { default: 'out', right: 'out', left: 'none' } : { default: 'out', bottom: 'out', top: 'none' },
                 drift: opts.drift ?? 0
             },
             rotate: { value: opts.rotSpeed ? { min: 0, max: 360 } : 0, animation: { enable: !!opts.rotSpeed, speed: opts.rotSpeed || 1, sync: false } },
@@ -178,7 +178,7 @@ function fxBuildConfig(theme, burst = false) {
     });
 
     const shapes = {
-        snow: imageFall(['2744', '2746'], 10, 18, 36, { speed: 0.8, drift: 0.2, rotSpeed: 3 }),
+        snow: imageFall(['2744', '2746'], 10, 18, 45, { speed: 1.5, drift: 0.2, rotSpeed: 1 }),
         fire: {
             particles: {
                 number: { value: isSmall ? 20 : 36, density: { enable: true, area: 800 } },
@@ -189,21 +189,21 @@ function fxBuildConfig(theme, burst = false) {
                 links: { enable: false },
                 move: {
                     enable: true,
-                    speed: 0.7,
-                    direction: 'top',
+                    speed: 1.2,
+                    direction: 'bottom',
                     random: false,
                     straight: false,
-                    outModes: { default: 'out', top: 'out', bottom: 'none' },
-                    drift: 0
+                    outModes: { default: 'out', bottom: 'out', top: 'none' },
+                    drift: 0.1
                 },
                 shadow: { enable: false }
             },
             ...base
         },
-        petal: imageFall(['1f338', '1f33a', '1f337'], 14, 24, 32, { speed: 0.7, drift: 0.3, rotSpeed: 5 }),
-        leaf: imageFall(['1f343', '1f342', '1f33f'], 16, 28, 26, { speed: 0.6, drift: 0.3, rotSpeed: 5 }),
-        cloud: imageFall(['2601'], 50, 90, 8, { speed: 0.15, drift: 0.5, rotSpeed: 0, opacity: 0.85 }),
-        star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speed: 0.25, drift: 0.1, rotSpeed: 0, opacity: 0.9 })
+        petal: imageFall(['sakura.svg'], 16, 26, 32, { speed: 1.2, drift: 0.3, rotSpeed: 2 }),
+        leaf: imageFall(['maple.svg'], 18, 30, 26, { speed: 1.2, drift: 0.4, rotSpeed: 2 }),
+        cloud: imageFall(['2601'], 50, 90, 8, { speed: 1.8, drift: 0, rotSpeed: 0, opacity: 0.85, direction: 'right' }),
+        star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speed: 1.0, drift: 0.1, rotSpeed: 0, opacity: 0.9 })
     };
 
     // Countdown burst: denser only (speed stays constant)
@@ -247,7 +247,11 @@ function fxDestroy() {
 }
 
 /* Play/pause the background video (independent toggle, FX screens only) */
-const VIDEO_STYLES = { style1: 'bg-dark.mp4' };
+const VIDEO_STYLES = {
+    style1: 'bg-dark.mp4',
+    style2: '25547-350507936_medium.mp4',
+    style3: '30356-380729027_medium.mp4'
+};
 function fxVideoSync() {
     const video = document.getElementById('bg-video');
     const enabled = localStorage.getItem('spotDiagnosisVideo') !== 'off';
@@ -297,6 +301,29 @@ function fxInit() {
             localStorage.setItem('spotDiagnosisVideo', videoToggle.checked ? 'on' : 'off');
             fxVideoSync();
             videoToggle.checked = localStorage.getItem('spotDiagnosisVideo') !== 'off';
+        });
+    }
+
+    // Video style card selector
+    const styleCards = document.querySelectorAll('.video-style-card');
+    if (styleCards.length > 0) {
+        const currentStyle = localStorage.getItem('spotDiagnosisVideoStyle') || 'style1';
+        styleCards.forEach(card => {
+            if (card.dataset.style === currentStyle) card.classList.add('selected');
+            const previewVid = card.querySelector('video');
+            card.addEventListener('mouseenter', () => {
+                if (previewVid) { const p = previewVid.play(); if (p && p.catch) p.catch(() => {}); }
+            });
+            card.addEventListener('mouseleave', () => {
+                if (previewVid) previewVid.pause();
+            });
+            card.addEventListener('click', () => {
+                styleCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                const chosen = card.dataset.style || 'style1';
+                localStorage.setItem('spotDiagnosisVideoStyle', chosen);
+                fxVideoSync();
+            });
         });
     }
 
@@ -781,12 +808,10 @@ document.getElementById('music-style-select').addEventListener('change', (e) => 
 ===================================================================== */
 const levenshteinDistance = AppServices.levenshteinDistance;
 
-function getTypingAnswerScore(playerAns, q) {
+function getTypingPenalty(playerAns, q) {
     if (!playerAns) return 0;
-
     const lAns = playerAns.toLowerCase().replace(/\s+/g, ' ').trim();
     const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-
     let penalty = 0;
     if (q.rejectedWords && Array.isArray(q.rejectedWords)) {
         const cleanPlayer = lAns.replace(/[^\p{L}\p{M}\p{N}\s]/gu, ' ');
@@ -800,6 +825,13 @@ function getTypingAnswerScore(playerAns, q) {
             }
         }
     }
+    return penalty;
+}
+
+function getTypingAnswerScore(playerAns, q) {
+    if (!playerAns) return 0;
+    
+    let penalty = getTypingPenalty(playerAns, q);
 
     const results = getTypingKeyResults(playerAns, q);
     let totalEarned = 0;
@@ -1868,6 +1900,8 @@ makerTypeTabs.forEach(tab => {
             window._makerTypeStep = null;
             document.getElementById('maker-form-container').classList.remove('maker-choose-type');
             document.querySelectorAll('.maker-form-grid, .maker-form-actions').forEach(el => el.style.display = '');
+            localStorage.setItem('spotDiagnosisCollapseTabs', '0');
+            applyTabsCollapse();
             customQuizData.push({
                 type: type,
                 text: '',
@@ -2304,19 +2338,29 @@ document.getElementById('btn-add-new').addEventListener('click', async () => {
         return;
     }
 
-    // New Question: reveal only the type tabs, wait for a tab click
-    window._makerTypeStep = 'choose';
-    const frm = document.getElementById('maker-form-container');
-    frm.classList.add('maker-choose-type');
+    // New Question: bypass the choose step, default to 'typing' (Short Answer)
+    // and ensure the type tabs are expanded.
+    localStorage.setItem('spotDiagnosisCollapseTabs', '0');
+    applyTabsCollapse();
+    
+    customQuizData.push({
+        type: 'typing',
+        text: '',
+        context: '',
+        timer: 30,
+        freePoint: false,
+        imageUrl: '',
+        mediaType: 'image',
+        options: [],
+        correctAnswer: ''
+    });
+    
+    document.getElementById('maker-form-container').classList.remove('maker-choose-type');
+    document.querySelectorAll('.maker-form-grid, .maker-form-actions').forEach(el => el.style.display = '');
+    document.getElementById('maker-type-tabs').style.display = 'flex';
     document.getElementById('maker-empty-state').style.display = 'none';
-    frm.dataset.type = 'question';
-    document.getElementById('maker-form-title').innerText = "Choose Question Type";
-    frm.style.display = "flex";
-    document.getElementById('maker-content-area').style.display = 'none';
-    // Hide everything except the tabs
-    document.querySelectorAll('.maker-form-grid, .maker-form-actions').forEach(el => el.style.display = 'none');
-    setMakerTypeTab(null);
-    document.getElementById('maker-q-type').value = '';
+    
+    selectQuestion(customQuizData.length - 1);
 });
 
 function resetMakerForm(defaultType = 'question') {
@@ -3337,9 +3381,13 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
    GAME LOOP (HOST)
 ===================================================================== */
 function startQuestionFlow() {
+    const minimalViewToggle = document.getElementById('toggle-minimal-view');
+    const minimalView = minimalViewToggle ? minimalViewToggle.checked : true;
+
     db.ref(`rooms/${roomCode}`).update({
         gameState: 'starting_countdown',
-        currentQuestionIndex: currentQuestionIndex
+        currentQuestionIndex: currentQuestionIndex,
+        minimalStudentView: minimalView
     });
     switchScreen('countdown');
     let count = 3;
@@ -3597,7 +3645,7 @@ async function runAIGrading(q, qIndex) {
     });
     const rubricTotal = rubric.reduce((sum, item) => sum + item.points, 0);
 
-    let promptText = `You are a strict but fair medical professor grading short-answer quiz responses.\n`;
+    let promptText = `You are a strict but fair medical professor grading short-answer quiz responses in Thai or English.\n`;
     promptText += `Grade only what is explicitly supported by each student's answer. Do not assume a concept was meant if it is absent.\n`;
     promptText += `Question context: ${JSON.stringify(q.context || '')}\n`;
     promptText += `Question: ${JSON.stringify(q.text || '')}\n`;
@@ -3606,11 +3654,17 @@ async function runAIGrading(q, qIndex) {
     rubric.forEach(item => {
         promptText += `- conceptId ${item.id}: ${JSON.stringify(item.concept)} (${item.points} points)\n`;
     });
-    promptText += `The rubric total is ${rubricTotal} points. The final score must be an integer from 0 to ${maxPoints}.\n`;
-    promptText += `Award points when the answer uses a valid synonym, abbreviation, or minor spelling variation. Do not award points for a related but clinically different diagnosis.\n`;
-    promptText += `For all-or-nothing mode, score ${rubricTotal} only when every required concept is demonstrated; otherwise score 0.\n`;
-    promptText += `Return ONLY valid JSON in this exact shape: {"answers":[{"id":"A1","score":0,"confidence":0.0,"concepts":[{"conceptId":1,"matched":false,"points":0,"reason":"brief reason"}]}]}\n`;
-    promptText += `Use every answer ID exactly once. confidence must be between 0 and 1.\n\n`;
+    if (q.rejectedWords && q.rejectedWords.length > 0) {
+        promptText += `Rejected words (apply penalty if used): ${JSON.stringify(q.rejectedWords)}\n`;
+    }
+    
+    promptText += `\nFor each concept, evaluate the match using 3 tiers:\n`;
+    promptText += `- "full": Meaning is identical to the key (including valid acronyms like STEMI for ST elevation, or same meaning with different word order like 'dilated bowel' for 'bowel dilation').\n`;
+    promptText += `- "partial": Captures some meaning, uses informal synonyms, or related but incomplete.\n`;
+    promptText += `- "none": Incorrect, unrelated, or the key appears but in a clinically different context (e.g. 'T inverted at inferior wall' is 'none' for 'STE at inferior wall'). Related outcomes like 'MI' for finding 'ST elevation' is 'none'.\n`;
+    
+    promptText += `\nReturn ONLY valid JSON in this exact shape: {"answers":[{"id":"A1","confidence":0.0,"concepts":[{"conceptId":1,"tier":"full","reason":"English explanation"}]}]}\n`;
+    promptText += `Use every answer ID exactly once. confidence (0-1) is your certainty in grading. 'tier' must be "full", "partial", or "none".\n\n`;
     promptText += `Student answers:\n`;
     answersToGrade.forEach((ans, index) => {
         const id = `A${index + 1}`;
@@ -3634,17 +3688,43 @@ async function runAIGrading(q, qIndex) {
             if (!source || seenIds.has(aiAnswer.id)) continue;
             seenIds.add(aiAnswer.id);
 
-            let pts = Number(aiAnswer.score);
-            if (!Number.isFinite(pts)) pts = 0;
-            pts = Math.max(0, Math.min(rubricTotal, Math.round(pts)));
-            if (q.partialCredit === false) pts = pts === rubricTotal ? maxPoints : 0;
+            let earnedPts = 0;
+            const conceptsArr = Array.isArray(aiAnswer.concepts) ? aiAnswer.concepts : [];
+            conceptsArr.forEach(c => {
+                const rubItem = rubric.find(r => r.id === c.conceptId);
+                if (rubItem) {
+                    if (c.tier === 'full') {
+                        earnedPts += rubItem.points;
+                        c.points = rubItem.points;
+                    } else if (c.tier === 'partial') {
+                        const partialPts = Math.floor(rubItem.points * 0.5);
+                        earnedPts += partialPts;
+                        c.points = partialPts;
+                    } else {
+                        c.points = 0;
+                    }
+                }
+            });
+
+            if (q.partialCredit === false) {
+                earnedPts = earnedPts >= rubricTotal ? maxPoints : 0;
+            }
+
+            const penalty = getTypingPenalty(source.answer, q);
+            earnedPts -= penalty;
+            if (earnedPts < 0) earnedPts = 0;
+            
+            let pts = earnedPts;
+
             if (pts === maxPoints && maxPoints > 0) pts += 150; // Preserve existing bonus
+            
             updates[`rooms/${roomCode}/players/${source.playerName}/lastPointsEarned`] = pts;
             updates[`rooms/${roomCode}/players/${source.playerName}/awardedPoints/${qIndex}`] = pts;
             updates[`rooms/${roomCode}/players/${source.playerName}/aiGrading`] = {
                 score: pts > 150 ? pts - 150 : pts,
                 confidence: Math.max(0, Math.min(1, Number(aiAnswer.confidence) || 0)),
-                concepts: Array.isArray(aiAnswer.concepts) ? aiAnswer.concepts : []
+                concepts: conceptsArr,
+                penalty: penalty
             };
         }
 
@@ -3759,7 +3839,178 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
             `;
         }
         chartContainer.innerHTML = chartHTML;
+
+        // Render individual student details for Host
+        const detailsContainer = document.getElementById('host-student-details-container');
+        const toggleBtn = document.getElementById('btn-toggle-student-details');
+        
+        if (toggleBtn && !toggleBtn.hasAttribute('data-listener-attached')) {
+            toggleBtn.setAttribute('data-listener-attached', 'true');
+            toggleBtn.addEventListener('click', () => {
+                if (detailsContainer.style.display === 'none') {
+                    detailsContainer.style.display = 'block';
+                    toggleBtn.innerText = '👁 Hide Student Details';
+                } else {
+                    detailsContainer.style.display = 'none';
+                    toggleBtn.innerText = '👁 Show Student Details';
+                }
+            });
+        }
+
+        if (detailsContainer) {
+            let studentList = [];
+            for (let p in players) {
+                const pData = players[p];
+                if (!pData.answers || pData.answers[currentQuestionIndex] === undefined) continue;
+                
+                let pts = pData.awardedPoints && pData.awardedPoints[currentQuestionIndex] !== undefined ? pData.awardedPoints[currentQuestionIndex] : 0;
+                let isFlagged = false;
+                let aiGrading = pData.aiGrading;
+                if (aiGrading && aiGrading.confidence < 0.7) {
+                    isFlagged = true;
+                }
+                
+                // Determine if it was manually overridden
+                // We'll add a flag 'isManualOverride' in Firebase when overriding, but for now we can just assume 
+                // if it's there we can show a badge if we have it. Let's add that logic later in the override function.
+                let isManual = pData.manualOverride && pData.manualOverride[currentQuestionIndex];
+
+                studentList.push({
+                    name: p,
+                    ans: pData.answers[currentQuestionIndex],
+                    pts: pts,
+                    isFlagged: isFlagged,
+                    isManual: isManual,
+                    aiGrading: aiGrading
+                });
+            }
+
+            // Sort: Flagged first, then by pts desc, then name asc
+            studentList.sort((a, b) => {
+                if (a.isFlagged && !b.isFlagged) return -1;
+                if (!a.isFlagged && b.isFlagged) return 1;
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                return a.name.localeCompare(b.name);
+            });
+
+            if (studentList.length > 0) {
+                let listHTML = `<h4 style="color:var(--text-main); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Student Details</h4>`;
+                studentList.forEach(s => {
+                    const maxP = getTypingMaxPoints(q);
+                    let ptsColor = s.pts > 0 ? (s.pts >= maxP ? 'var(--success)' : '#eab308') : 'var(--danger)';
+                    listHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding: 12px 0;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display:flex; align-items:center; gap: 8px; flex-wrap:wrap;">
+                                    <strong style="color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</strong>
+                                    ${s.isFlagged ? '<span style="color:var(--warning); cursor:help;" title="Low AI Confidence (<0.7)">⚠️</span>' : ''}
+                                    ${s.isManual ? '<span style="background:var(--secondary); color:#fff; font-size:0.7em; padding:2px 6px; border-radius:4px;">✏️ Manual</span>' : ''}
+                                </div>
+                                <div style="font-size:0.9em; color:var(--text-main); opacity:0.8; margin-top:4px; word-break: break-word;">Ans: ${s.ans}</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap: 8px; margin-left: 12px;">
+                                <span style="font-weight:bold; color:${ptsColor}; white-space:nowrap;">${s.pts} pts</span>
+                                <button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="Override Score" onclick="overrideScore('${s.name}', ${s.pts})">✏️</button>
+                                ${s.aiGrading && q.type === 'typing' ? `<button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="View AI Concept Breakdown" onclick="viewConceptBreakdown('${s.name}')">🔍</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                detailsContainer.innerHTML = listHTML;
+            } else {
+                detailsContainer.innerHTML = `<p style="color:var(--text-muted);">No student answers to display.</p>`;
+            }
+        }
     }
+}
+
+async function overrideScore(playerName, currentPts) {
+    const q = customQuizData[currentQuestionIndex];
+    
+    const { value: newScoreStr } = await Swal.fire({
+        title: `Override Score for ${playerName}`,
+        input: 'number',
+        inputLabel: `Current Score: ${currentPts}`,
+        inputValue: currentPts,
+        inputAttributes: {
+            min: 0,
+            step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        inputValidator: (value) => {
+            if (!value || isNaN(value) || value < 0) {
+                return 'Please enter a valid non-negative number';
+            }
+        }
+    });
+
+    if (newScoreStr !== undefined) {
+        const newScore = parseInt(newScoreStr, 10);
+        if (newScore !== currentPts) {
+            Swal.fire({title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            let updates = {};
+            updates[`rooms/${roomCode}/players/${playerName}/lastPointsEarned`] = newScore;
+            updates[`rooms/${roomCode}/players/${playerName}/awardedPoints/${currentQuestionIndex}`] = newScore;
+            updates[`rooms/${roomCode}/players/${playerName}/manualOverride/${currentQuestionIndex}`] = true;
+            await db.ref().update(updates);
+            Swal.close();
+            // Re-render the chart to reflect changes
+            await renderFeedbackChart('feedback-chart', q, currentQuestionIndex);
+        }
+    }
+}
+
+async function viewConceptBreakdown(playerName) {
+    const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}`).get();
+    const pData = pSnap.val();
+    if (!pData || !pData.aiGrading || !pData.aiGrading.concepts) {
+        Swal.fire('No AI Grading Data', 'Could not find AI grading data for this student.', 'info');
+        return;
+    }
+    
+    const q = customQuizData[currentQuestionIndex];
+    let html = `<div style="text-align:left; font-size: 0.9em; max-height: 400px; overflow-y: auto;">`;
+    
+    // Original answer
+    const ans = pData.answers && pData.answers[currentQuestionIndex] ? pData.answers[currentQuestionIndex] : '';
+    html += `<div style="margin-bottom:1rem; padding: 0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;"><strong>Answer:</strong> ${ans}</div>`;
+    
+    // Confidence and Penalty
+    html += `<div style="margin-bottom:1rem;"><strong>AI Confidence:</strong> ${pData.aiGrading.confidence} ${pData.aiGrading.confidence < 0.7 ? '⚠️' : ''}<br>`;
+    if (pData.aiGrading.penalty > 0) {
+        html += `<strong style="color:var(--danger)">Penalty:</strong> -${pData.aiGrading.penalty} pts (Rejected Words)</div>`;
+    } else {
+        html += `</div>`;
+    }
+
+    // Concepts
+    pData.aiGrading.concepts.forEach(c => {
+        const rubItem = (q.acceptedAnswers || []).find((r, i) => (i + 1) === c.conceptId);
+        const conceptText = rubItem ? (typeof rubItem === 'string' ? rubItem : rubItem.text) : `Concept ${c.conceptId}`;
+        
+        let badgeColor = c.tier === 'full' ? 'var(--success)' : c.tier === 'partial' ? '#eab308' : 'var(--danger)';
+        
+        html += `
+            <div style="border: 1px solid var(--glass-border); padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 6px;">
+                <div style="font-weight:bold; margin-bottom:0.25rem;">${conceptText}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                    <span style="background:${badgeColor}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.8em; text-transform:uppercase;">${c.tier || (c.matched ? 'Full' : 'None')}</span>
+                    <span style="font-weight:bold;">${c.points || 0} pts</span>
+                </div>
+                <div style="color:#cbd5e1;"><em>Reason:</em> ${c.reason || 'N/A'}</div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    Swal.fire({
+        title: `AI Concept Breakdown`,
+        html: html,
+        width: 600,
+        confirmButtonText: 'Close'
+    });
 }
 
 async function showHostFeedback() {
@@ -3808,10 +4059,25 @@ async function loadStudentQuestion() {
 
     renderMediaCommon(q, 'ekg', true);
 
+    const promptCont = document.querySelector('#quiz-screen .question-prompt');
+    const mediaCont = document.getElementById('media-container');
+
+    if (room.minimalStudentView) {
+        if (promptCont) promptCont.style.display = 'none';
+        if (mediaCont) mediaCont.style.display = 'none';
+    } else {
+        if (promptCont) promptCont.style.display = '';
+        if (mediaCont) mediaCont.style.display = '';
+    }
+
     if (q.type !== 'info') {
         renderOptions('options-container', q, true, room.currentQuestionIndex, false);
     } else {
-        document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
+        if (room.minimalStudentView) {
+            document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Please look at the main screen</h3>';
+        } else {
+            document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
+        }
     }
 
     timeLeft = q.timer;
@@ -3947,11 +4213,21 @@ async function showStudentFeedback() {
     switchScreen('feedback');
 
     // If AI grading was used, fetch the result computed by the host
-    if (studentCurrentPointsEarned === 'pending_ai') {
+    const aiReasonBtn = document.getElementById('btn-student-ai-reason');
+    const aiReasonContainer = document.getElementById('student-ai-reason-container');
+    if (aiReasonContainer) aiReasonContainer.style.display = 'none';
+
+    if (studentCurrentPointsEarned === 'pending_ai' || (q.type === 'typing' && q.aiGrading)) {
         // lastPointsEarned is stored on the PLAYER node, not the answer node
         const playerSnap = await db.ref(`rooms/${roomCode}/players/${playerName}`).get();
-        const aiPoints = playerSnap.val()?.lastPointsEarned;
+        const pData = playerSnap.val() || {};
+        const aiPoints = pData.lastPointsEarned;
         studentCurrentPointsEarned = (typeof aiPoints === 'number') ? aiPoints : 0;
+        
+        if (pData.aiGrading && aiReasonContainer) {
+            aiReasonContainer.style.display = 'block';
+            aiReasonBtn.onclick = () => viewConceptBreakdown(playerName);
+        }
     }
 
     if (q.freePoint) {

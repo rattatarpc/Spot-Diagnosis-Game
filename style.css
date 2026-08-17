@@ -1877,6 +1877,16 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     padding: 3px 8px;
     border-radius: 999px;
 }
+.video-style-card {
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+}
+.video-style-card:hover { border-color: var(--primary); transform: scale(1.03); }
+.video-style-card.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
 
 /* Danger outline (delete / reset) */
 .btn-danger-outline {
@@ -2027,6 +2037,7 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 .swal2-container {
     padding: 15px !important;
     box-sizing: border-box !important;
+    z-index: 20000 !important;
 }
 .swal2-popup {
     max-height: 80vh !important;
@@ -2214,7 +2225,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 /* =====================================================================
-   GAME SHOW ARENA � Milestone 1 visual identity
+   GAME SHOW ARENA ï¿½ Milestone 1 visual identity
    ===================================================================== */
 
 /* Surfaces: stronger panels on the arena background */
@@ -2581,7 +2592,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 }
 
 /* =====================================================================
-   GROUP C — MAKER (Game Show Arena look)
+   GROUP C â€” MAKER (Game Show Arena look)
    ===================================================================== */
 .maker-navbar {
     background: var(--panel-bg) !important;
@@ -2864,7 +2875,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     background: transparent;
 }
 
-/* When choosing a new question type, only the tabs show — make them prominent */
+/* When choosing a new question type, only the tabs show â€” make them prominent */
 .maker-choose-type .maker-type-tabs {
     padding: 8px;
     margin: 2rem 0 1rem;
@@ -2920,7 +2931,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 }
 
 /* =====================================================================
-   AMBIENT BACKGROUND FX — tsParticles canvas, decorative, behind everything.
+   AMBIENT BACKGROUND FX â€” tsParticles canvas, decorative, behind everything.
    ===================================================================== */
 #ambient-fx {
     position: fixed;
