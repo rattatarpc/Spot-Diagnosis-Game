@@ -6,7 +6,7 @@
 // and accept that others could use it up to its quota.
 const HARDCODED_AI_PROVIDER = 'groq';          // 'gemini' | 'groq' | 'openrouter'
 const HARDCODED_AI_KEY = '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';
-const HARDCODED_AI_MODEL = 'llama-3.3-70b-versatile';
+const HARDCODED_AI_MODEL = 'openai/gpt-oss-120b';
 
 // True while the maker preview is showing a single question. Blocks advancing
 // through the quiz, submitting answers, and other live-game actions.
@@ -1445,10 +1445,11 @@ const AI_PROVIDERS = {
         keyPlaceholder: 'gsk_...',
         keyPrefix: 'gsk_',
         keyLink: 'https://console.groq.com/keys',
-        defaultModel: 'llama-3.3-70b-versatile',
+        defaultModel: 'openai/gpt-oss-120b',
         models: [
-            { value: 'llama-3.3-70b-versatile', text: 'Llama 3.3 70B (Smart)' },
-            { value: 'llama-3.1-8b-instant', text: 'Llama 3.1 8B (Fast)' }
+            { value: 'openai/gpt-oss-120b', text: 'GPT-OSS 120B (Smart)' },
+            { value: 'openai/gpt-oss-20b', text: 'GPT-OSS 20B (Fast)' },
+            { value: 'qwen/qwen3.6-27b', text: 'Qwen 3.6 27B (Smart)' }
         ]
     },
     openrouter: {
