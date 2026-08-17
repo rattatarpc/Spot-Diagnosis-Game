@@ -1911,6 +1911,13 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     border-bottom-width: 1px;
 }
 
+/* Match the delete question button (compact) */
+.btn-delete-quiz {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 1rem !important;
+    line-height: 1;
+}
+
 /* "Create & Host": 3D pressable button, secondary tone */
 .btn-create-host {
     background: var(--glass-bg) !important;
