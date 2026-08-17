@@ -257,21 +257,41 @@ function fxVideoSync() {
     const enabled = localStorage.getItem('spotDiagnosisVideo') !== 'off';
     document.body.classList.toggle('video-on', enabled);
     if (!video) return;
-    // Apply the selected style source
+    // Apply the selected style source — always force load when src changes
     const style = localStorage.getItem('spotDiagnosisVideoStyle') || 'style1';
     const src = VIDEO_STYLES[style] || VIDEO_STYLES.style1;
-    if (video.querySelector('source') && video.querySelector('source').src !== new URL(src, location.href).href) {
-        video.querySelector('source').src = src;
+    let sourceEl = video.querySelector('source');
+    if (!sourceEl) {
+        sourceEl = document.createElement('source');
+        sourceEl.type = 'video/mp4';
+        video.appendChild(sourceEl);
+    }
+    const resolvedSrc = new URL(src, location.href).href;
+    const currentSrc = sourceEl.src ? new URL(sourceEl.src, location.href).href : '';
+    if (currentSrc !== resolvedSrc) {
+        sourceEl.src = src;
         video.load();
     }
     const shouldPlay = enabled
         && document.body.classList.contains('fx-active')
         && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (shouldPlay) {
-        const p = video.play();
-        if (p && p.catch) p.catch(() => {});
+
+    if (currentSrc !== resolvedSrc) {
+        sourceEl.src = src;
+        if (shouldPlay) {
+            video.addEventListener('canplay', () => {
+                const p = video.play();
+                if (p && p.catch) p.catch(() => {});
+            }, { once: true });
+        }
+        video.load();
     } else {
-        video.pause();
+        if (shouldPlay) {
+            const p = video.play();
+            if (p && p.catch) p.catch(() => {});
+        } else {
+            video.pause();
+        }
     }
 }
 
