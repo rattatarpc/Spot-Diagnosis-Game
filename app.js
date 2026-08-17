@@ -164,12 +164,12 @@ function fxBuildConfig(theme, burst = false) {
             links: { enable: false },
             move: {
                 enable: true,
-                speed: { min: opts.speedMin ?? 0.5, max: opts.speedMax ?? 1.1 },
+                speed: opts.speed ?? 0.8,
                 direction: 'bottom',
                 random: false,
                 straight: false,
                 outModes: { default: 'out', bottom: 'out', top: 'none' },
-                drift: { min: opts.drift ?? -0.6, max: opts.driftMax ?? 0.6 }
+                drift: opts.drift ?? 0
             },
             rotate: { value: opts.rotSpeed ? { min: 0, max: 360 } : 0, animation: { enable: !!opts.rotSpeed, speed: opts.rotSpeed || 1, sync: false } },
             shadow: { enable: false }
@@ -178,7 +178,7 @@ function fxBuildConfig(theme, burst = false) {
     });
 
     const shapes = {
-        snow: imageFall(['2744', '2746'], 10, 18, 36, { speedMin: 0.6, speedMax: 1.2, drift: -0.5, driftMax: 0.5, rotSpeed: 3 }),
+        snow: imageFall(['2744', '2746'], 10, 18, 36, { speed: 0.8, drift: 0.2, rotSpeed: 3 }),
         fire: {
             particles: {
                 number: { value: isSmall ? 20 : 36, density: { enable: true, area: 800 } },
@@ -189,32 +189,28 @@ function fxBuildConfig(theme, burst = false) {
                 links: { enable: false },
                 move: {
                     enable: true,
-                    speed: { min: 0.4, max: 1 },
+                    speed: 0.7,
                     direction: 'top',
-                    random: true,
+                    random: false,
                     straight: false,
                     outModes: { default: 'out', top: 'out', bottom: 'none' },
-                    drift: { min: -0.3, max: 0.3 }
+                    drift: 0
                 },
                 shadow: { enable: false }
             },
             ...base
         },
-        petal: imageFall(['1f338', '1f33a', '1f337'], 14, 24, 32, { speedMin: 0.5, speedMax: 1.0, drift: -0.7, driftMax: 0.7, rotSpeed: 5 }),
-        leaf: imageFall(['1f343', '1f342', '1f33f'], 16, 28, 26, { speedMin: 0.4, speedMax: 0.9, drift: -0.8, driftMax: 0.8, rotSpeed: 5 }),
-        cloud: imageFall(['2601'], 50, 90, 8, { speedMin: 0.12, speedMax: 0.25, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
-        star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speedMin: 0.2, speedMax: 0.5, drift: -0.3, driftMax: 0.3, rotSpeed: 0, opacity: 0.9 })
+        petal: imageFall(['1f338', '1f33a', '1f337'], 14, 24, 32, { speed: 0.7, drift: 0.3, rotSpeed: 5 }),
+        leaf: imageFall(['1f343', '1f342', '1f33f'], 16, 28, 26, { speed: 0.6, drift: 0.3, rotSpeed: 5 }),
+        cloud: imageFall(['2601'], 50, 90, 8, { speed: 0.15, drift: 0.5, rotSpeed: 0, opacity: 0.85 }),
+        star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speed: 0.25, drift: 0.1, rotSpeed: 0, opacity: 0.9 })
     };
 
-    // Countdown burst: denser + faster
+    // Countdown burst: denser only (speed stays constant)
     if (burst) {
         Object.keys(shapes).forEach(k => {
             if (!shapes[k]) return;
             if (shapes[k].particles.number) shapes[k].particles.number.value = Math.round((shapes[k].particles.number.value || 30) * 1.6);
-            if (shapes[k].particles.move && shapes[k].particles.move.speed) {
-                if (typeof shapes[k].particles.move.speed === 'number') shapes[k].particles.move.speed *= 2;
-                else if (shapes[k].particles.move.speed && shapes[k].particles.move.speed.max) shapes[k].particles.move.speed.max *= 2;
-            }
         });
     }
 
