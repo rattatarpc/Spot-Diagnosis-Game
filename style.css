@@ -113,26 +113,6 @@ body.cool-theme {
     --arena-glow-2: rgba(99, 102, 241, 0.18);
 }
 
-/* Video theme: dark backdrop so the background video stands out */
-body.video-theme {
-    --bg-color: #05070d;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --secondary: #8b5cf6;
-    --secondary-hover: #7c3aed;
-    --accent: #8b5cf6;
-    --success: #10b981;
-    --danger: #ef4444;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --glass-bg: rgba(16, 20, 36, 0.66);
-    --glass-border: rgba(255, 255, 255, 0.14);
-    --input-bg: rgba(12, 16, 30, 0.6);
-    --panel-bg: rgba(10, 13, 26, 0.82);
-    --arena-glow-1: rgba(99, 102, 241, 0.28);
-    --arena-glow-2: rgba(139, 92, 246, 0.28);
-}
-
 
 * {
     box-sizing: border-box;
@@ -2769,7 +2749,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     display: block;
 }
 
-/* Animated background video (Video theme only, behind the particles) */
+/* Animated background video (toggle via body.video-on, behind the particles) */
 .bg-video {
     position: fixed;
     top: 0;
@@ -2781,7 +2761,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     z-index: 1;
     display: none;
 }
-body.video-theme.fx-active:not(.fx-off) .bg-video {
+body.video-on.fx-active .bg-video {
     display: block;
 }
 

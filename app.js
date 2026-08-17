@@ -124,7 +124,7 @@ function setQuizProgress(qIndex, total) {
    AMBIENT FX (decorative background particles via tsParticles)
    ===================================================================== */
 const FX_KINDS = {
-    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'fire', cool: 'snow', video: 'none'
+    dark: 'star', light: 'cloud', pastel: 'petal', earth: 'leaf', warm: 'fire', cool: 'snow'
 };
 
 function fxCurrentTheme() {
@@ -171,7 +171,7 @@ function fxBuildConfig(theme, burst = false) {
                 outModes: { default: 'out', bottom: 'out', top: 'none' },
                 drift: { min: opts.drift ?? -0.6, max: opts.driftMax ?? 0.6 }
             },
-            rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: opts.rotSpeed ?? 4, sync: false } },
+            rotate: { value: opts.rotSpeed ? { min: 0, max: 360 } : 0, animation: { enable: !!opts.rotSpeed, speed: opts.rotSpeed || 1, sync: false } },
             shadow: { enable: false }
         },
         ...base
@@ -202,7 +202,7 @@ function fxBuildConfig(theme, burst = false) {
         },
         petal: imageFall(['1f338', '1f33a', '1f337'], 14, 24, 32, { speedMin: 0.5, speedMax: 1.0, drift: -0.7, driftMax: 0.7, rotSpeed: 5 }),
         leaf: imageFall(['1f343', '1f342', '1f33f'], 16, 28, 26, { speedMin: 0.4, speedMax: 0.9, drift: -0.8, driftMax: 0.8, rotSpeed: 5 }),
-        cloud: imageFall(['2601'], 50, 90, 8, { speedMin: 0.3, speedMax: 0.5, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
+        cloud: imageFall(['2601'], 50, 90, 8, { speedMin: 0.12, speedMax: 0.25, drift: 0.4, driftMax: 0.6, rotSpeed: 0, opacity: 0.85 }),
         star: imageFall(['2728', '2b50', '1f31f'], 8, 14, 24, { speedMin: 0.2, speedMax: 0.5, drift: -0.3, driftMax: 0.3, rotSpeed: 0, opacity: 0.9 })
     };
 
@@ -250,14 +250,23 @@ function fxDestroy() {
     }
 }
 
-/* Play/pause the background video (Video theme, FX screens only) */
+/* Play/pause the background video (independent toggle, FX screens only) */
+const VIDEO_STYLES = { style1: 'bg-dark.mp4' };
 function fxVideoSync() {
     const video = document.getElementById('bg-video');
+    const enabled = localStorage.getItem('spotDiagnosisVideo') !== 'off';
+    document.body.classList.toggle('video-on', enabled);
     if (!video) return;
-    const theme = fxCurrentTheme();
-    const shouldPlay = theme === 'video'
+    // Apply the selected style source
+    const style = localStorage.getItem('spotDiagnosisVideoStyle') || 'style1';
+    const src = VIDEO_STYLES[style] || VIDEO_STYLES.style1;
+    if (video.querySelector('source') && video.querySelector('source').src !== new URL(src, location.href).href) {
+        video.querySelector('source').src = src;
+        video.load();
+    }
+    const shouldPlay = enabled
         && document.body.classList.contains('fx-active')
-        && !document.body.classList.contains('fx-off');
+        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (shouldPlay) {
         const p = video.play();
         if (p && p.catch) p.catch(() => {});
@@ -281,6 +290,23 @@ function fxInit() {
             localStorage.setItem('spotDiagnosisFx', isOff ? 'off' : 'on');
             if (isOff) fxDestroy();
             else if (document.body.classList.contains('fx-active')) fxSpawn(1);
+            fxVideoSync();
+        });
+    }
+    // Background video: on/off + style select (independent of particles)
+    const videoToggle = document.getElementById('settings-video-toggle');
+    const videoStyle = document.getElementById('settings-video-style');
+    if (videoToggle) {
+        videoToggle.checked = localStorage.getItem('spotDiagnosisVideo') !== 'off';
+        videoToggle.addEventListener('change', () => {
+            localStorage.setItem('spotDiagnosisVideo', videoToggle.checked ? 'on' : 'off');
+            fxVideoSync();
+        });
+    }
+    if (videoStyle) {
+        videoStyle.value = localStorage.getItem('spotDiagnosisVideoStyle') || 'style1';
+        videoStyle.addEventListener('change', () => {
+            localStorage.setItem('spotDiagnosisVideoStyle', videoStyle.value);
             fxVideoSync();
         });
     }
@@ -1661,8 +1687,8 @@ if (mediaDropzone && makerImgFileEl) {
    THEME SELECTOR
 ===================================================================== */
 const themeSelect = document.getElementById('theme-select');
-const themes = ['dark', 'light', 'pastel', 'earth', 'warm', 'cool', 'video'];
-const THEME_CLASSES = ['light-theme', 'pastel-theme', 'earth-theme', 'warm-theme', 'cool-theme', 'video-theme'];
+const themes = ['dark', 'light', 'pastel', 'earth', 'warm', 'cool'];
+const THEME_CLASSES = ['light-theme', 'pastel-theme', 'earth-theme', 'warm-theme', 'cool-theme'];
 
 themeSelect.addEventListener('change', () => {
     const chosen = themeSelect.value;

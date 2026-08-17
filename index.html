@@ -21,7 +21,7 @@
         // Default is light; only known themes are honoured, otherwise light.
         (function () {
             try {
-                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool', 'video'];
+                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool'];
                 var t = localStorage.getItem('spotDiagnosisTheme');
                 if (allowed.indexOf(t) !== -1) {
                     document.body.classList.add(t + '-theme');
@@ -664,7 +664,16 @@
                     <option value="earth">🌿 Earth</option>
                     <option value="warm">🔥 Warm</option>
                     <option value="cool">❄️ Cool</option>
-                    <option value="video">🎬 Video</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.2rem;">
+                <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
+                    <span>Background Video</span>
+                    <input type="checkbox" id="settings-video-toggle" style="transform: scale(1.4); accent-color: var(--primary);">
+                </label>
+                <select id="settings-video-style" class="settings-select" style="margin-top:0.5rem;">
+                    <option value="style1">🎬 Style 1</option>
                 </select>
             </div>
 
@@ -683,7 +692,7 @@
 
             <div class="form-group" style="margin-bottom:0; margin-top:1.2rem;">
                 <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
-                    <span>Floating Effects</span>
+                    <span>Particles</span>
                     <input type="checkbox" id="settings-effects-toggle" style="transform: scale(1.4); accent-color: var(--primary);">
                 </label>
             </div>
