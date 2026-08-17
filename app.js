@@ -293,21 +293,69 @@ function fxInit() {
             fxVideoSync();
         });
     }
-    // Background video: on/off + style select (independent of particles)
+    // Background video: on/off (independent of particles)
     const videoToggle = document.getElementById('settings-video-toggle');
-    const videoStyle = document.getElementById('settings-video-style');
     if (videoToggle) {
         videoToggle.checked = localStorage.getItem('spotDiagnosisVideo') !== 'off';
         videoToggle.addEventListener('change', () => {
             localStorage.setItem('spotDiagnosisVideo', videoToggle.checked ? 'on' : 'off');
             fxVideoSync();
+            videoToggle.checked = localStorage.getItem('spotDiagnosisVideo') !== 'off';
         });
     }
-    if (videoStyle) {
-        videoStyle.value = localStorage.getItem('spotDiagnosisVideoStyle') || 'style1';
-        videoStyle.addEventListener('change', () => {
-            localStorage.setItem('spotDiagnosisVideoStyle', videoStyle.value);
-            fxVideoSync();
+
+    // Settings tabs
+    document.querySelectorAll('#settings-tabs .settings-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('#settings-tabs .settings-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const name = tab.dataset.tab;
+            document.getElementById('settings-tab-appearance').style.display = name === 'appearance' ? '' : 'none';
+            document.getElementById('settings-tab-sound').style.display = name === 'sound' ? '' : 'none';
+        });
+    });
+
+    // Volume slider
+    const volumeEl = document.getElementById('settings-volume');
+    const volumeLabel = document.getElementById('volume-value');
+    if (volumeEl) {
+        const savedVol = localStorage.getItem('spotDiagnosisVolume');
+        const vol = savedVol !== null ? parseInt(savedVol, 10) : 70;
+        volumeEl.value = vol;
+        if (volumeLabel) volumeLabel.innerText = vol + '%';
+        volumeEl.addEventListener('input', () => {
+            const v = parseInt(volumeEl.value, 10) || 0;
+            localStorage.setItem('spotDiagnosisVolume', String(v));
+            if (volumeLabel) volumeLabel.innerText = v + '%';
+            if (typeof AudioController !== 'undefined' && typeof AudioController.setVolume === 'function') {
+                AudioController.setVolume(v / 100);
+            }
+        });
+        if (typeof AudioController !== 'undefined' && typeof AudioController.setVolume === 'function') {
+            AudioController.setVolume(vol / 100);
+        }
+    }
+
+    // Reset to defaults
+    const resetBtn = document.getElementById('btn-reset-settings');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Reset all settings?',
+                text: 'Theme, video, particles, music and volume will go back to defaults.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, reset',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                const keys = [
+                    'spotDiagnosisTheme', 'spotDiagnosisVideo', 'spotDiagnosisVideoStyle',
+                    'spotDiagnosisFx', 'spotDiagnosisVolume', 'spotDiagnosisMusicStyle'
+                ];
+                keys.forEach(k => localStorage.removeItem(k));
+                window.location.reload();
+            });
         });
     }
     // Make FX visible on load if the initially-active screen is an FX screen.
@@ -433,6 +481,7 @@ const MUSIC_STYLES = {
 const AudioController = (() => {
     let audioCtx = null;
     let masterGain = null;
+    let masterVolume = 0.70; // 0..1 slider value (default 70%)
     let bgmGain = null;
     let isMuted = false;
     let audioUnlocked = false;
@@ -449,9 +498,9 @@ const AudioController = (() => {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-            // Global volume (controlled by mute button)
+            // Global volume (controlled by mute button + volume slider)
             masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.20;
+            masterGain.gain.value = 0.20 * masterVolume;
             masterGain.connect(audioCtx.destination);
 
             // BGM volume (controlled by style transitions)
@@ -647,6 +696,7 @@ const AudioController = (() => {
     function toggleMute() {
         isMuted = !isMuted;
         const btn = document.getElementById('btn-music-toggle');
+        if (btn && btn.type === 'checkbox') btn.checked = !isMuted;
         if (isMuted) {
             stopBGM();
             if (masterGain) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
@@ -654,7 +704,7 @@ const AudioController = (() => {
         } else {
             if (masterGain) {
                 masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-                masterGain.gain.linearRampToValueAtTime(0.20, audioCtx.currentTime + 0.5);
+                masterGain.gain.linearRampToValueAtTime(0.20 * masterVolume, audioCtx.currentTime + 0.5);
             }
             startBGM();
             btn.innerText = '🔊'; btn.classList.remove('muted');
@@ -705,7 +755,14 @@ const AudioController = (() => {
         } catch(e) {}
     }
 
-    return { unlock, toggleMute, setStyle, playTick, playCorrect, playWrong };
+    function setVolume(vol01) {
+        masterVolume = Math.max(0, Math.min(1, vol01));
+        if (masterGain && !isMuted) {
+            masterGain.gain.setTargetAtTime(0.20 * masterVolume, audioCtx.currentTime, 0.05);
+        }
+    }
+
+    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong };
 })();
 
 // Unlock audio on the first user interaction (crucial for iOS Safari)
@@ -718,7 +775,10 @@ document.body.addEventListener('click', unlockAudioOnInteraction);
 document.body.addEventListener('touchstart', unlockAudioOnInteraction);
 
 // Wire up controls
-document.getElementById('btn-music-toggle').addEventListener('click', () => AudioController.toggleMute());
+const musicToggleEl = document.getElementById('btn-music-toggle');
+if (musicToggleEl) {
+    musicToggleEl.addEventListener('change', () => AudioController.toggleMute());
+}
 document.getElementById('music-style-select').addEventListener('change', (e) => AudioController.setStyle(e.target.value));
 /* =====================================================================
    HELPER FUNCTIONS
@@ -1230,7 +1290,7 @@ async function renderDashboard() {
                 <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">Host Now</button>
                 <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">Share / Get Code</button>
                 <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">Edit</button>
-                <button class="btn-pill btn-pill-danger btn-delete-quiz" data-index="${index}" title="Delete quiz" aria-label="Delete quiz">🗑️</button>
+                <button class="btn-pill btn-pill-danger-outline btn-delete-quiz" data-index="${index}" title="Delete quiz" aria-label="Delete quiz">🗑️</button>
             </div>
         `;
         list.appendChild(div);

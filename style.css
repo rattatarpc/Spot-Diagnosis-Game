@@ -1775,6 +1775,155 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     border-color: var(--primary);
 }
 
+/* Settings tabs (segmented) */
+.settings-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    padding: 5px;
+    margin-bottom: 1.2rem;
+}
+.settings-tab {
+    flex: 1;
+    padding: 0.55rem 0.5rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.settings-tab:hover { color: var(--text-main); }
+.settings-tab.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 4px 10px -3px var(--accent);
+}
+
+/* Settings rows (label + iOS toggle) */
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 1rem;
+}
+.settings-row-label { display: flex; flex-direction: column; gap: 2px; }
+.settings-row-label strong { color: var(--text-main); font-size: 0.95rem; }
+.settings-row-sub { color: var(--text-muted); font-size: 0.78rem; }
+
+/* iOS-style toggle switch */
+.ios-toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 31px;
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+.ios-toggle input { opacity: 0; width: 0; height: 0; }
+.ios-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(120, 120, 128, 0.5);
+    border-radius: 999px;
+    transition: background 0.25s;
+}
+.ios-toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 27px;
+    height: 27px;
+    left: 2px;
+    top: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: transform 0.25s;
+}
+.ios-toggle input:checked + .ios-toggle-slider { background: #34c759; }
+.ios-toggle input:checked + .ios-toggle-slider::before { transform: translateX(21px); }
+
+/* Video style card */
+.video-style-card {
+    border: 2px solid var(--glass-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+}
+.video-style-card video {
+    display: block;
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+}
+.video-style-name {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+/* Danger outline (delete / reset) */
+.btn-danger-outline {
+    background: transparent;
+    border: 2px solid var(--danger);
+    color: var(--danger);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.btn-danger-outline:hover {
+    background: var(--danger);
+    color: white;
+    transform: translateY(-1px);
+}
+.btn-pill-danger-outline {
+    background: transparent;
+    border: 2px solid var(--danger);
+    color: var(--danger);
+}
+.btn-pill-danger-outline:hover {
+    background: var(--danger);
+    color: white;
+    filter: brightness(0.92);
+}
+
+/* "Create & Host": white 3D pressable button */
+.btn-create-host {
+    background: linear-gradient(180deg, #ffffff, #e2e8f0) !important;
+    color: #1e293b !important;
+    border: none;
+    border-bottom: 5px solid #94a3b8;
+    border-radius: 14px;
+    font-weight: 800;
+    box-shadow: 0 8px 20px -6px rgba(0,0,0,0.4);
+    transition: transform 0.2s, box-shadow 0.2s, border-bottom-width 0.05s;
+}
+.btn-create-host:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 26px -8px rgba(0,0,0,0.45);
+}
+.btn-create-host:active:not(:disabled) {
+    transform: translateY(3px);
+    border-bottom-width: 1px;
+    box-shadow: 0 2px 6px -2px rgba(0,0,0,0.3);
+}
+
 /* SweetAlert Overrides to fix input overlap */
 .swal2-input {
     width: calc(100% - 3rem) !important;
@@ -2504,6 +2653,17 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 .btn-action.btn-danger:hover {
     background: var(--danger) !important;
     filter: brightness(0.92);
+    transform: translateY(-1px);
+}
+.btn-action.btn-danger-outline {
+    border: 2px solid var(--danger) !important;
+    background: transparent !important;
+    color: var(--danger) !important;
+    box-shadow: none !important;
+}
+.btn-action.btn-danger-outline:hover {
+    background: var(--danger) !important;
+    color: white !important;
     transform: translateY(-1px);
 }
 .btn-save-question {

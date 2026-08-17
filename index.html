@@ -68,7 +68,7 @@
 
                 <div class="role-buttons">
                     <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room</button>
-                    <button id="btn-goto-maker" class="btn-secondary">Create & Host</button>
+                    <button id="btn-goto-maker" class="btn-secondary btn-create-host">Create & Host</button>
                 </div>
             </div>
         </section>
@@ -351,7 +351,7 @@
                             <button class="btn-action btn-secondary" onclick="previewActiveQuestion()" style="padding: 0.35rem 0.8rem; border-radius:50px; font-size:0.85rem;">Preview</button>
                             <button class="btn-action btn-secondary" onclick="duplicateActiveQuestion()" style="padding: 0.35rem 0.8rem; border-radius:50px; font-size:0.85rem;">Duplicate</button>
                             <button class="btn-action btn-primary btn-save-question" onclick="forceSaveActiveQuestion()" style="padding: 0.35rem 0.8rem; border-radius:50px; font-size:0.85rem;">Save Question</button>
-                            <button class="btn-action btn-danger" onclick="deleteActiveQuestion()" title="Delete question" aria-label="Delete question" style="padding: 0.35rem 0.65rem; border-radius:50px; font-size:1rem;">🗑️</button>
+                            <button class="btn-action btn-danger-outline" onclick="deleteActiveQuestion()" title="Delete question" aria-label="Delete question" style="padding: 0.35rem 0.65rem; border-radius:50px; font-size:1rem;">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -653,48 +653,93 @@
     <div id="settings-modal" class="zoom-modal settings-modal" style="display:none; align-items:center; justify-content:center;">
         <div class="settings-panel" role="dialog" aria-label="Appearance and Sound">
             <span class="close-settings" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</span>
-            <h2 style="margin-top:0; color:var(--primary); font-size:1.4rem; border-bottom:2px solid var(--primary); padding-bottom:0.5rem; margin-bottom:1rem;">Appearance & Sound</h2>
+            <h2 style="margin-top:0; color:var(--primary); font-size:1.4rem; border-bottom:2px solid var(--primary); padding-bottom:0.5rem; margin-bottom:1rem;">Settings</h2>
 
-            <div class="form-group" style="margin-bottom:1.2rem;">
-                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Theme</label>
-                <select id="theme-select" class="settings-select">
-                    <option value="dark">🌑 Dark</option>
-                    <option value="light">☀️ Light</option>
-                    <option value="pastel">🌸 Pastel</option>
-                    <option value="earth">🌿 Earth</option>
-                    <option value="warm">🔥 Warm</option>
-                    <option value="cool">❄️ Cool</option>
-                </select>
+            <!-- Settings tabs -->
+            <div class="settings-tabs" id="settings-tabs">
+                <button type="button" class="settings-tab active" data-tab="appearance">Appearance</button>
+                <button type="button" class="settings-tab" data-tab="sound">Sound</button>
             </div>
 
-            <div class="form-group" style="margin-bottom:1.2rem;">
-                <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
-                    <span>Background Video</span>
-                    <input type="checkbox" id="settings-video-toggle" style="transform: scale(1.4); accent-color: var(--primary);">
-                </label>
-                <select id="settings-video-style" class="settings-select" style="margin-top:0.5rem;">
-                    <option value="style1">🎬 Style 1</option>
-                </select>
+            <!-- Appearance tab -->
+            <div id="settings-tab-appearance" class="settings-tab-panel">
+                <div class="form-group" style="margin-bottom:1.2rem;">
+                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Theme</label>
+                    <select id="theme-select" class="settings-select">
+                        <option value="dark">🌑 Dark</option>
+                        <option value="light">☀️ Light</option>
+                        <option value="pastel">🌸 Pastel</option>
+                        <option value="earth">🌿 Earth</option>
+                        <option value="warm">🔥 Warm</option>
+                        <option value="cool">❄️ Cool</option>
+                    </select>
+                </div>
+
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Background Video</strong>
+                        <span class="settings-row-sub">Animated background on waiting screens</span>
+                    </div>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="settings-video-toggle">
+                        <span class="ios-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="form-group" id="settings-video-style-wrap" style="margin-bottom:1.2rem;">
+                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Video Style</label>
+                    <div class="video-style-card" id="video-style-card">
+                        <video id="video-style-preview" muted loop playsinline webkit-playsinline preload="metadata">
+                            <source src="bg-dark.mp4" type="video/mp4">
+                        </video>
+                        <div class="video-style-name">Style 1</div>
+                    </div>
+                </div>
+
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Particles</strong>
+                        <span class="settings-row-sub">Floating effects per theme</span>
+                    </div>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="settings-effects-toggle">
+                        <span class="ios-toggle-slider"></span>
+                    </label>
+                </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:1.2rem;">
-                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music Style</label>
-                <select id="music-style-select" class="settings-select">
-                    <option value="gameshow">🎮 Game Show</option>
-                    <option value="party">🎉 Party</option>
-                </select>
+            <!-- Sound tab -->
+            <div id="settings-tab-sound" class="settings-tab-panel" style="display:none;">
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Music</strong>
+                        <span class="settings-row-sub">Background music & sound effects</span>
+                    </div>
+                    <label class="ios-toggle">
+                        <input type="checkbox" id="btn-music-toggle">
+                        <span class="ios-toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-bottom:1.2rem;">
+                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music Style</label>
+                    <select id="music-style-select" class="settings-select">
+                        <option value="gameshow">🎮 Game Show</option>
+                        <option value="party">🎉 Party</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom:1.2rem;">
+                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
+                        <span>Volume</span>
+                        <span id="volume-value">70%</span>
+                    </label>
+                    <input type="range" id="settings-volume" min="0" max="100" value="70" style="width:100%; accent-color: var(--primary);">
+                </div>
             </div>
 
-            <div class="form-group" style="margin-bottom:0;">
-                <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Music</label>
-                <button id="btn-music-toggle" class="btn-secondary" style="width:100%; font-size:1rem; padding:0.9rem;">🔊</button>
-            </div>
-
-            <div class="form-group" style="margin-bottom:0; margin-top:1.2rem;">
-                <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--text-muted); font-size:0.9rem; font-weight:600;">
-                    <span>Particles</span>
-                    <input type="checkbox" id="settings-effects-toggle" style="transform: scale(1.4); accent-color: var(--primary);">
-                </label>
+            <!-- Reset -->
+            <div class="form-group" style="margin-top:1.2rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
+                <button id="btn-reset-settings" class="btn-danger-outline" style="width:100%; padding:0.7rem; border-radius:10px;">Reset to Defaults</button>
             </div>
         </div>
     </div>
