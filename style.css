@@ -1895,32 +1895,40 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 .btn-pill-danger-outline {
     background: transparent;
     border: 2px solid var(--danger);
+    border-bottom: 4px solid var(--danger);
     color: var(--danger);
+    box-shadow: 0 5px 12px -5px rgba(220, 38, 38, 0.4);
+    transition: transform 0.2s, background 0.2s, color 0.2s, border-bottom-width 0.05s;
 }
 .btn-pill-danger-outline:hover {
     background: var(--danger);
     color: white;
     filter: brightness(0.92);
+    transform: translateY(-2px);
+}
+.btn-pill-danger-outline:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
 }
 
-/* "Create & Host": white 3D pressable button */
+/* "Create & Host": 3D pressable button, secondary tone */
 .btn-create-host {
-    background: linear-gradient(180deg, #ffffff, #e2e8f0) !important;
-    color: #1e293b !important;
-    border: none;
-    border-bottom: 5px solid #94a3b8;
+    background: var(--glass-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.25) !important;
     border-radius: 14px;
+    color: var(--text-main) !important;
     font-weight: 800;
-    box-shadow: 0 8px 20px -6px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 20px -6px rgba(0,0,0,0.35);
     transition: transform 0.2s, box-shadow 0.2s, border-bottom-width 0.05s;
 }
 .btn-create-host:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 14px 26px -8px rgba(0,0,0,0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.45);
 }
 .btn-create-host:active:not(:disabled) {
-    transform: translateY(3px);
-    border-bottom-width: 1px;
+    transform: translateY(2px);
+    border-bottom-width: 1px !important;
     box-shadow: 0 2px 6px -2px rgba(0,0,0,0.3);
 }
 
@@ -2657,23 +2665,35 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 }
 .btn-action.btn-danger-outline {
     border: 2px solid var(--danger) !important;
+    border-bottom: 4px solid var(--danger) !important;
     background: transparent !important;
     color: var(--danger) !important;
-    box-shadow: none !important;
+    box-shadow: 0 5px 12px -5px rgba(220, 38, 38, 0.4);
 }
 .btn-action.btn-danger-outline:hover {
     background: var(--danger) !important;
     color: white !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+}
+.btn-action.btn-danger-outline:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px !important;
 }
 .btn-save-question {
     background: var(--success) !important;
     border-color: var(--success) !important;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.25) !important;
     color: white !important;
+    box-shadow: 0 6px 16px -5px rgba(16, 185, 129, 0.55);
 }
 .btn-save-question:hover:not(:disabled) {
     background: var(--success) !important;
     filter: brightness(1.08);
+    transform: translateY(-2px);
+}
+.btn-save-question:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 1px !important;
 }
 
 /* Maker action buttons: consistent row, uniform size */
