@@ -238,40 +238,70 @@
                                 <!-- Answers Section -->
                                 <div id="maker-answers-section" style="margin-top: 10px; width: 100%;">
 
-                                    <!-- Multiple Choice (2 visible, expand via Add option) -->
+                                    <!-- Multiple Choice (up to 10, multiple correct via checkbox) -->
                                     <div id="maker-mc-options" style="display:flex; flex-direction:column; gap:10px;">
                                         <div class="mc-option-row" data-opt="0" style="background:#e21b3c; border-radius:8px; padding:10px; position:relative; min-height: 60px; display:flex; align-items:center;">
-                                            <input type="radio" name="mc-correct" value="0" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="checkbox" class="mc-correct-cb" value="0" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
                                             <input type="text" id="mc-opt-0" placeholder="Choice 1" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-0" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-0" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row" data-opt="1" style="background:#1368ce; border-radius:8px; padding:10px; position:relative; min-height: 60px; display:flex; align-items:center;">
-                                            <input type="radio" name="mc-correct" value="1" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="checkbox" class="mc-correct-cb" value="1" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
                                             <input type="text" id="mc-opt-1" placeholder="Choice 2" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-1" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-1" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row mc-opt-extra" data-opt="2" style="display:flex; background:#d89e00; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
-                                            <input type="radio" name="mc-correct" value="2" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="checkbox" class="mc-correct-cb" value="2" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
                                             <input type="text" id="mc-opt-2" placeholder="Choice 3" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-2" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-2" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row mc-opt-extra" data-opt="3" style="display:none; background:#26890c; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
-                                            <input type="radio" name="mc-correct" value="3" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="checkbox" class="mc-correct-cb" value="3" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
                                             <input type="text" id="mc-opt-3" placeholder="Choice 4" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-3" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-3" style="display:none;"></span>
                                         </div>
                                         <div class="mc-option-row mc-opt-extra" data-opt="4" style="display:none; background:#8b3dff; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
-                                            <input type="radio" name="mc-correct" value="4" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="checkbox" class="mc-correct-cb" value="4" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
                                             <input type="text" id="mc-opt-4" placeholder="Choice 5" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
                                             <input type="file" id="mc-file-4" accept="image/*" style="display:none">
                                             <span id="mc-file-preview-4" style="display:none;"></span>
                                         </div>
+                                        <div class="mc-option-row mc-opt-extra" data-opt="5" style="display:none; background:#e2442c; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                            <input type="checkbox" class="mc-correct-cb" value="5" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="text" id="mc-opt-5" placeholder="Choice 6" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="file" id="mc-file-5" accept="image/*" style="display:none">
+                                            <span id="mc-file-preview-5" style="display:none;"></span>
+                                        </div>
+                                        <div class="mc-option-row mc-opt-extra" data-opt="6" style="display:none; background:#2ea3a3; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                            <input type="checkbox" class="mc-correct-cb" value="6" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="text" id="mc-opt-6" placeholder="Choice 7" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="file" id="mc-file-6" accept="image/*" style="display:none">
+                                            <span id="mc-file-preview-6" style="display:none;"></span>
+                                        </div>
+                                        <div class="mc-option-row mc-opt-extra" data-opt="7" style="display:none; background:#d9730d; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                            <input type="checkbox" class="mc-correct-cb" value="7" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="text" id="mc-opt-7" placeholder="Choice 8" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="file" id="mc-file-7" accept="image/*" style="display:none">
+                                            <span id="mc-file-preview-7" style="display:none;"></span>
+                                        </div>
+                                        <div class="mc-option-row mc-opt-extra" data-opt="8" style="display:none; background:#7b4bc4; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                            <input type="checkbox" class="mc-correct-cb" value="8" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="text" id="mc-opt-8" placeholder="Choice 9" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="file" id="mc-file-8" accept="image/*" style="display:none">
+                                            <span id="mc-file-preview-8" style="display:none;"></span>
+                                        </div>
+                                        <div class="mc-option-row mc-opt-extra" data-opt="9" style="display:none; background:#0e8a5f; border-radius:8px; padding:10px; position:relative; min-height: 60px; align-items:center;">
+                                            <input type="checkbox" class="mc-correct-cb" value="9" style="position:absolute; top:20px; left:20px; transform:scale(1.5);">
+                                            <input type="text" id="mc-opt-9" placeholder="Choice 10" style="background:transparent; border:none; color:white; font-size:1.2rem; font-weight:bold; text-align:center; width:100%; outline:none; padding-left: 50px;">
+                                            <input type="file" id="mc-file-9" accept="image/*" style="display:none">
+                                            <span id="mc-file-preview-9" style="display:none;"></span>
+                                        </div>
                                         <button type="button" id="btn-add-option" class="btn-text" style="align-self:flex-start;">+ Add choice</button>
-                                        <div class="field-hint">Select the correct answer with the radio button.</div>
+                                        <div class="field-hint">Tick all correct answers (each is worth 20 pts; selecting a wrong one gives 0).</div>
                                     </div>
                                     <div id="maker-mc-error" class="field-error" style="display:none;"></div>
 
@@ -314,12 +344,6 @@
 
                                     <!-- Hidden stuff to keep JS happy -->
                                     <div id="maker-content-area" style="display:none;"></div>
-
-                                    <!-- Info Slide Text -->
-                                    <div id="maker-info-text-group" style="display:none; background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; flex-direction:column; box-sizing: border-box; margin-top:10px;">
-                                        <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Slide Text</label>
-                                        <textarea id="maker-info-text" placeholder="Type information here..." style="width:100%; min-height:100px; resize:vertical; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
-                                    </div>
                                 </div>
                             </div>
 
@@ -338,6 +362,12 @@
                                         <option value="300">5 min</option>
                                         <option value="600">10 min</option>
                                     </select>
+                                </div>
+
+                                <!-- Info Slide Text (right column) -->
+                                <div id="maker-info-text-group" style="display:none; background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; flex-direction:column; box-sizing: border-box;">
+                                    <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Slide Text</label>
+                                    <textarea id="maker-info-text" placeholder="Type information here..." style="width:100%; min-height:120px; resize:vertical; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
                                 </div>
                                 <div id="maker-free-point-group" style="background:var(--glass-bg); padding:10px 15px; border-radius:8px; border: 1px solid var(--glass-border); display:flex; flex-direction:row; justify-content:space-between; align-items:center;">
                                     <label for="maker-free-point" style="font-size:0.9rem; margin:0; margin-right: 10px; color: var(--text-main); white-space:nowrap; font-weight:bold;">Free Point</label>
@@ -449,6 +479,15 @@
                             <div class="host-presenter-caption">Waiting for answers...</div>
                         </div>
                         <button id="btn-host-next" class="btn-primary mt-4">Skip / Next</button>
+                    </div>
+                </div>
+
+                <!-- Slide / Info content: title on the left, description on the right -->
+                <div id="slide-view" class="slide-view glass-container" style="display:none;">
+                    <div class="slide-media-area" id="slide-media-area"></div>
+                    <div class="slide-text-area">
+                        <h2 id="slide-title" style="color:var(--primary); font-size:2.2rem; margin-bottom:1rem;"></h2>
+                        <div id="slide-description" style="color:var(--text-main); font-size:1.4rem; line-height:1.6; white-space:pre-wrap;"></div>
                     </div>
                 </div>
             </div>

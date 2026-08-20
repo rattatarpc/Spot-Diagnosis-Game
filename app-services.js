@@ -51,7 +51,36 @@ const AppServices = (() => {
         download(filename, `\uFEFF${csv}`, 'text/csv;charset=utf-8');
     }
 
-    return { createId, downloadJson, downloadResultsCsv, levenshteinDistance };
+    // Grade a multiple-choice question that may have multiple correct answers.
+    // Each correct choice is worth 20 pts. Selecting ANY wrong choice gives 0.
+    // Selecting ALL correct choices (and no wrong ones) adds a +50 bonus.
+    // answer may be a single value (legacy) or an array of selected choices.
+    function gradeMultiChoice(answer, q) {
+        const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
+            typeof c === 'string' ? c : c.text
+        ));
+        const selected = Array.isArray(answer) ? answer : (answer == null ? [] : [answer]);
+
+        if (selected.length === 0) return { points: 0, correct: false };
+
+        let points = 0;
+        let wrong = false;
+        for (const sel of selected) {
+            if (correctSet.has(sel)) {
+                points += 20;
+            } else {
+                wrong = true;
+            }
+        }
+        if (wrong) return { points: 0, correct: false };
+
+        const allCorrectSelected = correctSet.size > 0 && selected.length === correctSet.size;
+        if (allCorrectSelected) points += 50; // bonus
+
+        return { points, correct: points > 0 };
+    }
+
+    return { createId, downloadJson, downloadResultsCsv, gradeMultiChoice, levenshteinDistance };
 })();
 
 if (typeof window !== 'undefined') window.AppServices = AppServices;

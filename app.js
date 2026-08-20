@@ -1862,9 +1862,9 @@ document.addEventListener('keydown', (e) => {
    MC OPTION FILE UPLOAD HANDLERS
 ===================================================================== */
 // Store uploaded images as base64 per option slot
-const mcUploadedImages = { 0: null, 1: null, 2: null, 3: null, 4: null };
+const mcUploadedImages = { 0: null, 1: null, 2: null, 3: null, 4: null, 5: null, 6: null, 7: null, 8: null, 9: null };
 
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 10; i++) {
     document.getElementById(`mc-file-${i}`).addEventListener('change', function() {
         const file = this.files[0];
         if (!file) return;
@@ -2229,16 +2229,20 @@ window.editQuestion = (index) => {
         mcOptionsDiv.style.display = 'flex';
         typingCorrectDiv.style.display = 'none';
         tfOptionsDiv.style.display = 'none';
-        for (let i=0; i<5; i++) {
+        // Clear all checkboxes first
+        document.querySelectorAll('input.mc-correct-cb').forEach(cb => cb.checked = false);
+        const correctRawSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
+            typeof c === 'string' ? c : c.text
+        ));
+        for (let i=0; i<10; i++) {
             const opt = q.options[i];
             if (opt) {
                 document.getElementById(`mc-opt-${i}`).value = typeof opt === 'string' ? opt : opt.text;
                 // isImage is detected automatically - no checkbox needed
-
-                const qCorrectRaw = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
                 const optRaw = typeof opt === 'string' ? opt : opt.text;
-                if (optRaw === qCorrectRaw) {
-                    document.querySelector(`input[name="mc-correct"][value="${i}"]`).checked = true;
+                if (correctRawSet.has(optRaw)) {
+                    const cb = document.querySelector(`input.mc-correct-cb[value="${i}"]`);
+                    if (cb) cb.checked = true;
                 }
             } else {
                 document.getElementById(`mc-opt-${i}`).value = "";
@@ -2411,10 +2415,12 @@ function resetMakerForm(defaultType = 'question') {
     updateAIToggleUI();
     const rejectedInput = document.getElementById('maker-typing-rejected');
     if (rejectedInput) rejectedInput.value = '';
-    for (let i=0; i<5; i++) {
+    for (let i=0; i<10; i++) {
         document.getElementById(`mc-opt-${i}`).value = '';
         document.getElementById(`mc-file-${i}`).value = '';
         document.getElementById(`mc-file-preview-${i}`).innerText = '';
+        const cb = document.querySelector(`input.mc-correct-cb[value="${i}"]`);
+        if (cb) cb.checked = false;
         mcUploadedImages[i] = null;
     }
     document.querySelectorAll('.mc-opt-extra').forEach(row => {
@@ -2535,19 +2541,18 @@ window.saveActiveQuestion = async () => {
 
         if (type === 'multiple-choice') {
             const opts = [];
-            let correctOptObj = null;
-            const selectedRadioEl = document.querySelector('input[name="mc-correct"]:checked');
-            const selectedRadio = selectedRadioEl ? selectedRadioEl.value : null;
+            const correctOpts = [];
 
-            for(let i=0; i<5; i++){
+            for(let i=0; i<10; i++){
                 const val = document.getElementById(`mc-opt-${i}`).value.trim();
                 // Detect image automatically: data URLs or http image links
                 const isImg = val.startsWith('data:image/') || val.startsWith('http');
                 if(val) {
                     const optObj = { text: val, isImage: isImg };
                     opts.push(optObj);
-                    if (i.toString() === selectedRadio) {
-                        correctOptObj = optObj;
+                    const cb = document.querySelector(`input.mc-correct-cb[value="${i}"]`);
+                    if (cb && cb.checked) {
+                        correctOpts.push(optObj);
                     }
                 }
             }
@@ -2556,8 +2561,9 @@ window.saveActiveQuestion = async () => {
             // if (!correctOptObj && !freePoint) throw new Error("The selected correct answer is blank!");
 
             q.options = opts;
-            q.correctAnswer = correctOptObj || opts[0];
-            q.acceptedAnswers = [q.correctAnswer];
+            q.correctAnswer = correctOpts[0] || opts[0] || null;
+            q.correctAnswers = correctOpts.length > 0 ? correctOpts : (opts.length > 0 ? [opts[0]] : []);
+            q.acceptedAnswers = q.correctAnswers;
 
         } else if (type === 'true-false') {
             const tfRadioEl = document.querySelector('input[name="tf-correct"]:checked');
@@ -2688,11 +2694,11 @@ function validateMakerForm() {
         const type = document.getElementById('maker-q-type').value;
         if (type === 'multiple-choice') {
             const options = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 10; i++) {
                 const v = document.getElementById(`mc-opt-${i}`).value.trim();
                 if (v) options.push(v);
             }
-            const hasCorrect = !!document.querySelector('input[name="mc-correct"]:checked');
+            const hasCorrect = !!document.querySelector('input.mc-correct-cb:checked');
             const freePoint = document.getElementById('maker-free-point').checked;
             const missingOptions = options.length < 2;
             const missingCorrect = !hasCorrect && !freePoint;
@@ -2785,9 +2791,10 @@ window.renderPlayerScreen = (q, isPreview = false) => {
     renderMediaCommon(q, 'ekg', true);
 
     if (q.type !== 'info') {
+        hideSlide();
         renderOptions('options-container', q, !isPreview, 0, false);
     } else {
-        document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
+        renderSlide(q);
     }
 
     let timeLeft = q.timer;
@@ -3327,11 +3334,13 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
             btn.innerHTML = `<span class="kahoot-shape">${shapes[idx % shapes.length]}</span> ${contentHtml}`;
 
             if (isFeedback) {
+                // Determine correct set (supports multiple correct answers)
+                const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
+                    typeof c === 'string' ? c : c.text
+                ));
                 let isCorrectAnswer = false;
                 if (!q.freePoint) {
-                    const correctObj = q.correctAnswer;
-                    const cText = typeof correctObj === 'string' ? correctObj : (correctObj ? correctObj.text : "");
-                    if (text === cText) isCorrectAnswer = true;
+                    if (correctSet.has(text)) isCorrectAnswer = true;
                 } else {
                     // For free points, all answers are considered correct/undimmed
                     isCorrectAnswer = true;
@@ -3344,15 +3353,38 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
                     btn.classList.add('reveal-correct');
                 } else {
                     btn.classList.add('dimmed');
-                    if (myAnswer != null && text === myAnswer) {
+                    if (myAnswer && (myAnswer === text || (Array.isArray(myAnswer) && myAnswer.includes(text)))) {
                         btn.classList.add('reveal-wrong');
                     }
                 }
-            } else if (isInteractive) {
+            } else if (isInteractive && q.type === 'true-false') {
+                // True/False keeps single-click submit
                 btn.onclick = () => submitAnswer(text, q, qIndex);
+            } else if (isInteractive) {
+                // Multi-select MC: toggle a selection, then submit via the submit button
+                btn.classList.add('mc-selectable');
+                btn.dataset.mcText = text;
+                btn.onclick = () => {
+                    btn.classList.toggle('mc-selected');
+                };
             }
             container.appendChild(btn);
         });
+
+        if (isInteractive && q.type === 'multiple-choice') {
+            // Add a submit button for multi-select MC questions
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn-primary';
+            submitBtn.style.marginTop = '20px';
+            submitBtn.innerText = 'Submit Answer';
+            submitBtn.onclick = () => {
+                if (hasAnswered) return;
+                const selected = [...container.querySelectorAll('.mc-selectable.mc-selected')]
+                    .map(b => b.dataset.mcText);
+                submitAnswer(selected, q, qIndex);
+            };
+            container.appendChild(submitBtn);
+        }
     } else {
         if (!isFeedback && isInteractive) {
             const wrap = document.createElement('div');
@@ -3401,6 +3433,68 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
 /* =====================================================================
    GAME LOOP (HOST)
 ===================================================================== */
+// Render an info/slide question: title on the left, description on the right.
+// Hides the normal question/options/answer-waiting UI so a slide is just content.
+function renderSlide(q) {
+    const slideView = document.getElementById('slide-view');
+    const quizContent = document.querySelector('#quiz-screen .quiz-content');
+    if (!slideView) return;
+
+    document.getElementById('slide-title').innerText = q.text || '';
+    document.getElementById('slide-description').innerText = q.context || '';
+
+    // Media: reuse the main media container content into the slide media area
+    const mediaArea = document.getElementById('slide-media-area');
+    mediaArea.innerHTML = '';
+    const img = document.getElementById('ekg-image');
+    const video = document.getElementById('ekg-video');
+    if (q.imageUrl || (img && img.src && img.style.display !== 'none') || (video && video.style.display !== 'none')) {
+        // Clone the currently rendered media element
+        let clone = null;
+        if (video && video.style.display !== 'none') {
+            clone = video.cloneNode(true);
+        } else if (img && img.style.display !== 'none') {
+            clone = img.cloneNode(true);
+        }
+        if (clone) {
+            clone.removeAttribute('id');
+            clone.style.display = '';
+            clone.className = '';
+            mediaArea.appendChild(clone);
+        }
+    }
+
+    slideView.style.display = 'flex';
+    const promptCont = document.querySelector('#quiz-screen .question-prompt');
+    const mediaCont = document.getElementById('media-container');
+    const questionCont = document.querySelector('#quiz-screen .question-container');
+    const optionsCont = document.getElementById('options-container');
+    const hostControls = document.querySelector('#quiz-screen .host-controls');
+    const timerItem = document.querySelector('#quiz-screen .timer-info');
+    if (promptCont) promptCont.style.display = 'none';
+    if (mediaCont) mediaCont.style.display = 'none';
+    if (questionCont) questionCont.style.display = 'none';
+    if (optionsCont) optionsCont.style.display = 'none';
+    if (hostControls) hostControls.style.display = 'none';
+    if (timerItem) timerItem.style.display = 'none';
+}
+
+// Hide the slide view and restore the normal quiz layout.
+function hideSlide() {
+    const slideView = document.getElementById('slide-view');
+    if (slideView) slideView.style.display = 'none';
+    const promptCont = document.querySelector('#quiz-screen .question-prompt');
+    const mediaCont = document.getElementById('media-container');
+    const questionCont = document.querySelector('#quiz-screen .question-container');
+    const optionsCont = document.getElementById('options-container');
+    const timerItem = document.querySelector('#quiz-screen .timer-info');
+    if (promptCont) promptCont.style.display = '';
+    if (mediaCont) mediaCont.style.display = '';
+    if (questionCont) questionCont.style.display = '';
+    if (optionsCont) optionsCont.style.display = '';
+    if (timerItem) timerItem.style.display = '';
+}
+
 function startQuestionFlow() {
     const minimalViewToggle = document.getElementById('toggle-minimal-view');
     const minimalView = minimalViewToggle ? minimalViewToggle.checked : true;
@@ -3493,22 +3587,20 @@ async function startNextQuestion() {
     renderMediaCommon(q, 'ekg', false);
 
     if (q.type !== 'info') {
+        hideSlide();
         renderOptions('options-container', q, false, currentQuestionIndex, false);
+        document.getElementById('host-answers-count').parentElement.style.display = 'block';
+        document.getElementById('host-answers-count').innerText = "0";
     } else {
         document.getElementById('options-container').innerHTML = ''; // Clear options
+        renderSlide(q);
+        document.getElementById('host-answers-count').parentElement.style.display = 'none';
     }
 
     timeLeft = q.timer;
     window._currentTimerMax = timeLeft;
     setHudTimer(timeLeft);
     setQuizProgress(currentQuestionIndex, customQuizData.length);
-
-    if (q.type === 'info') {
-        document.getElementById('host-answers-count').parentElement.style.display = 'none';
-    } else {
-        document.getElementById('host-answers-count').parentElement.style.display = 'block';
-        document.getElementById('host-answers-count').innerText = "0";
-    }
 
     if (currentQuestionIndex === customQuizData.length - 1) {
         document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next (Finish Quiz)" : "Skip (Finish Quiz)";
@@ -3522,6 +3614,13 @@ async function startNextQuestion() {
     }
 
     if (q.type !== 'info') {
+        hideSlide();
+        const hostControls = document.querySelector('#quiz-screen .host-controls');
+        if (hostControls) {
+            hostControls.style.display = '';
+            const hostPresenter = hostControls.querySelector('.host-presenter-box');
+            if (hostPresenter) hostPresenter.style.display = '';
+        }
         hostPlayersListener = (snapshot) => {
             const pList = snapshot.val() || {};
             const total = Object.keys(pList).length;
@@ -3532,6 +3631,18 @@ async function startNextQuestion() {
             if (total > 0 && answered === total) endQuestion();
         };
         db.ref(`rooms/${roomCode}/players`).on('value', hostPlayersListener);
+    } else {
+        // Slides: show only a Next button, no answer waiting
+        const questionCont = document.querySelector('#quiz-screen .question-container');
+        const optionsCont = document.getElementById('options-container');
+        if (questionCont) questionCont.style.display = '';
+        if (optionsCont) optionsCont.style.display = 'none';
+        const hostControls = document.querySelector('#quiz-screen .host-controls');
+        if (hostControls) {
+            hostControls.style.display = 'flex';
+            const hostPresenter = hostControls.querySelector('.host-presenter-box');
+            if (hostPresenter) hostPresenter.style.display = 'none';
+        }
     }
 
     clearInterval(localTimer);
@@ -3801,29 +3912,34 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
         const pData = players[p];
         const ans = pData.answers ? pData.answers[currentQuestionIndex] : null;
         if (ans) {
-            answersCount[ans] = (answersCount[ans] || 0) + 1;
-            totalAnswers++;
+            if (q.type === 'multiple-choice' && Array.isArray(ans)) {
+                // Multi-select: count each selected option
+                ans.forEach(sel => { answersCount[sel] = (answersCount[sel] || 0) + 1; });
+                totalAnswers++;
+            } else {
+                answersCount[ans] = (answersCount[ans] || 0) + 1;
+                totalAnswers++;
+            }
         }
     }
 
+    const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
+        typeof c === 'string' ? c : c.text
+    ));
+
     if (true) {
         let chartHTML = `<h4 style="color:var(--text-main); margin-bottom: 0.5rem; text-align:center;">Responses:</h4>`;
-
-        let cText = "";
-        if (q.type === 'multiple-choice' || q.type === 'true-false') {
-            cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
-        }
 
         for (let ans in answersCount) {
             const count = answersCount[ans];
             const pct = totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0;
 
-            let isCorrectAnswer = false;
-            let barColor = 'var(--danger)';
-            if (q.type === 'multiple-choice' || q.type === 'true-false') {
-                isCorrectAnswer = (ans === cText);
-                barColor = isCorrectAnswer ? 'var(--success)' : 'var(--danger)';
-            } else {
+        let isCorrectAnswer = false;
+        let barColor = 'var(--danger)';
+        if (q.type === 'multiple-choice' || q.type === 'true-false') {
+            isCorrectAnswer = correctSet.has(ans);
+            barColor = isCorrectAnswer ? 'var(--success)' : 'var(--danger)';
+        } else {
                 let earned = 0;
                 if (q.aiGrading) {
                     // Find a player who gave this answer to get their AI score
@@ -4069,7 +4185,9 @@ async function loadStudentQuestion() {
     // Show question number above the image
     const qNumEl = document.getElementById('student-q-num');
     if (qNumEl) {
-        qNumEl.innerText = `Question ${room.currentQuestionIndex + 1} / ${room.quizData.length}`;
+        qNumEl.innerText = q.type === 'info'
+            ? `Slide ${room.currentQuestionIndex + 1} / ${room.quizData.length}`
+            : `Question ${room.currentQuestionIndex + 1} / ${room.quizData.length}`;
         qNumEl.style.display = 'block';
     }
 
@@ -4092,13 +4210,10 @@ async function loadStudentQuestion() {
     }
 
     if (q.type !== 'info') {
+        hideSlide();
         renderOptions('options-container', q, true, room.currentQuestionIndex, false);
     } else {
-        if (room.minimalStudentView) {
-            document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Please look at the main screen</h3>';
-        } else {
-            document.getElementById('options-container').innerHTML = '<h3 style="text-align:center; margin-top:2rem; color:var(--text-muted);">Information Slide - Please review the content</h3>';
-        }
+        renderSlide(q);
     }
 
     timeLeft = q.timer;
@@ -4140,8 +4255,27 @@ async function submitAnswer(answer, q, qIndex) {
     let isCorrect = false;
     let scoreFrac = 0;
     let typingRawEarned = 0;
+    let mcPoints = 0; // raw points for multi-answer MC
     if (!q.freePoint) {
-        if (q.type === 'multiple-choice' || q.type === 'true-false') {
+        if (q.type === 'multiple-choice') {
+            const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
+                typeof c === 'string' ? c : c.text
+            ));
+            if (correctSet.size > 1) {
+                // Multi-answer MC: 20 pts each, +50 bonus if all correct, 0 if any wrong
+                const result = AppServices.gradeMultiChoice(answer, q);
+                mcPoints = result.points;
+                isCorrect = result.correct;
+                scoreFrac = result.correct ? 1 : 0;
+            } else {
+                // Single-answer MC: keep the classic timing-based scoring,
+                // but only when the selected set exactly equals the one correct answer.
+                const cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
+                const selected = Array.isArray(answer) ? answer : (answer == null ? [] : [answer]);
+                isCorrect = selected.length === 1 && selected[0] === cText;
+                scoreFrac = isCorrect ? 1 : 0;
+            }
+        } else if (q.type === 'true-false') {
             const cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
             isCorrect = answer === cText;
             scoreFrac = isCorrect ? 1 : 0;
@@ -4158,6 +4292,8 @@ async function submitAnswer(answer, q, qIndex) {
     }
 
     // For AI grading, we set studentCurrentPointsEarned to a special flag 'pending_ai'
+    const isMultiMc = q.type === 'multiple-choice' &&
+        (q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).length > 1;
     if (q.type === 'typing' && q.aiGrading && !q.freePoint) {
         studentCurrentPointsEarned = 'pending_ai';
     } else if (isCorrect && !q.freePoint) {
@@ -4167,6 +4303,8 @@ async function submitAnswer(answer, q, qIndex) {
             if (typingRawEarned === max && max > 0) {
                 studentCurrentPointsEarned += 150; // Bonus for max points
             }
+        } else if (isMultiMc) {
+            studentCurrentPointsEarned = mcPoints;
         } else {
             let maxPts = 100 + Math.floor((timeLeft / q.timer) * 50);
             studentCurrentPointsEarned = Math.floor(maxPts * scoreFrac);
@@ -4176,18 +4314,24 @@ async function submitAnswer(answer, q, qIndex) {
     }
 
     // We store the answer in 'lastAnswer' for the host tally and in 'answers' history for review.
+    // For MC, answer is an array of selected choices; store it joined so the chart/review can display it.
+    const storedAnswer = Array.isArray(answer) ? answer : answer;
+    const localPts = q.type === 'typing' ? typingRawEarned
+        : isMultiMc ? mcPoints
+        : Math.floor((100 + Math.floor((timeLeft / (q.timer || 1)) * 50)) * scoreFrac);
+
     let updateObj = {
         hasAnswered: qIndex,
-        lastAnswer: answer,
+        lastAnswer: storedAnswer,
         [`answerMeta/${qIndex}`]: {
             submittedAt: firebase.database.ServerValue.TIMESTAMP,
             timeLeftAtSubmit: timeLeft,
-            localPoints: q.type === 'typing' ? typingRawEarned : Math.floor((100 + Math.floor((timeLeft / (q.timer || 1)) * 50)) * scoreFrac),
+            localPoints: localPts,
             localCorrect: isCorrect,
             questionType: q.type
         }
     };
-    updateObj[`answers/${qIndex}`] = answer;
+    updateObj[`answers/${qIndex}`] = storedAnswer;
 
     await db.ref(`rooms/${roomCode}/players/${playerName}`).update(updateObj);
 }
@@ -4222,9 +4366,10 @@ async function showStudentFeedback() {
         }
     } else {
         if (typingPanel) typingPanel.style.display = 'none';
-        // For MC / T-F: show simple "Your Answer" line
+        // For MC / T-F: show simple "Your Answer" line (arrays join with ", ")
+        const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
         myAnsEl.style.display = 'block';
-        myAnsEl.innerText = myAns ? `Your Answer: ${myAns}` : 'Your Answer: None';
+        myAnsEl.innerText = ansLabel ? `Your Answer: ${ansLabel}` : 'Your Answer: None';
     }
 
     // Render the bar chart
@@ -4265,7 +4410,8 @@ async function showStudentFeedback() {
         animateTally(pts, studentCurrentPointsEarned, { prefix: '+', suffix: ' Points', duration: 900 });
         burstConfetti();
 
-        const currentScore = pSnap.val().score || 0;
+        const playerScoreSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/score`).get();
+        const currentScore = (playerScoreSnap.exists() ? playerScoreSnap.val() : 0) || 0;
         const newScore = currentScore + studentCurrentPointsEarned;
 
         await db.ref(`rooms/${roomCode}/players/${playerName}`).update({
@@ -4509,13 +4655,17 @@ async function renderReviewList() {
 
         let correctHtml = '';
         if (q.type === 'multiple-choice' || q.type === 'true-false') {
-            const cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
-            const cImg = typeof q.correctAnswer === 'string' ? false : q.correctAnswer.isImage;
-
-            if (cImg) {
-                correctHtml = `<div class="review-answer">Correct Answer:<br><img src="${cText}" style="max-height:50px; margin-top:5px; border-radius:4px;"></div>`;
+            const correctList = q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : []);
+            const cTexts = correctList.map(c => typeof c === 'string' ? c : c.text);
+            if (cTexts.length > 1) {
+                correctHtml = `<div class="review-answer">Correct Answers: ${cTexts.join(', ')}</div>`;
             } else {
-                correctHtml = `<div class="review-answer">Correct Answer: ${cText}</div>`;
+                const cImg = correctList[0] && typeof correctList[0] !== 'string' && correctList[0].isImage;
+                if (cImg) {
+                    correctHtml = `<div class="review-answer">Correct Answer:<br><img src="${cTexts[0]}" style="max-height:50px; margin-top:5px; border-radius:4px;"></div>`;
+                } else {
+                    correctHtml = `<div class="review-answer">Correct Answer: ${cTexts[0] || ''}</div>`;
+                }
             }
         } else {
             const accepted = q.acceptedAnswers.map(a => {
@@ -4527,7 +4677,8 @@ async function renderReviewList() {
         }
 
         if (role === 'student') {
-            const myAns = studentAnswers[idx] || 'No Answer';
+            const myRaw = studentAnswers[idx] || 'No Answer';
+            const myAns = Array.isArray(myRaw) ? myRaw.join(', ') : myRaw;
             correctHtml += `<div class="review-answer" style="margin-top: 10px; color: #1565c0;">Your Answer: ${myAns}</div>`;
         }
 
@@ -4577,24 +4728,43 @@ function populateReviewDetail(idx) {
         renderMediaCommon(qData, 'feedback', false);
     }
 
+    // Always clear stale panels so nothing from a previous question lingers
+    const typingPanel = document.getElementById('feedback-typing-panel');
+    if (typingPanel) {
+        typingPanel.style.display = 'none';
+        typingPanel.innerHTML = '';
+    }
+    const myAnsEl = document.getElementById('feedback-your-answer');
+    if (myAnsEl) {
+        myAnsEl.style.display = 'none';
+        myAnsEl.innerText = '';
+    }
+
     // Populate standard feedback data directly to ensure Host and Student see exactly the same layout
     renderOptions('feedback-options-container', qData, false, currentQuestionIndex, true);
     renderFeedbackChart('feedback-chart', qData, currentQuestionIndex);
 
-    const myAnsEl = document.getElementById('feedback-your-answer');
     if (role === 'student') {
         db.ref(`rooms/${roomCode}/players/${playerName}/answers/${currentQuestionIndex}`).get().then(pSnap => {
-            if (pSnap.exists()) {
-                const myAns = pSnap.val();
-                myAnsEl.style.display = 'block';
-                myAnsEl.innerText = `Your Answer: ${myAns}`;
+            const myAns = pSnap.exists() ? pSnap.val() : null;
+            if (qData.type === 'typing') {
+                // Show the rich two-panel highlight feedback for SAQ questions
+                if (myAnsEl) myAnsEl.style.display = 'none';
+                if (typingPanel) {
+                    typingPanel.style.display = 'block';
+                    typingPanel.innerHTML = buildTypingFeedbackHTML(myAns, qData);
+                }
             } else {
-                myAnsEl.style.display = 'block';
-                myAnsEl.innerText = `Your Answer: None`;
+                if (typingPanel) typingPanel.style.display = 'none';
+                if (myAnsEl) {
+                    const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
+                    myAnsEl.style.display = 'block';
+                    myAnsEl.innerText = ansLabel ? `Your Answer: ${ansLabel}` : 'Your Answer: None';
+                }
             }
         });
     } else {
-        myAnsEl.style.display = 'none';
+        if (myAnsEl) myAnsEl.style.display = 'none';
     }
 }
 
@@ -4640,13 +4810,18 @@ async function exportToPDF() {
             }
         }
 
-        let cText = "";
         if (q.type === 'multiple-choice' || q.type === 'true-false') {
-            cText = typeof q.correctAnswer === 'string' ? q.correctAnswer : q.correctAnswer.text;
-            if (typeof q.correctAnswer !== 'string' && q.correctAnswer.isImage) {
-                printContents += `<div class="q-answer">Correct Answer: <img class="q-media" src="${cText}" style="max-height:100px;"/></div>`;
+            const correctList = q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : []);
+            const cTexts = correctList.map(c => typeof c === 'string' ? c : c.text);
+            if (cTexts.length > 1) {
+                printContents += `<div class="q-answer">Correct Answers: ${cTexts.join(', ')}</div>`;
             } else {
-                printContents += `<div class="q-answer">Correct Answer: ${cText}</div>`;
+                const first = correctList[0];
+                if (first && typeof first !== 'string' && first.isImage) {
+                    printContents += `<div class="q-answer">Correct Answer: <img class="q-media" src="${cTexts[0]}" style="max-height:100px;"/></div>`;
+                } else {
+                    printContents += `<div class="q-answer">Correct Answer: ${cTexts[0] || ''}</div>`;
+                }
             }
         } else {
             const accepted = q.acceptedAnswers.map(a => {
@@ -4658,7 +4833,8 @@ async function exportToPDF() {
         }
 
         if (role === 'student') {
-            const myAns = studentAnswers[idx] || 'No Answer';
+            const myRaw = studentAnswers[idx] || 'No Answer';
+            const myAns = Array.isArray(myRaw) ? myRaw.join(', ') : myRaw;
             printContents += `<div class="q-my-answer">Your Answer: ${myAns}</div>`;
 
             if ((!q.type || q.type === 'typing') && studentAnswers[idx]) {
