@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="sakuraGrad" cx="40%" cy="40%" r="60%" fx="30%" fy="30%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#ffb7c5" />
+      <stop offset="100%" stop-color="#ff7eb3" />
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.3" flood-color="#ff7eb3"/>
+    </filter>
+  </defs>
+  <path d="M50 15 C 75 15, 95 40, 75 75 C 65 90, 55 95, 50 85 C 45 95, 35 90, 25 75 C 5 40, 25 15, 50 15 Z" 
+        fill="url(#sakuraGrad)" filter="url(#shadow)"/>
+  <path d="M50 80 Q50 55 50 30 M42 70 Q40 50 43 35 M58 70 Q60 50 57 35" 
+        stroke="#ff4a7d" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.4"/>
+</svg>

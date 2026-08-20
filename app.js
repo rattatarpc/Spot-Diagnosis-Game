@@ -4123,8 +4123,16 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
             for (let p in players) {
                 const pData = players[p];
                 if (!pData.answers || pData.answers[currentQuestionIndex] === undefined) continue;
-                
-                let pts = pData.awardedPoints && pData.awardedPoints[currentQuestionIndex] !== undefined ? pData.awardedPoints[currentQuestionIndex] : 0;
+
+                // For Short Answer (typing) prefer the host's authoritative score
+                // (lastPointsEarned) since the student writes awardedPoints asynchronously.
+                let pts = 0;
+                if (q.type === 'typing') {
+                    pts = typeof pData.lastPointsEarned === 'number' ? pData.lastPointsEarned : 0;
+                } else {
+                    pts = (pData.awardedPoints && pData.awardedPoints[currentQuestionIndex] !== undefined)
+                        ? pData.awardedPoints[currentQuestionIndex] : 0;
+                }
                 let isFlagged = false;
                 let aiGrading = pData.aiGrading;
                 if (aiGrading && aiGrading.confidence < 0.7) {
@@ -4155,6 +4163,8 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
             });
 
             if (studentList.length > 0) {
+                // Only allow manual score edits for Short Answer (typing) questions.
+                const canEdit = q.type === 'typing';
                 let listHTML = `<h4 style="color:var(--text-main); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Student Details</h4>`;
                 studentList.forEach(s => {
                     const maxP = getTypingMaxPoints(q);
@@ -4171,7 +4181,7 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                             </div>
                             <div style="display:flex; align-items:center; gap: 8px; margin-left: 12px;">
                                 <span style="font-weight:bold; color:${ptsColor}; white-space:nowrap;">${s.pts} pts</span>
-                                <button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="Override Score" onclick="overrideScore('${s.name}', ${s.pts})">✏️</button>
+                                ${canEdit ? `<button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="Override Score" onclick="overrideScore('${s.name}', ${s.pts})">✏️</button>` : ''}
                                 ${s.aiGrading && q.type === 'typing' ? `<button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="View AI Concept Breakdown" onclick="viewConceptBreakdown('${s.name}')">🔍</button>` : ''}
                             </div>
                         </div>
