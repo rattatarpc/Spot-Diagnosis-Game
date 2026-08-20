@@ -2010,25 +2010,20 @@ if (btnToggleSidebar) {
 }
 applySidebarCollapse();
 
-/* --- "+ Add choice": reveal hidden MC rows 4-5 (row 3 always visible) --- */
+/* --- "+ Add choice": reveal hidden MC rows one at a time, up to 10 total --- */
 const btnAddOption = document.getElementById('btn-add-option');
+// Returns the total number of visible MC option rows.
+function visibleOptionCount() {
+    return document.querySelectorAll('.mc-option-row').length;
+}
 function syncOptionRows() {
+    // Rows 0 and 1 are the fixed minimum (2 choices).
+    // A row is shown only if it has a value or the user revealed it with
+    // "+ Add choice". Everything else stays hidden until revealed (max 10).
     const extraRows = document.querySelectorAll('.mc-opt-extra');
-    // Row data-opt="2" (3rd choice) is always shown; only 4-5 toggle.
-    let foundEmptySlot = false;
     extraRows.forEach((row) => {
         const hasValue = document.getElementById(`mc-opt-${row.dataset.opt}`).value.trim() !== '';
-        if (row.dataset.opt === '2') {
-            row.style.display = 'flex';
-        } else if (hasValue) {
-            row.style.display = 'flex';
-        } else if (!foundEmptySlot) {
-            // Reveal the next empty slot so the "+ Add choice" target is visible
-            row.style.display = 'flex';
-            foundEmptySlot = true;
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display = (hasValue || row.dataset.revealed) ? 'flex' : 'none';
     });
     const anyHidden = [...extraRows].some(r => r.style.display === 'none');
     if (btnAddOption) btnAddOption.style.display = anyHidden ? 'inline-block' : 'none';
@@ -2038,6 +2033,7 @@ if (btnAddOption) {
         const extraRows = [...document.querySelectorAll('.mc-opt-extra')];
         const target = extraRows.find(r => r.style.display === 'none');
         if (target) {
+            target.dataset.revealed = '1';
             target.style.display = 'flex';
             const input = document.getElementById(`mc-opt-${target.dataset.opt}`);
             if (input) input.focus();
@@ -2208,6 +2204,8 @@ window.editQuestion = (index) => {
     document.getElementById('maker-context').value = q.type === 'info' ? "" : (q.context || "");
     document.getElementById('maker-info-text').value = q.type === 'info' ? (q.context || "") : "";
     document.getElementById('maker-timer').value = q.timer;
+    const timerSelect = document.getElementById('maker-timer');
+    if (timerSelect && timerSelect._syncCustomUI) timerSelect._syncCustomUI();
     document.getElementById('maker-free-point').checked = q.freePoint;
     document.getElementById('maker-media-type').value = q.mediaType || 'image';
     mediaTypeTouched = false;
@@ -2424,7 +2422,8 @@ function resetMakerForm(defaultType = 'question') {
         mcUploadedImages[i] = null;
     }
     document.querySelectorAll('.mc-opt-extra').forEach(row => {
-        row.style.display = row.dataset.opt === '2' ? 'flex' : 'none';
+        row.style.display = 'none';
+        delete row.dataset.revealed;
     });
     setMakerTypeTab('multiple-choice');
 
@@ -4152,6 +4151,16 @@ async function viewConceptBreakdown(playerName) {
 
 async function showHostFeedback() {
     switchScreen('feedback');
+    // Clear stale feedback content immediately
+    const optsCont = document.getElementById('feedback-options-container');
+    if (optsCont) optsCont.innerHTML = '';
+    const chartCont = document.getElementById('feedback-chart');
+    if (chartCont) chartCont.innerHTML = '';
+    const typingPanel = document.getElementById('feedback-typing-panel');
+    if (typingPanel) { typingPanel.style.display = 'none'; typingPanel.innerHTML = ''; }
+    const myAnsEl = document.getElementById('feedback-your-answer');
+    if (myAnsEl) { myAnsEl.style.display = 'none'; myAnsEl.innerText = ''; }
+
     const q = customQuizData[currentQuestionIndex];
     document.getElementById('feedback-title').innerText = "Time's Up!";
     document.getElementById('feedback-title').className = "";
@@ -4177,6 +4186,14 @@ let studentCurrentPointsEarned = 0;
 async function loadStudentQuestion() {
     hasAnswered = false;
     studentCurrentPointsEarned = 0;
+
+    // Clear previous question content immediately while we await fresh data
+    const qTextEl = document.getElementById('question-text');
+    if (qTextEl) qTextEl.innerText = '';
+    const optsCont = document.getElementById('options-container');
+    if (optsCont) optsCont.innerHTML = '';
+    const ctxEl = document.getElementById('clinical-context');
+    if (ctxEl) ctxEl.innerText = '';
 
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
@@ -4340,6 +4357,17 @@ async function showStudentFeedback() {
     clearInterval(localTimer);
     document.getElementById('ekg-video').pause();
 
+    // Clear stale feedback content immediately so the previous question's
+    // answer key never lingers while we await fresh data.
+    const optsCont = document.getElementById('feedback-options-container');
+    if (optsCont) optsCont.innerHTML = '';
+    const chartCont = document.getElementById('feedback-chart');
+    if (chartCont) chartCont.innerHTML = '';
+    const typingPanel = document.getElementById('feedback-typing-panel');
+    if (typingPanel) { typingPanel.style.display = 'none'; typingPanel.innerHTML = ''; }
+    const myAnsEl = document.getElementById('feedback-your-answer');
+    if (myAnsEl) { myAnsEl.style.display = 'none'; myAnsEl.innerText = ''; }
+
     // Fetch state first to avoid flashing old question data
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
@@ -4347,7 +4375,6 @@ async function showStudentFeedback() {
 
     const title = document.getElementById('feedback-title');
     const pts = document.getElementById('feedback-points');
-    const myAnsEl = document.getElementById('feedback-your-answer');
 
     // Fetch player's answer for this question (also used for reveal + score)
     const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/answers/${room.currentQuestionIndex}`).get();
@@ -4357,7 +4384,6 @@ async function showStudentFeedback() {
     renderOptions('feedback-options-container', q, false, room.currentQuestionIndex, true, myAns);
 
     // For typing questions: show the rich two-panel highlight feedback
-    const typingPanel = document.getElementById('feedback-typing-panel');
     if (q.type === 'typing') {
         myAnsEl.style.display = 'none'; // hide the plain text line
         if (typingPanel) {
@@ -4942,6 +4968,13 @@ function setupCustomDropdowns() {
             const selectedOption = select.options[select.selectedIndex];
             trigger.innerHTML = '<span>' + (selectedOption ? selectedOption.text : 'Select...') + '</span><i class="arrow"></i>';
         };
+        const syncUI = () => {
+            updateTrigger();
+            optionsContainer.querySelectorAll('.custom-option').forEach((opt, idx) => {
+                if (idx === select.selectedIndex) opt.classList.add('selected');
+                else opt.classList.remove('selected');
+            });
+        };
 
         Array.from(select.options).forEach((option, index) => {
             const customOption = document.createElement('div');
@@ -4980,13 +5013,13 @@ function setupCustomDropdowns() {
         select.style.display = 'none';
         select.parentNode.insertBefore(wrapper, select.nextSibling);
 
-        select.addEventListener('change', () => {
-            updateTrigger();
-            optionsContainer.querySelectorAll('.custom-option').forEach((opt, idx) => {
-                if (idx === select.selectedIndex) opt.classList.add('selected');
-                else opt.classList.remove('selected');
-            });
-        });
+        // Keep the custom dropdown in sync when the native select value changes
+        // programmatically (e.g. editQuestion loads a question's saved timer).
+        select.addEventListener('change', syncUI);
+
+        // Expose a sync helper so other code can refresh the UI after setting
+        // the select value programmatically.
+        select._syncCustomUI = syncUI;
     });
 
     document.addEventListener('click', () => {
