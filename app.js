@@ -3781,17 +3781,9 @@ async function startNextQuestion() {
         };
         db.ref(`rooms/${roomCode}/players`).on('value', hostPlayersListener);
     } else {
-        // Slides: show only a Next button, no answer waiting
+        // Slides: show only the slide-view, completely hide the question-container
         const questionCont = document.querySelector('#quiz-screen .question-container');
-        const optionsCont = document.getElementById('options-container');
-        if (questionCont) questionCont.style.display = '';
-        if (optionsCont) optionsCont.style.display = 'none';
-        const hostControls = document.querySelector('#quiz-screen .host-controls');
-        if (hostControls) {
-            hostControls.style.display = 'flex';
-            const hostPresenter = hostControls.querySelector('.host-presenter-box');
-            if (hostPresenter) hostPresenter.style.display = 'none';
-        }
+        if (questionCont) questionCont.style.display = 'none';
     }
 
     clearInterval(localTimer);
