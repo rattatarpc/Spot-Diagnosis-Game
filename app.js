@@ -3663,6 +3663,15 @@ function startQuestionFlow() {
     }, 1000);
 }
 
+// Slide-view "Next Slide" button — same action as btn-host-next for info slides.
+const btnSlideNext = document.getElementById('btn-slide-next');
+if (btnSlideNext) {
+    btnSlideNext.addEventListener('click', () => {
+        if (previewMode) return;
+        endQuestion();
+    });
+}
+
 document.getElementById('btn-start-game').addEventListener('click', () => {
     startQuestionFlow();
 });
@@ -3721,6 +3730,15 @@ async function startNextQuestion() {
     } else {
         document.getElementById('options-container').innerHTML = ''; // Clear options
         renderSlide(q);
+        if (currentQuestionIndex === customQuizData.length - 1) {
+            document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next (Finish Quiz)" : "Skip (Finish Quiz)";
+            const sn = document.getElementById('btn-slide-next');
+            if (sn) sn.innerText = "Next (Finish Quiz)";
+        } else {
+            document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next Slide" : "Skip / Next";
+            const sn = document.getElementById('btn-slide-next');
+            if (sn) sn.innerText = "Next Slide";
+        }
         document.getElementById('host-answers-count').parentElement.style.display = 'none';
     }
 
@@ -3731,8 +3749,12 @@ async function startNextQuestion() {
 
     if (currentQuestionIndex === customQuizData.length - 1) {
         document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next (Finish Quiz)" : "Skip (Finish Quiz)";
+        const sn2 = document.getElementById('btn-slide-next');
+        if (sn2) sn2.innerText = "Next (Finish Quiz)";
     } else {
         document.getElementById('btn-host-next').innerText = q.type === 'info' ? "Next Slide" : "Skip / Next";
+        const sn2 = document.getElementById('btn-slide-next');
+        if (sn2) sn2.innerText = "Next Slide";
     }
 
     if (hostPlayersListener) {

@@ -519,16 +519,23 @@
                             </div>
                             <div class="host-presenter-caption">Waiting for answers...</div>
                         </div>
-                        <button id="btn-host-next" class="btn-primary mt-4">Skip / Next</button>
+                        <div class="host-controls-buttons">
+                            <button id="btn-host-next" class="btn-primary">Skip / Next</button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Slide / Info content: media on the left, text on the right, full screen -->
                 <div id="slide-view" class="slide-view" style="display:none;">
-                    <div class="slide-media-area" id="slide-media-area"></div>
-                    <div class="slide-text-area">
-                        <h2 id="slide-title" style="color:var(--primary); font-size:2.2rem; margin-bottom:1rem;"></h2>
-                        <div id="slide-description" style="color:var(--text-main); font-size:1.4rem; line-height:1.6; white-space:pre-wrap;"></div>
+                    <div class="slide-main-row">
+                        <div class="slide-media-area" id="slide-media-area"></div>
+                        <div class="slide-text-area">
+                            <h2 id="slide-title" style="color:var(--primary); font-size:2.2rem; margin-bottom:1rem;"></h2>
+                            <div id="slide-description" style="color:var(--text-main); font-size:1.4rem; line-height:1.6; white-space:pre-wrap;"></div>
+                        </div>
+                    </div>
+                    <div class="slide-bottom-controls host-only">
+                        <button id="btn-slide-next" class="btn-primary" style="min-width:180px; font-size:1.1rem;">Next Slide</button>
                     </div>
                 </div>
             </div>
