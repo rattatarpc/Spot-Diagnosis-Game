@@ -102,10 +102,26 @@ function animateTally(el, target, opts = {}) {
 
 function setHudTimer(t) {
     const el = document.getElementById('hud-timer');
-    if (el) el.innerText = t > 0 ? t : '∞';
+    if (el) el.innerText = t > 0 ? t : '0';
+    
+    // Kahoot SVG Timer Update
+    const kText = document.getElementById('kahoot-timer-text');
+    const kProg = document.getElementById('kahoot-timer-progress');
+    const max = window._currentTimerMax && window._currentTimerMax > 0 ? window._currentTimerMax : t;
+    
+    if (kText) kText.innerText = t > 0 ? t : '0';
+    if (kProg) {
+        if (t > 0 && max > 0) {
+            const pct = Math.max(0, Math.min(1, t / max));
+            // Dasharray is 283. Dashoffset goes from 0 (full) to 283 (empty)
+            kProg.style.strokeDashoffset = 283 - (283 * pct);
+        } else {
+            kProg.style.strokeDashoffset = 283;
+        }
+    }
+
     const fill = document.getElementById('hud-timer-fill');
     if (!fill) return;
-    const max = window._currentTimerMax && window._currentTimerMax > 0 ? window._currentTimerMax : t;
     if (t > 0 && max > 0) {
         fill.style.width = Math.max(0, Math.min(100, (t / max) * 100)) + '%';
     } else {
@@ -3439,29 +3455,33 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
     container.innerHTML = '';
 
     if (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false') {
+        container.className = 'kahoot-options-grid';
+        
+        const shapesSVG = [
+            '<svg viewBox="0 0 100 100"><path d="M50,15 L85,85 L15,85 Z" /></svg>',
+            '<svg viewBox="0 0 100 100"><path d="M50,15 L85,50 L50,85 L15,50 Z" /></svg>',
+            '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" /></svg>',
+            '<svg viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="8" /></svg>',
+            '<svg viewBox="0 0 100 100"><polygon points="50,10 61,35 88,35 66,51 75,78 50,60 25,78 34,51 12,35 39,35" /></svg>'
+        ];
+
         q.options.forEach((optRaw, idx) => {
             const btn = document.createElement('button');
-            btn.className = 'option-btn kahoot-btn';
+            btn.className = 'kahoot-btn kahoot-color-' + (idx % 5);
 
             const isImg = typeof optRaw === 'string' ? false : optRaw.isImage;
             const text = typeof optRaw === 'string' ? optRaw : optRaw.text;
-
-            const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff'];
-            const shapes = ['▲', '♦', '●', '■', '★'];
-
-            btn.style.backgroundColor = colors[idx % colors.length];
 
             let contentHtml = "";
             if (isImg) {
                 contentHtml = `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px; margin-left:10px;">`;
             } else {
-                contentHtml = `<span class="kahoot-answer-text">${text}</span>`;
+                contentHtml = `<span class="kahoot-btn-text">${text}</span>`;
             }
 
-            btn.innerHTML = `<span class="kahoot-shape">${shapes[idx % shapes.length]}</span> ${contentHtml}`;
+            btn.innerHTML = `<div class="kahoot-shape-container">${shapesSVG[idx % shapesSVG.length]}</div>${contentHtml}`;
 
             if (isFeedback) {
-                // Determine correct set (supports multiple correct answers)
                 const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
                     typeof c === 'string' ? c : c.text
                 ));
@@ -3469,11 +3489,9 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
                 if (!q.freePoint) {
                     if (correctSet.has(text)) isCorrectAnswer = true;
                 } else {
-                    // For free points, all answers are considered correct/undimmed
                     isCorrectAnswer = true;
                 }
 
-                // Stagger the reveal for a game-show cascade effect
                 btn.style.animationDelay = (idx * 0.08) + 's';
 
                 if (isCorrectAnswer) {
@@ -3485,10 +3503,8 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
                     }
                 }
             } else if (isInteractive && (q.type === 'true-false' || q.type === 'multiple-choice')) {
-                // True/False and single-answer Multiple Choice: submit on click
                 btn.onclick = () => submitAnswer(text, q, qIndex);
             } else if (isInteractive) {
-                // Multiple Answer: toggle a selection, then submit via the submit button
                 btn.classList.add('mc-selectable');
                 btn.dataset.mcText = text;
                 btn.onclick = () => {
@@ -3499,10 +3515,10 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
         });
 
         if (isInteractive && q.type === 'multiple-answer') {
-            // Add a submit button for multi-select MA questions
             const submitBtn = document.createElement('button');
             submitBtn.className = 'btn-primary';
             submitBtn.style.marginTop = '20px';
+            submitBtn.style.gridColumn = '1 / -1';
             submitBtn.innerText = 'Submit Answer';
             submitBtn.onclick = () => {
                 if (hasAnswered) return;
@@ -3738,7 +3754,7 @@ async function startNextQuestion() {
     if (q.type !== 'info') {
         hideSlide();
         renderOptions('options-container', q, false, currentQuestionIndex, false);
-        document.getElementById('host-answers-count').parentElement.style.display = 'block';
+        document.getElementById('host-answers-count').parentElement.parentElement.style.display = 'flex';
         document.getElementById('host-answers-count').innerText = "0";
     } else {
         document.getElementById('options-container').innerHTML = ''; // Clear options
@@ -3752,7 +3768,7 @@ async function startNextQuestion() {
             const sn = document.getElementById('btn-slide-next');
             if (sn) sn.innerText = "Next Slide";
         }
-        document.getElementById('host-answers-count').parentElement.style.display = 'none';
+        document.getElementById('host-answers-count').parentElement.parentElement.style.display = 'none';
     }
 
     timeLeft = q.timer;
@@ -3811,6 +3827,12 @@ async function startNextQuestion() {
         }, 1000);
     }
 
+    const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
+    if (isKahootMode) {
+        document.body.classList.add('layout-kahoot');
+    } else {
+        document.body.classList.remove('layout-kahoot');
+    }
     switchScreen('quiz');
     } catch (e) {
         alert("Failed to start question: " + e.message);
@@ -4081,19 +4103,56 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
         typeof c === 'string' ? c : c.text
     ));
 
+    const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
+
     if (true) {
         let chartHTML = `<h4 style="color:var(--text-main); margin-bottom: 0.5rem; text-align:center;">Responses:</h4>`;
+        
+        if (isKahootMode) {
+            chartHTML += `<div style="display:flex; justify-content:center; align-items:flex-end; gap:10px; height:200px; padding:10px; border-bottom:2px solid rgba(255,255,255,0.2); margin-bottom:20px;">`;
+            
+            // For Kahoot mode, iterate over q.options so they are in consistent order
+            const optionLabels = [];
+            if (q.type === 'true-false') {
+                optionLabels.push('True', 'False');
+            } else {
+                q.options.forEach(opt => optionLabels.push(typeof opt === 'string' ? opt : opt.text));
+            }
 
-        for (let ans in answersCount) {
-            const count = answersCount[ans];
-            const pct = totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0;
+            const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff'];
+            const shapes = ['▲', '♦', '●', '■', '★'];
+            
+            let maxCount = 0;
+            for (let ans in answersCount) {
+                if (answersCount[ans] > maxCount) maxCount = answersCount[ans];
+            }
 
-        let isCorrectAnswer = false;
-        let barColor = 'var(--danger)';
-        if (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false') {
-            isCorrectAnswer = correctSet.has(ans);
-            barColor = isCorrectAnswer ? 'var(--success)' : 'var(--danger)';
+            optionLabels.forEach((ans, idx) => {
+                const count = answersCount[ans] || 0;
+                // Min height 5% so it's visible even if 0
+                const heightPct = maxCount > 0 ? Math.max(5, (count / maxCount) * 100) : 5;
+                const isCorrectAnswer = correctSet.has(ans);
+                
+                chartHTML += `
+                    <div style="display:flex; flex-direction:column; align-items:center; width:60px;">
+                        <div style="color:white; font-weight:bold; margin-bottom:5px;">${count}</div>
+                        <div style="width:100%; height:${heightPct}%; background-color:${colors[idx % colors.length]}; border-radius:4px 4px 0 0; transition:height 0.5s ease-out; opacity:${isCorrectAnswer ? 1 : 0.5}; display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px;">
+                            ${isCorrectAnswer ? '✅' : ''}
+                        </div>
+                        <div style="margin-top:8px; font-size:1.2rem; background:${colors[idx % colors.length]}; padding:4px 8px; border-radius:4px; display:inline-block; color:white;">
+                            ${shapes[idx % shapes.length]}
+                        </div>
+                    </div>
+                `;
+            });
+            chartHTML += `</div>`;
         } else {
+            for (let ans in answersCount) {
+                const count = answersCount[ans];
+                const pct = totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0;
+
+                let isCorrectAnswer = false;
+                let barColor = 'var(--danger)';
                 let earned = 0;
                 if (q.aiGrading) {
                     // Find a player who gave this answer to get their AI score
@@ -4110,24 +4169,24 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                 const max = getTypingMaxPoints(q);
                 isCorrectAnswer = (earned === max && max > 0);
                 barColor = (earned > 0 && earned < max) ? '#eab308' : (isCorrectAnswer ? 'var(--success)' : 'var(--danger)');
-            }
 
-            let labelHtml = ans;
-            if (ans.startsWith('http://') || ans.startsWith('https://')) {
-                labelHtml = `<img src="${ans}" style="max-height:30px; vertical-align:middle;">`;
-            }
+                let labelHtml = ans;
+                if (ans.startsWith('http://') || ans.startsWith('https://')) {
+                    labelHtml = `<img src="${ans}" style="max-height:30px; vertical-align:middle;">`;
+                }
 
-            chartHTML += `
-                <div style="margin-bottom: 12px;">
-                    <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 4px; display:flex; justify-content:space-between;">
-                        <span>${labelHtml}</span>
-                        <span>${count} (${pct}%)</span>
+                chartHTML += `
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 4px; display:flex; justify-content:space-between;">
+                            <span>${labelHtml}</span>
+                            <span>${count} (${pct}%)</span>
+                        </div>
+                        <div style="width: 100%; background: rgba(0,0,0,0.3); height: 24px; border-radius: 6px; overflow: hidden; border: 1px solid var(--glass-border);">
+                            <div style="width: ${pct}%; background: ${barColor}; height: 100%; transition: width 0.5s ease-out;"></div>
+                        </div>
                     </div>
-                    <div style="width: 100%; background: rgba(0,0,0,0.3); height: 24px; border-radius: 6px; overflow: hidden; border: 1px solid var(--glass-border);">
-                        <div style="width: ${pct}%; background: ${barColor}; height: 100%; transition: width 0.5s ease-out;"></div>
-                    </div>
-                </div>
-            `;
+                `;
+            }
         }
         chartContainer.innerHTML = chartHTML;
 
@@ -4384,9 +4443,11 @@ async function loadStudentQuestion() {
     const mediaCont = document.getElementById('media-container');
 
     if (room.minimalStudentView) {
+        document.body.classList.add('student-minimal-view');
         if (promptCont) promptCont.style.display = 'none';
         if (mediaCont) mediaCont.style.display = 'none';
     } else {
+        document.body.classList.remove('student-minimal-view');
         if (promptCont) promptCont.style.display = '';
         if (mediaCont) mediaCont.style.display = '';
     }
@@ -4412,6 +4473,12 @@ async function loadStudentQuestion() {
         }, 1000);
     }
 
+    const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
+    if (isKahootMode) {
+        document.body.classList.add('layout-kahoot');
+    } else {
+        document.body.classList.remove('layout-kahoot');
+    }
     switchScreen('quiz');
 }
 

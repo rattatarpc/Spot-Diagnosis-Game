@@ -499,29 +499,40 @@
                     <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
                     <h2 id="question-text">Question text goes here</h2>
                 </div>
-                <!-- EKG Viewer (Dynamically hidden if no media provided) -->
-                <div class="ekg-viewer glass-container" id="media-container">
-                    <div class="clinical-context" id="clinical-context">Context goes here</div>
-                    <img id="ekg-image" src="" alt="Media" class="zoomable" title="Click to zoom" style="display:none;">
-                    <video id="ekg-video" controls loop playsinline webkit-playsinline style="display:none; width: 100%; max-height: 100%; background: black; border-radius: 8px;"></video>
+                <div class="kahoot-middle-row">
+                    <!-- Left: Kahoot Timer -->
+                    <div class="kahoot-timer-container host-only flex">
+                        <svg class="kahoot-timer-svg" viewBox="0 0 100 100">
+                            <circle class="kahoot-timer-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="kahoot-timer-progress" id="kahoot-timer-progress" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <span class="kahoot-timer-text" id="kahoot-timer-text">30</span>
+                    </div>
+
+                    <!-- Center: EKG Viewer -->
+                    <div class="ekg-viewer glass-container" id="media-container">
+                        <div class="clinical-context" id="clinical-context">Context goes here</div>
+                        <img id="ekg-image" src="" alt="Media" class="zoomable" title="Click to zoom" style="display:none;">
+                        <video id="ekg-video" controls loop playsinline webkit-playsinline style="display:none; width: 100%; max-height: 100%; background: black; border-radius: 8px;"></video>
+                    </div>
+
+                    <!-- Right: Answers Count -->
+                    <div class="kahoot-answers-container host-only flex host-presenter-box">
+                        <div class="host-presenter-count" id="host-answers-box">
+                            <span class="host-presenter-big" id="host-answers-count">0</span>
+                            <span class="host-presenter-total">Answers</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="question-container glass-container">
+                <!-- Bottom: Options Grid -->
+                <div class="question-container glass-container" id="question-container">
                     <div id="options-container" class="options-grid">
                         <!-- Options/Inputs injected here -->
                     </div>
-
-                    <div class="host-controls host-only host-presenter">
-                        <div class="host-presenter-box">
-                            <div class="host-presenter-count" id="host-answers-box">
-                                <span class="host-presenter-big" id="host-answers-count">0</span>
-                                <span class="host-presenter-total">/ <span id="host-total-players">0</span> players answered</span>
-                            </div>
-                            <div class="host-presenter-caption">Waiting for answers...</div>
-                        </div>
-                        <div class="host-controls-buttons">
-                            <button id="btn-host-next" class="btn-primary">Skip / Next</button>
-                        </div>
+                    
+                    <div class="host-controls host-only flex" style="justify-content: center; margin-top: 1rem;">
+                        <button id="btn-host-next" class="btn-primary">Skip / Next</button>
                     </div>
                 </div>
 
