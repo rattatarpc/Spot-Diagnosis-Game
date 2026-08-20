@@ -2480,10 +2480,13 @@ function resetMakerForm(defaultType = 'question') {
     updateAIToggleUI();
     const rejectedInput = document.getElementById('maker-typing-rejected');
     if (rejectedInput) rejectedInput.value = '';
-    for (let i=0; i<10; i++) {
-        document.getElementById(`mc-opt-${i}`).value = '';
-        document.getElementById(`mc-file-${i}`).value = '';
-        document.getElementById(`mc-file-preview-${i}`).innerText = '';
+    for (let i=0; i<5; i++) {
+        const mcOpt = document.getElementById(`mc-opt-${i}`);
+        if (mcOpt) mcOpt.value = '';
+        const mcFile = document.getElementById(`mc-file-${i}`);
+        if (mcFile) mcFile.value = '';
+        const mcPrev = document.getElementById(`mc-file-preview-${i}`);
+        if (mcPrev) mcPrev.innerText = '';
         const cb = document.querySelector(`input.mc-correct-cb[value="${i}"]`);
         if (cb) cb.checked = false;
         mcUploadedImages[i] = null;
