@@ -345,6 +345,12 @@
                                     <!-- Hidden stuff to keep JS happy -->
                                     <div id="maker-content-area" style="display:none;"></div>
                                 </div>
+
+                                <!-- Info Slide Text (full width, under answers) -->
+                                <div id="maker-info-text-group" style="display:none; background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; flex-direction:column; box-sizing: border-box;">
+                                    <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Slide Text</label>
+                                    <textarea id="maker-info-text" placeholder="Type information here..." style="width:100%; min-height:120px; resize:vertical; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
+                                </div>
                             </div>
 
                             <!-- SIDE COLUMN: settings -->
@@ -365,10 +371,6 @@
                                 </div>
 
                                 <!-- Info Slide Text (right column) -->
-                                <div id="maker-info-text-group" style="display:none; background:var(--glass-bg); padding:10px; border-radius:8px; border: 1px solid var(--glass-border); width:100%; flex-direction:column; box-sizing: border-box;">
-                                    <label style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Slide Text</label>
-                                    <textarea id="maker-info-text" placeholder="Type information here..." style="width:100%; min-height:120px; resize:vertical; border:none; outline:none; font-size:1rem; background:transparent; color:var(--text-main); margin-top:5px;"></textarea>
-                                </div>
                                 <div id="maker-free-point-group" style="background:var(--glass-bg); padding:10px 15px; border-radius:8px; border: 1px solid var(--glass-border); display:flex; flex-direction:row; justify-content:space-between; align-items:center;">
                                     <label for="maker-free-point" style="font-size:0.9rem; margin:0; margin-right: 10px; color: var(--text-main); white-space:nowrap; font-weight:bold;">Free Point</label>
                                     <input type="checkbox" id="maker-free-point" style="transform: scale(1.5); margin:0;">
