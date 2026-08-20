@@ -3586,7 +3586,20 @@ function renderSlide(q) {
         if (clone) {
             clone.removeAttribute('id');
             clone.style.display = '';
-            clone.className = '';
+            if (clone.tagName.toLowerCase() === 'img') {
+                clone.className = 'zoomable';
+                clone.title = 'Click to zoom';
+                clone.addEventListener('click', function() {
+                    const zModal = document.getElementById('image-zoom-modal');
+                    const zImg = document.getElementById('zoomed-image');
+                    if (zModal && zImg) {
+                        zModal.style.display = 'flex';
+                        zImg.src = this.src;
+                    }
+                });
+            } else {
+                clone.className = '';
+            }
             mediaArea.appendChild(clone);
         }
     }
