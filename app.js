@@ -4220,11 +4220,14 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                 const pData = players[p];
                 if (!pData.answers || pData.answers[currentQuestionIndex] === undefined) continue;
 
-                // For Short Answer (typing) prefer the host's authoritative score
-                // (lastPointsEarned) since the student writes awardedPoints asynchronously.
+                // Prefer the authoritative awarded points for this question, which
+                // covers both AI grading (host writes it) and local grading (student
+                // writes it on feedback). Fall back to lastPointsEarned as a backup.
                 let pts = 0;
                 if (q.type === 'typing') {
-                    pts = typeof pData.lastPointsEarned === 'number' ? pData.lastPointsEarned : 0;
+                    pts = (pData.awardedPoints && pData.awardedPoints[currentQuestionIndex] !== undefined)
+                        ? pData.awardedPoints[currentQuestionIndex]
+                        : (typeof pData.lastPointsEarned === 'number' ? pData.lastPointsEarned : 0);
                 } else {
                     pts = (pData.awardedPoints && pData.awardedPoints[currentQuestionIndex] !== undefined)
                         ? pData.awardedPoints[currentQuestionIndex] : 0;
@@ -4401,6 +4404,17 @@ async function showHostFeedback() {
 
     // Render the bar chart
     await renderFeedbackChart('feedback-chart', q, currentQuestionIndex);
+
+    // Students write their awardedPoints asynchronously (especially for Short
+    // Answer without AI grading). Re-render after a short delay so the host's
+    // score display and Edit buttons show the real values, not 0.
+    setTimeout(async () => {
+        try {
+            await renderFeedbackChart('feedback-chart', q, currentQuestionIndex);
+        } catch (e) {
+            console.error("Re-render feedback chart failed:", e);
+        }
+    }, 1200);
 
     if (currentQuestionIndex === customQuizData.length - 1) {
         document.getElementById('btn-host-continue').innerText = "Finish Quiz";

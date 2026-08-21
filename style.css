@@ -1071,6 +1071,11 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 #quiz-screen #question-container {
     flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
+}
+#quiz-screen .quiz-main-row #question-container {
+    flex: 1 1 55%;
+    width: auto;
 }
 #quiz-screen .question-container {
     display: flex;
@@ -3125,27 +3130,75 @@ body.fx-off #ambient-fx { display: none; }
 /* ==========================================================================
    KAHOOT UI REDESIGN
    ========================================================================== */
+/* Kahoot Timer SVG */
 .kahoot-middle-row {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
+    justify-content: flex-end;
+    gap: 1rem;
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 .kahoot-timer-container, .kahoot-answers-container {
-    flex: 1 1 20%;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
-.kahoot-middle-row #media-container {
-    flex: 1 1 60%;
-    margin: 0;
+/* Host quiz main split: media left, options right */
+.quiz-main-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
 }
-/* Kahoot Timer SVG */
+.quiz-main-row #media-container {
+    flex: 1 1 45%;
+    min-width: 0;
+    margin: 0;
+    max-height: none;
+}
+.quiz-main-row #question-container {
+    flex: 1 1 55%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.quiz-main-row #options-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    gap: 0.6rem;
+}
+.quiz-main-row .kahoot-btn {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+/* Students keep the stacked full-width layout */
+body[data-role="student"] .quiz-main-row {
+    flex-direction: column;
+}
+body[data-role="student"] .quiz-main-row #media-container,
+body[data-role="student"] .quiz-main-row #question-container {
+    width: 100%;
+    flex: none;
+}
+body[data-role="student"] .quiz-main-row #options-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+body[data-role="student"] .quiz-main-row .kahoot-btn {
+    flex: 1 1 calc(50% - 0.6rem);
+    min-height: 100px;
+}
 .kahoot-timer-container {
     position: relative;
     width: 120px;
