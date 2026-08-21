@@ -494,25 +494,25 @@
             </div>
 
             <div class="quiz-content">
-                <!-- Keep the prompt first so players understand the task before seeing the media. -->
-                <div class="question-prompt glass-container">
-                    <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
-                    <h2 id="question-text">Question text goes here</h2>
-                </div>
-
-                <!-- Host control row: circular timer + answers count, top-right -->
-                <div class="kahoot-middle-row">
-                    <div class="kahoot-timer-container host-only flex">
-                        <svg class="kahoot-timer-svg" viewBox="0 0 100 100">
-                            <circle class="kahoot-timer-bg" cx="50" cy="50" r="45"></circle>
-                            <circle class="kahoot-timer-progress" id="kahoot-timer-progress" cx="50" cy="50" r="45"></circle>
-                        </svg>
-                        <span class="kahoot-timer-text" id="kahoot-timer-text">30</span>
+                <!-- Question + host control row: question left, timer & answers right -->
+                <div class="question-prompt glass-container quiz-prompt-row">
+                    <div class="quiz-prompt-text">
+                        <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
+                        <h2 id="question-text">Question text goes here</h2>
                     </div>
-                    <div class="kahoot-answers-container host-only flex host-presenter-box">
-                        <div class="host-presenter-count" id="kahoot-answers-box">
-                            <span class="host-presenter-big" id="kahoot-answers-count">0</span>
-                            <span class="host-presenter-total">Answers</span>
+                    <div class="kahoot-middle-row host-only flex">
+                        <div class="kahoot-timer-container host-only flex">
+                            <svg class="kahoot-timer-svg" viewBox="0 0 100 100">
+                                <circle class="kahoot-timer-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="kahoot-timer-progress" id="kahoot-timer-progress" cx="50" cy="50" r="45"></circle>
+                            </svg>
+                            <span class="kahoot-timer-text" id="kahoot-timer-text">30</span>
+                        </div>
+                        <div class="kahoot-answers-container host-only flex host-presenter-box">
+                            <div class="host-presenter-count" id="kahoot-answers-box">
+                                <span class="host-presenter-big" id="kahoot-answers-count">0</span>
+                                <span class="host-presenter-total">/<span id="host-total-players">0</span> answered</span>
+                            </div>
                         </div>
                     </div>
                 </div>
