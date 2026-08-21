@@ -530,9 +530,18 @@
                     <div id="options-container" class="options-grid">
                         <!-- Options/Inputs injected here -->
                     </div>
-                    
-                    <div class="host-controls host-only flex" style="justify-content: center; margin-top: 1rem;">
-                        <button id="btn-host-next" class="btn-primary">Skip / Next</button>
+
+                    <div class="host-controls host-only" id="host-live-controls">
+                        <div class="host-presenter-box">
+                            <div class="host-presenter-count" id="host-answers-box">
+                                <span class="host-presenter-big" id="host-answers-count">0</span>
+                                <span class="host-presenter-total">/ <span id="host-total-players">0</span> players answered</span>
+                            </div>
+                            <div class="host-presenter-caption">Waiting for answers...</div>
+                        </div>
+                        <div class="host-controls-buttons">
+                            <button id="btn-host-next" class="btn-primary">Skip / Next</button>
+                        </div>
                     </div>
                 </div>
 
