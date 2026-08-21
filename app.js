@@ -1,3 +1,10 @@
+function updateAnswerCounters(count) {
+    const kCount = document.getElementById('kahoot-answers-count');
+    if (kCount) kCount.innerText = count;
+    const hCount = document.getElementById('hud-answers-count');
+    if (hCount) hCount.innerText = count;
+}
+
 /* =====================================================================
    GLOBAL VARIABLES & CONFIG
 ===================================================================== */
@@ -3754,8 +3761,8 @@ async function startNextQuestion() {
     if (q.type !== 'info') {
         hideSlide();
         renderOptions('options-container', q, false, currentQuestionIndex, false);
-        document.getElementById('host-answers-count').parentElement.parentElement.style.display = 'flex';
-        document.getElementById('host-answers-count').innerText = "0";
+        const kbc = document.getElementById('kahoot-answers-count'); if(kbc) kbc.parentElement.parentElement.style.display = 'flex'; const hhc = document.getElementById('hud-host-answers'); if(hhc) hhc.style.display = 'flex';
+        updateAnswerCounters(0);
     } else {
         document.getElementById('options-container').innerHTML = ''; // Clear options
         renderSlide(q);
@@ -3768,7 +3775,7 @@ async function startNextQuestion() {
             const sn = document.getElementById('btn-slide-next');
             if (sn) sn.innerText = "Next Slide";
         }
-        document.getElementById('host-answers-count').parentElement.parentElement.style.display = 'none';
+        const kbc = document.getElementById('kahoot-answers-count'); if(kbc) kbc.parentElement.parentElement.style.display = 'none'; const hhc = document.getElementById('hud-host-answers'); if(hhc) hhc.style.display = 'none';
     }
 
     timeLeft = q.timer;

@@ -3241,3 +3241,28 @@ body:not(.layout-kahoot) .kahoot-answers-container {
 body.layout-kahoot .hud-item.timer-info {
     display: none !important;
 }
+body[data-role="host"]:not(.layout-kahoot) .kahoot-timer-container,
+body[data-role="host"]:not(.layout-kahoot) .kahoot-answers-container,
+body:not(.layout-kahoot) .kahoot-timer-container,
+body:not(.layout-kahoot) .kahoot-answers-container {
+    display: none !important;
+}
+
+body.layout-info .kahoot-middle-row {
+    display: block !important;
+}
+
+body.layout-typing .kahoot-middle-row {
+    display: block !important;
+}
+
+/* Hide image choice in student minimal view */
+body.student-minimal-view .option-img-choice {
+    display: none !important;
+}
+
+/* Fix lobby players list */
+#lobby-players-list {
+    min-height: 50px;
+    padding-bottom: 20px;
+}
