@@ -3639,7 +3639,7 @@ function renderSlide(q) {
     if (questionCont) questionCont.style.display = 'none';
     if (optionsCont) optionsCont.style.display = 'none';
     if (hostControls) hostControls.style.display = 'none';
-    if (timerItem) timerItem.style.display = 'none';
+
 }
 
 // Hide the slide view and restore the normal quiz layout.
@@ -3655,7 +3655,7 @@ function hideSlide() {
     if (mediaCont) mediaCont.style.display = '';
     if (questionCont) questionCont.style.display = '';
     if (optionsCont) optionsCont.style.display = '';
-    if (timerItem) timerItem.style.display = '';
+
 }
 
 function startQuestionFlow() {

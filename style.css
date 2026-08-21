@@ -3342,20 +3342,17 @@ body:not(.layout-kahoot) .quiz-main-row {
     flex-direction: column;
 }
 body:not(.layout-kahoot) .quiz-main-row #media-container,
+body:not(.layout-kahoot) #quiz-screen .quiz-main-row #question-container,
 body:not(.layout-kahoot) .quiz-main-row #question-container {
-    width: 100%;
-    flex: none;
+    width: 100% !important;
+    flex: none !important;
 }
 
-/* Override previous rules that hid timer/answers */
-body[data-role="host"]:not(.layout-kahoot) .kahoot-timer-container,
-body[data-role="host"]:not(.layout-kahoot) .kahoot-answers-container,
-body:not(.layout-kahoot) .kahoot-timer-container,
-body:not(.layout-kahoot) .kahoot-answers-container {
-    display: flex !important;
-}
+
 
 /* But hide them in info mode */
+body[data-role="host"].layout-info .kahoot-timer-container.flex,
+body[data-role="host"].layout-info .kahoot-answers-container.flex,
 body.layout-info .kahoot-timer-container,
 body.layout-info .kahoot-answers-container {
     display: none !important;
@@ -3384,3 +3381,5 @@ body.layout-info .kahoot-answers-container {
 .kahoot-answers-container .host-presenter-total {
     font-size: 0.9rem !important;
 }
+
+body[data-role="host"] .kahoot-timer-container.timer-hidden.flex, .kahoot-timer-container.timer-hidden { display: none !important; }
