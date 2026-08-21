@@ -3436,3 +3436,13 @@ body[data-role="host"].layout-typing .quiz-main-row #question-container {
     max-width: 100% !important;
     flex: none !important;
 }
+
+/* Fix for SAQ host full screen quiz-content grid */
+body.layout-typing .quiz-content {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+body.layout-typing .quiz-main-row {
+    grid-column: 1 / -1;
+}
