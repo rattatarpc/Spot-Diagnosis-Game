@@ -3461,3 +3461,8 @@ body[data-role="host"].layout-typing .quiz-main-row #question-container {
     max-width: 50% !important;
     flex: 1 1 50% !important;
 }
+
+/* Hide old HUD timer for host entirely */
+body[data-role="host"] .hud-item.timer-info {
+    display: none !important;
+}
