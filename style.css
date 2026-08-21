@@ -3352,11 +3352,11 @@ body[data-role="student"]:not(.layout-kahoot) .kahoot-answers-container {
 }
 
 body.layout-info .kahoot-middle-row {
-    display: block !important;
+    display: flex !important;
 }
 
 body.layout-typing .kahoot-middle-row {
-    display: block !important;
+    display: flex !important;
 }
 
 /* Hide image choice in student minimal view */
