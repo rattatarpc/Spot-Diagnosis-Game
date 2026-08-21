@@ -3446,3 +3446,18 @@ body.layout-typing .quiz-content {
 body.layout-typing .quiz-main-row {
     grid-column: 1 / -1;
 }
+
+/* Override again: User wants SAQ host as 2 columns */
+body[data-role="host"].layout-typing .quiz-main-row {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1.5rem;
+    align-items: stretch;
+}
+body[data-role="host"].layout-typing .quiz-main-row #media-container,
+body[data-role="host"].layout-typing #quiz-screen .quiz-main-row #question-container,
+body[data-role="host"].layout-typing .quiz-main-row #question-container {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 1 1 50% !important;
+}
