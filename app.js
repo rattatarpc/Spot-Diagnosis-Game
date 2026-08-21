@@ -3840,6 +3840,8 @@ async function startNextQuestion() {
     } else {
         document.body.classList.remove('layout-kahoot');
     }
+    document.body.classList.toggle('layout-typing', q.type === 'typing');
+    document.body.classList.toggle('layout-info', q.type === 'info');
     switchScreen('quiz');
     } catch (e) {
         alert("Failed to start question: " + e.message);
