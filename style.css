@@ -3140,6 +3140,12 @@ body.fx-off #ambient-fx { display: none; }
     width: 100%;
     margin-bottom: 0.75rem;
 }
+body[data-role="student"] .kahoot-middle-row {
+    display: none;
+}
+body[data-role="student"] .quiz-main-row {
+    flex-direction: column;
+}
 .kahoot-timer-container, .kahoot-answers-container {
     flex: 0 0 auto;
     display: flex;
@@ -3168,6 +3174,7 @@ body.fx-off #ambient-fx { display: none; }
     min-width: 0;
     display: flex;
     flex-direction: column;
+    padding: 1rem;
 }
 .quiz-main-row #options-container {
     flex: 1 1 auto;
@@ -3181,7 +3188,6 @@ body.fx-off #ambient-fx { display: none; }
     flex: 1 1 auto;
     min-height: 0;
 }
-/* Students keep the stacked full-width layout */
 body[data-role="student"] .quiz-main-row {
     flex-direction: column;
 }
@@ -3190,19 +3196,9 @@ body[data-role="student"] .quiz-main-row #question-container {
     width: 100%;
     flex: none;
 }
-body[data-role="student"] .quiz-main-row #options-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
 body[data-role="student"] .quiz-main-row .kahoot-btn {
-    flex: 1 1 calc(50% - 0.6rem);
+    flex: 0 1 auto;
     min-height: 100px;
-}
-.kahoot-timer-container {
-    position: relative;
-    width: 120px;
-    height: 120px;
 }
 .kahoot-timer-svg {
     transform: rotate(-90deg);
