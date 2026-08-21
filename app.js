@@ -3205,7 +3205,7 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
         const players = snapshot.val() || {};
         const count = Object.keys(players).length;
         document.getElementById('lobby-player-count').innerText = count;
-        document.getElementById('host-total-players').innerText = count;
+        const htp = document.getElementById('host-total-players'); if(htp) htp.innerText = count;
 
         document.getElementById('lobby-players-list').innerHTML = Object.keys(players).map(name =>
             playerChipHTML(name)
@@ -3810,8 +3810,8 @@ async function startNextQuestion() {
             const pList = snapshot.val() || {};
             const total = Object.keys(pList).length;
             const answered = Object.values(pList).filter(p => p.hasAnswered === currentQuestionIndex).length;
-            document.getElementById('host-answers-count').innerText = answered;
-            document.getElementById('host-total-players').innerText = total;
+            const hac = document.getElementById('host-answers-count'); if(hac) hac.innerText = answered; updateAnswerCounters(answered);
+            const htp2 = document.getElementById('host-total-players'); if(htp2) htp2.innerText = total;
 
             if (total > 0 && answered === total) endQuestion();
         };

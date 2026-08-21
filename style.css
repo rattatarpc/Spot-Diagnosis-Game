@@ -3336,3 +3336,51 @@ body.student-minimal-view .option-img-choice {
     min-height: 50px;
     padding-bottom: 20px;
 }
+
+body:not(.layout-kahoot) .quiz-main-row {
+    display: flex;
+    flex-direction: column;
+}
+body:not(.layout-kahoot) .quiz-main-row #media-container,
+body:not(.layout-kahoot) .quiz-main-row #question-container {
+    width: 100%;
+    flex: none;
+}
+
+/* Override previous rules that hid timer/answers */
+body[data-role="host"]:not(.layout-kahoot) .kahoot-timer-container,
+body[data-role="host"]:not(.layout-kahoot) .kahoot-answers-container,
+body:not(.layout-kahoot) .kahoot-timer-container,
+body:not(.layout-kahoot) .kahoot-answers-container {
+    display: flex !important;
+}
+
+/* But hide them in info mode */
+body.layout-info .kahoot-timer-container,
+body.layout-info .kahoot-answers-container {
+    display: none !important;
+}
+
+/* Reduce size of Kahoot Timer and Answers Box */
+.kahoot-timer-container {
+    width: 90px !important;
+    height: 90px !important;
+    position: relative;
+}
+.kahoot-timer-text {
+    font-size: 2rem !important;
+}
+.kahoot-answers-container .host-presenter-box {
+    padding: 0.5rem 1rem !important;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.kahoot-answers-container .host-presenter-big {
+    font-size: 2.5rem !important;
+}
+.kahoot-answers-container .host-presenter-total {
+    font-size: 0.9rem !important;
+}
