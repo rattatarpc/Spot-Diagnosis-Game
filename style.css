@@ -1080,6 +1080,7 @@ body[data-role="student"] #quiz-screen.active {
 body[data-role="host"] #quiz-screen .quiz-content {
     height: 100%;
     overflow: hidden;
+    min-height: 0;
 }
 #quiz-screen .quiz-content .glass-container {
     width: 100%;
@@ -1110,6 +1111,7 @@ body[data-role="host"] #quiz-screen .quiz-content {
 .question-prompt {
     padding: 1.1rem 1.5rem;
     width: 100%;
+    flex: none;
 }
 
 .question-prompt #question-text {
@@ -3178,6 +3180,7 @@ body[data-role="student"] .quiz-main-row {
     gap: 1rem;
     width: 100%;
     padding: 0.8rem 1.5rem;
+    flex: none;
 }
 .quiz-prompt-text {
     flex: 1 1 auto;
@@ -3218,7 +3221,7 @@ body[data-role="host"] .quiz-main-row {
     flex-direction: row;
     gap: 1rem;
     align-items: stretch;
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     min-height: 0;
     width: 100%;
 }
@@ -3230,12 +3233,21 @@ body[data-role="host"].layout-info .quiz-main-row {
     flex: 1 1 45%;
     min-width: 0;
     margin: 0;
-    max-height: calc(100vh - 200px);
+    max-height: none;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
+.quiz-main-row #media-container .clinical-context {
+    flex: none;
+}
+.quiz-main-row #media-container #ekg-images,
 .quiz-main-row #media-container #ekg-image,
 .quiz-main-row #media-container #ekg-video,
 .quiz-main-row #media-container .media-youtube-frame {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: 100%;
     object-fit: contain;
 }
