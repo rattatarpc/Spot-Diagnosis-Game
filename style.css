@@ -3520,3 +3520,72 @@ body[data-role="host"] .kahoot-timer-container.timer-hidden.flex, .kahoot-timer-
 body[data-role="host"] .hud-item.timer-info {
     display: none !important;
 }
+
+/* =====================================================================
+   GAME SHOW WINNER EFFECTS (results spotlight + champion reveal)
+   ===================================================================== */
+.results-spotlight {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    width: 340px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+    opacity: 0;
+    transition: left 0.8s ease, opacity 0.6s ease;
+    background:
+        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(255,255,255,0.85), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,240,150,0.35), transparent 70%);
+    mix-blend-mode: screen;
+    filter: blur(2px);
+}
+.results-spotlight.active { opacity: 0.9; }
+.results-spotlight.slam {
+    opacity: 1;
+    width: 460px;
+    background:
+        radial-gradient(ellipse 55% 35% at 50% 0%, rgba(255,255,255,0.95), transparent 70%),
+        radial-gradient(ellipse 70% 50% at 50% 100%, rgba(255,220,120,0.5), transparent 70%);
+}
+
+/* Champion name reveal overlay */
+.champion-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+    pointer-events: none;
+    background: radial-gradient(ellipse 60% 45% at 50% 50%, rgba(0,0,0,0.55), transparent 75%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+.champion-overlay.show { opacity: 1; }
+.champion-card {
+    text-align: center;
+    background: var(--panel-bg);
+    border: 3px solid var(--accent);
+    border-radius: 28px;
+    padding: 2.5rem 3.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 50px rgba(139,92,246,0.5);
+    transform: scale(0.7);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.champion-overlay.show .champion-card { transform: scale(1); }
+.champion-label {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+.champion-name {
+    font-family: var(--font-display);
+    font-size: 3.6rem;
+    line-height: 1.1;
+    color: var(--text-main);
+    text-shadow: 0 4px 20px rgba(139,92,246,0.6);
+}
+.champion-scores-dot { font-size: 3rem; margin-top: 0.6rem; }

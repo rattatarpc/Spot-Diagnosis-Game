@@ -76,9 +76,13 @@ function playerChipHTML(name) {
 }
 
 function burstConfetti() {
+    burstConfettiCount(60);
+}
+
+function burstConfettiCount(count) {
     const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff', '#10b981'];
     const frag = document.createDocumentFragment();
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < count; i++) {
         const c = document.createElement('div');
         c.className = 'confetti-piece';
         const size = 6 + Math.random() * 8;
@@ -821,6 +825,48 @@ const AudioController = (() => {
         } catch(e) {}
     }
 
+    function playChampion() {
+        if (isMuted) return;
+        try {
+            const ctx = getCtx();
+            // Tada fanfare: rising triad + sparkle
+            [0, 0.12, 0.24, 0.4].forEach((t, i) => {
+                const osc = ctx.createOscillator(); const g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.value = [523.25, 659.25, 783.99, 1046.5][i];
+                g.gain.setValueAtTime(0.5, ctx.currentTime + t);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6);
+                osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.6);
+            });
+            // final chord
+            [523.25, 659.25, 783.99, 1046.5].forEach((f) => {
+                const osc = ctx.createOscillator(); const g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.type = 'triangle'; osc.frequency.value = f;
+                g.gain.setValueAtTime(0.25, ctx.currentTime + 0.55);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4);
+                osc.start(ctx.currentTime + 0.55); osc.stop(ctx.currentTime + 1.4);
+            });
+        } catch(e) {}
+    }
+
+    function playPodiumRise() {
+        if (isMuted) return;
+        try {
+            const ctx = getCtx();
+            [0, 0.1].forEach((t, i) => {
+                const osc = ctx.createOscillator(); const g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = [392, 523.25][i];
+                g.gain.setValueAtTime(0.35, ctx.currentTime + t);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.5);
+                osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.5);
+            });
+        } catch(e) {}
+    }
+
     function setVolume(vol01) {
         masterVolume = Math.max(0, Math.min(1, vol01));
         if (masterGain && !isMuted) {
@@ -828,7 +874,7 @@ const AudioController = (() => {
         }
     }
 
-    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong };
+    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong, playPodiumRise, playChampion };
 })();
 
 // Unlock audio on the first user interaction (crucial for iOS Safari)
@@ -4848,36 +4894,73 @@ async function showResults() {
         exportResultsBtn.onclick = () => downloadResultsCSV(sorted);
     }
 
-    // Populate podium data
+    // Populate podium data (scores start at 0 and tally up on reveal)
     if (sorted[0]) {
         document.getElementById('podium-name-1').innerText = `${avatarFor(sorted[0][0])} ${sorted[0][0]}`;
-        document.getElementById('podium-score-1').innerText = sorted[0][1].score + ' pts';
+        const s = document.getElementById('podium-score-1');
+        s.dataset.target = sorted[0][1].score;
+        s.innerText = '0 pts';
     }
     if (sorted[1]) {
         document.getElementById('podium-name-2').innerText = `${avatarFor(sorted[1][0])} ${sorted[1][0]}`;
-        document.getElementById('podium-score-2').innerText = sorted[1][1].score + ' pts';
+        const s = document.getElementById('podium-score-2');
+        s.dataset.target = sorted[1][1].score;
+        s.innerText = '0 pts';
     }
     if (sorted[2]) {
         document.getElementById('podium-name-3').innerText = `${avatarFor(sorted[2][0])} ${sorted[2][0]}`;
-        document.getElementById('podium-score-3').innerText = sorted[2][1].score + ' pts';
+        const s = document.getElementById('podium-score-3');
+        s.dataset.target = sorted[2][1].score;
+        s.innerText = '0 pts';
     }
 
     // Animate sequence
+    const spotlight = document.getElementById('results-spotlight');
+    const championOverlay = document.getElementById('champion-overlay');
+    const championName = document.getElementById('champion-name');
+    if (spotlight) spotlight.classList.remove('active');
+
     setTimeout(() => {
         if(titleEl) titleEl.style.opacity = '1';
     }, 500);
 
     setTimeout(() => {
-        if(sorted[2]) document.getElementById('podium-3').classList.add('revealed');
+        if(sorted[2]) {
+            document.getElementById('podium-3').classList.add('revealed');
+            AudioController.playPodiumRise();
+            if (spotlight) { spotlight.style.left = '0%'; spotlight.classList.add('active'); }
+            const s3 = document.getElementById('podium-score-3');
+            if (s3) animateTally(s3, parseInt(s3.dataset.target || 0, 10), { suffix: ' pts', duration: 800 });
+        }
     }, 1500);
 
     setTimeout(() => {
-        if(sorted[1]) document.getElementById('podium-2').classList.add('revealed');
+        if(sorted[1]) {
+            document.getElementById('podium-2').classList.add('revealed');
+            AudioController.playPodiumRise();
+            if (spotlight) { spotlight.style.left = '25%'; spotlight.classList.add('active'); }
+            const s2 = document.getElementById('podium-score-2');
+            if (s2) animateTally(s2, parseInt(s2.dataset.target || 0, 10), { suffix: ' pts', duration: 800 });
+        }
     }, 2500);
 
     setTimeout(() => {
         if(sorted[0]) {
             document.getElementById('podium-1').classList.add('revealed');
+            AudioController.playChampion();
+            burstConfettiCount(600);
+            // Spotlight slam on the champion
+            if (spotlight) { spotlight.style.left = '50%'; spotlight.classList.add('active', 'slam'); }
+            // Champion name overlay
+            if (championOverlay && championName && sorted[0]) {
+                championName.innerText = `${avatarFor(sorted[0][0])} ${sorted[0][0]}`;
+                championOverlay.style.display = 'flex';
+                setTimeout(() => { championOverlay.classList.add('show'); }, 30);
+                setTimeout(() => { championOverlay.classList.remove('show'); championOverlay.style.display = 'none'; }, 4500);
+            }
+            // Tally the champion score
+            const cScore = document.getElementById('podium-score-1');
+            if (cScore) animateTally(cScore, parseInt(cScore.dataset.target || 0, 10), { suffix: ' pts', duration: 1000 });
         }
         if(role === 'host' && reviewBtn) reviewBtn.style.display = 'inline-block';
         if(sorted.length > 3 && othersTitle) othersTitle.style.display = 'block';
