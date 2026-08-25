@@ -1626,6 +1626,13 @@ body[data-role="host"] #quiz-screen .quiz-content {
         font-size: 1.05rem;
     }
 
+    /* Keep answer text from breaking mid-word on small screens */
+    .kahoot-btn-text {
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        font-size: 1.05rem;
+    }
+
     .typing-input-container {
         grid-column: span 1;
         flex-direction: column;
@@ -3410,7 +3417,9 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
 .kahoot-btn-text {
     flex-grow: 1;
     text-align: left;
-    word-break: break-word;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    min-width: 0;
 }
 /* Minimal Student View overrides */
 body.student-minimal-view .kahoot-btn-text {
