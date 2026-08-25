@@ -1058,11 +1058,28 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     align-items: stretch !important;
     padding: 0.25rem 0.5rem 0.75rem;
 }
+#quiz-screen.active {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+/* Students keep their own scrollable behavior */
+body[data-role="student"] #quiz-screen.active {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
 #quiz-screen .quiz-content {
     flex: 1 1 auto;
     min-height: 0;
     justify-content: flex-start;
     width: 100%;
+}
+/* Host: content fills the viewport, only inner boxes scroll */
+body[data-role="host"] #quiz-screen .quiz-content {
+    height: 100%;
+    overflow: hidden;
 }
 #quiz-screen .quiz-content .glass-container {
     width: 100%;
@@ -3195,8 +3212,8 @@ body[data-role="student"] .quiz-prompt-row .kahoot-middle-row {
     }
 }
 
-/* Host quiz main split: media left, options right */
-body.layout-kahoot .quiz-main-row {
+/* Host quiz main split: media left, options right (all choice + typing types) */
+body[data-role="host"] .quiz-main-row {
     display: flex;
     flex-direction: row;
     gap: 1rem;
@@ -3205,11 +3222,22 @@ body.layout-kahoot .quiz-main-row {
     min-height: 0;
     width: 100%;
 }
+/* Slides keep their own full-screen layout (slide-view) */
+body[data-role="host"].layout-info .quiz-main-row {
+    display: none;
+}
 .quiz-main-row #media-container {
     flex: 1 1 45%;
     min-width: 0;
     margin: 0;
-    max-height: none;
+    max-height: calc(100vh - 200px);
+    overflow: hidden;
+}
+.quiz-main-row #media-container #ekg-image,
+.quiz-main-row #media-container #ekg-video,
+.quiz-main-row #media-container .media-youtube-frame {
+    max-height: 100%;
+    object-fit: contain;
 }
 .quiz-main-row #question-container {
     flex: 1 1 55%;
@@ -3217,6 +3245,8 @@ body.layout-kahoot .quiz-main-row {
     display: flex;
     flex-direction: column;
     padding: 1rem;
+    min-height: 0;
+    overflow: hidden;
 }
 .quiz-main-row #options-container {
     flex: 1 1 auto;
@@ -3225,6 +3255,7 @@ body.layout-kahoot .quiz-main-row {
     flex-direction: column;
     justify-content: stretch;
     gap: 0.6rem;
+    overflow-y: auto;
 }
 .quiz-main-row .kahoot-btn {
     flex: 1 1 auto;
@@ -3258,31 +3289,31 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
 /* Multiple-image grid */
 .media-images-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.75rem;
     width: 100%;
-    align-items: stretch;
+    align-content: center;
     flex: 1 1 auto;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
 }
 .media-grid-image {
     width: 100%;
     height: 100%;
-    min-height: 120px;
+    max-height: 100%;
+    min-height: 0;
     object-fit: contain;
     background: white;
     border-radius: 8px;
     cursor: zoom-in;
 }
-.media-images-grid:has(> img:nth-child(2)) .media-grid-image {
-    object-fit: cover;
-}
 
-/* YouTube iframe keeps 16:9, never stretches */
+/* YouTube iframe keeps 16:9, never stretches, fits viewport */
 .media-youtube-frame {
     aspect-ratio: 16 / 9;
     width: 100%;
-    max-height: 60vh;
+    max-height: calc(100vh - 260px);
     border: none;
     border-radius: 8px;
 }
@@ -3433,14 +3464,7 @@ body[data-role="student"]:not(.layout-kahoot) .quiz-main-row #question-container
     flex: none !important;
 }
 /* Host typing (SAQ): keep the 2-column split (media left, typing box right) */
-body[data-role="host"].layout-info .quiz-main-row {
-    flex-direction: column;
-}
-body[data-role="host"].layout-info .quiz-main-row #media-container,
-body[data-role="host"].layout-info .quiz-main-row #question-container {
-    width: 100% !important;
-    flex: none !important;
-}
+
 
 
 
@@ -3477,42 +3501,6 @@ body.layout-info .kahoot-answers-container {
 }
 
 body[data-role="host"] .kahoot-timer-container.timer-hidden.flex, .kahoot-timer-container.timer-hidden { display: none !important; }
-/* Fix for SAQ host full screen */
-body[data-role="host"].layout-typing .quiz-main-row {
-    flex-direction: column !important;
-}
-body[data-role="host"].layout-typing .quiz-main-row #media-container,
-body[data-role="host"].layout-typing #quiz-screen .quiz-main-row #question-container,
-body[data-role="host"].layout-typing .quiz-main-row #question-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: none !important;
-}
-
-/* Fix for SAQ host full screen quiz-content grid */
-body.layout-typing .quiz-content {
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-body.layout-typing .quiz-main-row {
-    grid-column: 1 / -1;
-}
-
-/* Override again: User wants SAQ host as 2 columns */
-body[data-role="host"].layout-typing .quiz-main-row {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 1.5rem;
-    align-items: stretch;
-}
-body[data-role="host"].layout-typing .quiz-main-row #media-container,
-body[data-role="host"].layout-typing #quiz-screen .quiz-main-row #question-container,
-body[data-role="host"].layout-typing .quiz-main-row #question-container {
-    width: 50% !important;
-    max-width: 50% !important;
-    flex: 1 1 50% !important;
-}
 
 /* Hide old HUD timer for host entirely */
 body[data-role="host"] .hud-item.timer-info {
