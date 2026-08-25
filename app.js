@@ -5333,8 +5333,9 @@ if (rejectedGuideLink) {
 function setupCustomDropdowns() {
     const selects = document.querySelectorAll('select');
     selects.forEach(select => {
-        // Skip the import quiz select — keep it as a native <select> so change events fire reliably
-        if (select.id === 'import-quiz-select') return;
+        // Skip the import quiz select and the music style select — keep them as
+        // native <select>s so their dropdowns never overlap the Reset button.
+        if (select.id === 'import-quiz-select' || select.id === 'music-style-select') return;
         if (select.nextElementSibling && select.nextElementSibling.classList.contains('custom-select-wrapper')) return;
 
         const wrapper = document.createElement('div');
