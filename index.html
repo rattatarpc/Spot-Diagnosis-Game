@@ -230,7 +230,7 @@
                                             <div class="media-dropzone-icon">🖼️</div>
                                             <div class="media-dropzone-text">Paste a URL or drop a file here</div>
                                         </div>
-                                        <input type="url" id="maker-img-url" placeholder="Paste image/video URL here..." style="width:100%; padding:10px; margin-top:10px; border-radius:4px; border:1px solid var(--glass-border); background:var(--input-bg); color:var(--text-main); box-sizing:border-box;">
+                                        <input type="url" id="maker-img-url" placeholder="Paste image URL (one per line for multiple images)" style="width:100%; padding:10px; margin-top:10px; border-radius:4px; border:1px solid var(--glass-border); background:var(--input-bg); color:var(--text-main); box-sizing:border-box;">
                                         <div style="font-size:0.9rem; text-align:center; margin:10px 0; color:var(--text-muted);">OR</div>
                                         <input type="file" id="maker-img-file" accept="image/*,video/*" style="width:100%; font-size:0.9rem; color:var(--text-main);">
                                     </div>
@@ -522,8 +522,13 @@
                     <!-- EKG Viewer -->
                     <div class="ekg-viewer glass-container" id="media-container">
                         <div class="clinical-context" id="clinical-context">Context goes here</div>
+                        <div id="ekg-images" class="media-images-grid" style="display:none;"></div>
                         <img id="ekg-image" src="" alt="Media" class="zoomable" title="Click to zoom" style="display:none;">
                         <video id="ekg-video" controls loop playsinline webkit-playsinline style="display:none; width: 100%; max-height: 100%; background: black; border-radius: 8px;"></video>
+                        <div id="ekg-video-fallback" class="media-video-fallback" style="display:none; text-align:center; padding:2rem;">
+                            <p style="color:var(--text-muted); margin-bottom:1rem;">Video failed to play — click retry</p>
+                            <button class="btn-secondary" id="btn-video-retry">↻ Retry</button>
+                        </div>
                     </div>
 
                     <!-- Options + host live controls -->

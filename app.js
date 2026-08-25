@@ -2272,8 +2272,8 @@ window.editQuestion = (index) => {
     document.getElementById('maker-free-point').checked = q.freePoint;
     document.getElementById('maker-media-type').value = q.mediaType || 'image';
     mediaTypeTouched = false;
-    document.getElementById('maker-img-url').value = q.imageUrl || "";
-    const hasMedia = !!q.imageUrl;
+    document.getElementById('maker-img-url').value = (Array.isArray(q.imageUrls) && q.imageUrls.length > 1 ? q.imageUrls.join('\n') : (q.imageUrl || ""));
+    const hasMedia = (Array.isArray(q.imageUrls) && q.imageUrls.length > 0) || !!q.imageUrl;
     document.getElementById('maker-add-media-toggle').checked = hasMedia;
     document.getElementById('maker-media-fields').style.display = hasMedia ? 'none' : 'none'; // Don't show URL fields if they already added media, just show the preview
 
@@ -2629,9 +2629,11 @@ window.saveActiveQuestion = async () => {
         }
 
         // Update the live preview immediately on save
-        renderMediaCommon({ imageUrl: imageUrl, mediaType: mediaType }, 'maker', false);
+        const urlField = document.getElementById('maker-img-url');
+        const parsedUrls = urlField.value.split('\n').map(u => u.trim()).filter(Boolean);
+        renderMediaCommon({ imageUrl: (parsedUrls[0] || ''), imageUrls: parsedUrls.length > 1 ? parsedUrls : undefined, mediaType: mediaType }, 'maker', false);
 
-        if (imageUrl) {
+        if (parsedUrls.length > 0) {
             document.getElementById('maker-add-media-toggle').checked = true;
             document.getElementById('maker-media-fields').style.display = 'none';
             document.getElementById('btn-change-media').innerText = 'Change Media';
@@ -2643,6 +2645,13 @@ window.saveActiveQuestion = async () => {
         if (!text) throw new Error("Question text is required");
 
         let q = { type, text, context, imageUrl, mediaType, timer, freePoint };
+
+        // Multiple images: store as array on imageUrls when several URLs were pasted
+        if (parsedUrls.length > 1 && mediaType !== 'video') {
+            q.imageUrls = parsedUrls;
+        } else {
+            delete q.imageUrls;
+        }
 
         if (type === 'multiple-choice') {
             const opts = [];
@@ -3394,25 +3403,32 @@ if (urlParams.has('room')) {
 ===================================================================== */
 function renderMediaCommon(q, prefix, autoplay = false) {
     const mediaContainer = document.getElementById(prefix === 'ekg' ? 'media-container' : `${prefix}-media-container`);
+    const imagesEl = document.getElementById(`${prefix}-images`);
     const imgEl = document.getElementById(`${prefix}-image`);
     const vidEl = document.getElementById(`${prefix}-video`);
     let ytEl = document.getElementById(`${prefix}-youtube`);
+    const fbEl = document.getElementById(`${prefix}-video-fallback`);
 
-    if (mediaContainer && !q.imageUrl) {
+    // Determine media source: imageUrls[] (multiple) or single imageUrl
+    const many = Array.isArray(q.imageUrls) && q.imageUrls.length > 1;
+    const src = many ? q.imageUrls : (q.imageUrl ? [q.imageUrl] : []);
+    const mediaKey = many ? 'multi:' + q.imageUrls.join('|') : (q.imageUrl || '');
+
+    if (mediaContainer && src.length === 0) {
         mediaContainer.style.display = 'none';
+        if (imagesEl) imagesEl.style.display = 'none';
         if (vidEl) vidEl.pause();
-        if (mediaContainer) {
-            mediaContainer.dataset.currentUrl = '';
-            mediaContainer.dataset.currentType = '';
-        }
+        if (imagesEl) imagesEl.innerHTML = '';
+        mediaContainer.dataset.currentUrl = '';
+        mediaContainer.dataset.currentType = '';
         return;
     }
 
     if (mediaContainer) {
-        if (mediaContainer.dataset.currentUrl === q.imageUrl && mediaContainer.dataset.currentType === q.mediaType) {
+        if (mediaContainer.dataset.currentUrl === mediaKey && mediaContainer.dataset.currentType === q.mediaType) {
             return; // Media hasn't changed, skip re-rendering to prevent page shaking
         }
-        mediaContainer.dataset.currentUrl = q.imageUrl || '';
+        mediaContainer.dataset.currentUrl = mediaKey;
         mediaContainer.dataset.currentType = q.mediaType || '';
         mediaContainer.style.display = prefix === 'ekg' ? 'flex' : 'block';
     }
@@ -3420,39 +3436,62 @@ function renderMediaCommon(q, prefix, autoplay = false) {
     if (!ytEl && vidEl) {
         ytEl = document.createElement('iframe');
         ytEl.id = `${prefix}-youtube`;
+        ytEl.className = 'media-youtube-frame';
         ytEl.style.display = 'none';
         ytEl.style.width = '100%';
-        ytEl.style.maxHeight = prefix === 'ekg' ? '100%' : '250px';
+        ytEl.style.aspectRatio = '16 / 9';
         ytEl.style.borderRadius = '8px';
         ytEl.style.border = 'none';
         ytEl.setAttribute('allowfullscreen', 'true');
         ytEl.setAttribute('allow', 'autoplay; encrypted-media');
         vidEl.parentNode.insertBefore(ytEl, vidEl.nextSibling);
     }
-
+    if (fbEl) fbEl.style.display = 'none';
+    if (imagesEl) imagesEl.style.display = 'none';
     if (imgEl) imgEl.style.display = 'none';
     if (vidEl) { vidEl.style.display = 'none'; vidEl.pause(); }
     if (ytEl) { ytEl.style.display = 'none'; ytEl.src = ''; }
 
+    if (many && imagesEl) {
+        // Render multiple images as a grid
+        imagesEl.innerHTML = q.imageUrls.map(url => `<img src="${url}" class="media-grid-image zoomable" alt="Media" title="Click to zoom">`).join('');
+        imagesEl.style.display = 'grid';
+        return;
+    }
+
+    const single = src[0] || '';
     if (q.mediaType === 'video') {
-        const isYoutube = q.imageUrl.includes('youtube.com') || q.imageUrl.includes('youtu.be');
+        const isYoutube = single.includes('youtube.com') || single.includes('youtu.be');
         if (isYoutube && ytEl) {
-            ytEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
+            ytEl.style.display = 'block';
             let videoId = '';
-            if (q.imageUrl.includes('youtu.be/')) {
-                videoId = q.imageUrl.split('youtu.be/')[1].split('?')[0];
-            } else if (q.imageUrl.includes('v=')) {
-                videoId = new URLSearchParams(new URL(q.imageUrl).search).get('v');
+            if (single.includes('youtu.be/')) {
+                videoId = single.split('youtu.be/')[1].split('?')[0];
+            } else if (single.includes('v=')) {
+                videoId = new URLSearchParams(new URL(single).search).get('v');
             }
             ytEl.src = `https://www.youtube.com/embed/${videoId}?rel=0${autoplay ? '&autoplay=1&mute=1' : ''}`;
+            if (fbEl) fbEl.style.display = 'none';
         } else if (vidEl) {
             vidEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
-            vidEl.src = q.imageUrl;
-            if (autoplay) vidEl.play().catch(e => console.log('Autoplay blocked'));
+            vidEl.src = single;
+            const p = autoplay ? vidEl.play() : null;
+            if (autoplay && p && p.catch) p.catch(() => {});
+            vidEl.onerror = () => {
+                if (fbEl) { fbEl.style.display = 'block'; vidEl.style.display = 'none'; }
+            };
+            if (fbEl && fbEl.querySelector('#btn-video-retry')) {
+                fbEl.querySelector('#btn-video-retry').onclick = () => {
+                    fbEl.style.display = 'none';
+                    vidEl.style.display = 'block';
+                    vidEl.load();
+                    vidEl.play().catch(() => {});
+                };
+            }
         }
     } else if (imgEl) {
         imgEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
-        imgEl.src = q.imageUrl;
+        imgEl.src = single;
     }
 }
 
@@ -3598,7 +3637,17 @@ function renderSlide(q) {
     mediaArea.innerHTML = '';
     const img = document.getElementById('ekg-image');
     const video = document.getElementById('ekg-video');
-    if (q.imageUrl || (img && img.src && img.style.display !== 'none') || (video && video.style.display !== 'none')) {
+    const manyImages = Array.isArray(q.imageUrls) && q.imageUrls.length > 1;
+    if (manyImages) {
+        mediaArea.innerHTML = q.imageUrls.map(url => `<img src="${url}" class="media-grid-image zoomable" alt="Media" title="Click to zoom">`).join('');
+        mediaArea.querySelectorAll('.zoomable').forEach(el => {
+            el.addEventListener('click', function() {
+                const zModal = document.getElementById('image-zoom-modal');
+                const zImg = document.getElementById('zoomed-image');
+                if (zModal && zImg) { zModal.style.display = 'flex'; zImg.src = this.src; }
+            });
+        });
+    } else if (q.imageUrl || (img && img.src && img.style.display !== 'none') || (video && video.style.display !== 'none')) {
         // Clone the currently rendered media element
         let clone = null;
         if (video && video.style.display !== 'none') {
@@ -3757,6 +3806,8 @@ async function startNextQuestion() {
 
     // Render Media (Img, Video, Youtube, or None)
     renderMediaCommon(q, 'ekg', false);
+    const hasMedia = (Array.isArray(q.imageUrls) && q.imageUrls.length > 0) || !!q.imageUrl;
+    document.getElementById('quiz-screen').classList.toggle('no-media', !hasMedia);
 
     if (q.type !== 'info') {
         hideSlide();

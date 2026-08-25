@@ -3242,6 +3242,58 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
     flex: 0 1 auto;
     min-height: 100px;
 }
+
+/* No-media questions: collapse to a single full-width column */
+#quiz-screen.no-media .quiz-main-row {
+    display: block !important;
+}
+#quiz-screen.no-media .quiz-main-row #media-container {
+    display: none !important;
+}
+#quiz-screen.no-media .quiz-main-row #question-container {
+    width: 100% !important;
+    flex: none !important;
+}
+
+/* Multiple-image grid */
+.media-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.media-grid-image {
+    width: 100%;
+    height: 100%;
+    min-height: 120px;
+    object-fit: contain;
+    background: white;
+    border-radius: 8px;
+    cursor: zoom-in;
+}
+.media-images-grid:has(> img:nth-child(2)) .media-grid-image {
+    object-fit: cover;
+}
+
+/* YouTube iframe keeps 16:9, never stretches */
+.media-youtube-frame {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    max-height: 60vh;
+    border: none;
+    border-radius: 8px;
+}
+
+/* Video failure placeholder */
+.media-video-fallback {
+    background: rgba(0,0,0,0.25);
+    border: 1px dashed var(--glass-border);
+    border-radius: 8px;
+}
+
 .kahoot-timer-svg {
     transform: rotate(-90deg);
     width: 100%;
