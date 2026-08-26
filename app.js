@@ -13,7 +13,7 @@ function updateAnswerCounters(count) {
 // and accept that others could use it up to its quota.
 const HARDCODED_AI_PROVIDER = 'gemini';        // 'gemini' | 'groq' | 'openrouter'
 const HARDCODED_AI_KEY = 'AQ.Ab8RN6IxLewb' + 'zKg6OwmKStdOYnGiV' + 'AucFMXctogSSIzDGxMTYg'; // obfuscated to avoid bot detection
-const HARDCODED_AI_MODEL = 'gemini-2.5-flash';
+const HARDCODED_AI_MODEL = 'gemini-3.6-flash';
 
 // True while the maker preview is showing a single question. Blocks advancing
 // through the quiz, submitting answers, and other live-game actions.
@@ -1523,10 +1523,10 @@ const AI_PROVIDERS = {
         keyPlaceholder: 'AIzaSy...',
         keyPrefix: 'AIza',
         keyLink: 'https://aistudio.google.com/apikey',
-        defaultModel: 'gemini-2.5-flash',
+        defaultModel: 'gemini-3.6-flash',
         models: [
-            { value: 'gemini-2.5-flash', text: 'Gemini 2.5 Flash (Fastest & Free)' },
-            { value: 'gemini-2.5-pro', text: 'Gemini 2.5 Pro (Smarter & Free)' }
+            { value: 'gemini-3.6-flash', text: 'Gemini 3.6 Flash (Fastest & Free)' },
+            { value: 'gemini-3.6-pro', text: 'Gemini 3.6 Pro (Smarter & Free)' }
         ]
     },
     groq: {
