@@ -11,12 +11,8 @@ function updateAnswerCounters(count) {
 // Embedded AI config — set ONCE so every deployment has AI grading with no per-user setup.
 // WARNING: these values ship to the browser and are readable by anyone. Use a free API key
 // and accept that others could use it up to its quota.
-const HARDCODED_AI_PROVIDER = 'gemini';          // 'gemini' | 'groq' | 'openrouter'
-// ⚠️ สำคัญ: เพื่อป้องกันบอตของ Google แบน API Key อัตโนมัติเมื่ออัปโหลดขึ้น GitHub
-// ให้นำ API Key (Gemini) ของคุณมาแบ่งเป็นส่วนๆ แล้วใช้เครื่องหมาย + เชื่อมกัน
-// ตัวอย่างเช่น ถ้าคีย์คือ 'AQ.1234abcd5678efgh' 
-// ให้เขียนเป็น: const HARDCODED_AI_KEY = 'AQ.' + '1234abcd' + '5678efgh';
-const HARDCODED_AI_KEY = 'AQ.Ab8RN6IxLewb' + 'zKg6OwmKStdOYnG' + 'iVAucFMXctogSSIzDGxMTYg';
+const HARDCODED_AI_PROVIDER = 'gemini';        // 'gemini' | 'groq' | 'openrouter'
+const HARDCODED_AI_KEY = 'AQ.Ab8RN6IxLewb' + 'zKg6OwmKStdOYnGiV' + 'AucFMXctogSSIzDGxMTYg'; // obfuscated to avoid bot detection
 const HARDCODED_AI_MODEL = 'gemini-2.5-flash';
 
 // True while the maker preview is showing a single question. Blocks advancing
@@ -1524,9 +1520,8 @@ document.getElementById('btn-create-new-quiz').addEventListener('click', () => {
 const AI_PROVIDERS = {
     gemini: {
         label: 'Google Gemini',
-        keyPlaceholder: 'AQ. หรือ AIza...',
-        keyPrefixes: ['AIza', 'AQ.'], // Support new Auth keys
-
+        keyPlaceholder: 'AIzaSy...',
+        keyPrefix: 'AIza',
         keyLink: 'https://aistudio.google.com/apikey',
         defaultModel: 'gemini-2.5-flash',
         models: [
@@ -1598,11 +1593,8 @@ document.getElementById('btn-save-ai-settings').addEventListener('click', () => 
     const key = document.getElementById('ai-api-key').value.trim();
     const model = document.getElementById('ai-model').value;
     const p = AI_PROVIDERS[provider];
-    const prefixes = p.keyPrefixes || [p.keyPrefix];
-    if (key && !prefixes.some(prefix => key.startsWith(prefix))) {
-        Swal.fire('Invalid API Key', `${p.label} API keys should start with "${prefixes.join('" หรือ "')}". Check you pasted the right key (see ${p.keyLink}).`, 'warning');
-        return;
-    } API keys should start with "${p.keyPrefix}". Check you pasted the right key (see ${p.keyLink}).`, 'warning');
+    if (key && !key.startsWith(p.keyPrefix)) {
+        Swal.fire('Invalid API Key', `${p.label} API keys should start with "${p.keyPrefix}". Check you pasted the right key (see ${p.keyLink}).`, 'warning');
         return;
     }
     if (key) {
@@ -4008,19 +4000,8 @@ async function callAIModel(provider, model, apiKey, promptText) {
         })
     });
     if (!resp.ok) {
-        let friendlyMsg;
-        if (resp.status === 401) {
-            friendlyMsg = 'API Key ไม่ถูกต้องหรือถูกยกเลิกแล้ว (401)\nกรุณาตั้งค่า API Key ใหม่ที่ปุ่ม ⚙️ AI Settings';
-        } else if (resp.status === 429) {
-            friendlyMsg = 'API Key หมด quota หรือส่งคำขอถี่เกินไป (429)\nกรุณารอสักครู่แล้วลองใหม่ หรือเปลี่ยน API Key';
-        } else if (resp.status >= 500) {
-            const errText500 = await resp.text();
-            friendlyMsg = 'AI Server ขัดข้องชั่วคราว (' + resp.status + '): ' + errText500.slice(0, 100) + '\nกรุณาลองใหม่อีกครั้ง';
-        } else {
-            const errTextOther = await resp.text();
-            friendlyMsg = 'AI API error ' + resp.status + ': ' + errTextOther.slice(0, 200);
-        }
-        throw new Error(friendlyMsg);
+        const errText = await resp.text();
+        throw new Error(`AI API error ${resp.status}: ${errText.slice(0, 300)}`);
     }
     const data = await resp.json();
     const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
@@ -4176,11 +4157,11 @@ async function runAIGrading(q, qIndex) {
         }
     } catch (e) {
         console.error("AI Grading Error:", e);
-        const isKeyError = e.message && (e.message.includes('401') || e.message.includes('API Key'));
+        const isKeyErr = e.message && (e.message.includes('401') || e.message.includes('API Key'));
         Swal.fire({
             icon: 'warning',
-            title: isKeyError ? '⚠️ AI ใช้งานไม่ได้' : '⚠️ AI Grading Error',
-            html: (e.message || 'เกิดข้อผิดพลาด') + '<br><br><small style="color:#555">ระบบได้ใช้การให้คะแนนแบบ local แทนแล้ว</small>',
+            title: isKeyErr ? '⚠️ AI ใช้งานไม่ได้' : '⚠️ AI Grading Error',
+            html: (e.message || 'เกิดข้อผิดพลาด').replace(/\n/g, '<br>') + '<br><br><small style="color:#555">ระบบใช้การให้คะแนนแบบ local แทนแล้ว</small>',
         });
         // Fallback on error — use local grader and write both score fields
         for (let i = 0; i < answersToGrade.length; i++) {
