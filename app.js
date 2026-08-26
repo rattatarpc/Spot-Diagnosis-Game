@@ -1569,7 +1569,7 @@ function populateModelOptions(providerKey) {
 
 const aiSettingsModal = document.getElementById('ai-settings-modal');
 document.getElementById('btn-ai-settings').addEventListener('click', () => {
-    const provider = localStorage.getItem('aiProvider') || HARDCODED_AI_PROVIDER;
+    const provider = HARDCODED_AI_PROVIDER;
     document.getElementById('ai-provider').value = provider;
     populateModelOptions(provider);
     const p = AI_PROVIDERS[provider];
@@ -4010,7 +4010,7 @@ async function callAIModel(provider, model, apiKey, promptText) {
 }
 
 async function runAIGrading(q, qIndex) {
-    const apiKey = localStorage.getItem('aiApiKey') || HARDCODED_AI_KEY;
+    const apiKey = HARDCODED_AI_KEY;
     const provider = localStorage.getItem('aiProvider') || HARDCODED_AI_PROVIDER;
     const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = pSnap.val() || {};
@@ -4040,7 +4040,7 @@ async function runAIGrading(q, qIndex) {
         return;
     }
 
-    const model = localStorage.getItem('aiModel') || HARDCODED_AI_MODEL || AI_PROVIDERS[provider].defaultModel;
+    const model = HARDCODED_AI_MODEL;
 
     Swal.fire({
         title: 'AI is grading answers...',
