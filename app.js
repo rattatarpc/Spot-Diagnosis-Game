@@ -4440,20 +4440,32 @@ async function overrideScore(playerName, currentPts) {
 async function viewConceptBreakdown(playerName) {
     const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}`).get();
     const pData = pSnap.val();
-    if (!pData || !pData.aiGrading || !pData.aiGrading.concepts) {
+    if (!pData || !pData.aiGrading) {
         Swal.fire('No AI Grading Data', 'Could not find AI grading data for this student.', 'info');
         return;
     }
     
-    const q = customQuizData[currentQuestionIndex];
+    const q = customQuizData[currentQuestionIndex] || {};
+    // Students may not have customQuizData loaded — fetch from the room
+    if (!Array.isArray(q.acceptedAnswers) && roomCode) {
+        try {
+            const rSnap = await db.ref(`rooms/${roomCode}/quizData`).get();
+            if (rSnap.exists()) {
+                const roomQuiz = rSnap.val() || [];
+                const roomQ = roomQuiz[currentQuestionIndex];
+                if (roomQ) Object.assign(q, roomQ);
+            }
+        } catch (e) {}
+    }
+    const accepted = Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : [];
     let html = `<div style="text-align:left; font-size: 0.9em; max-height: 400px; overflow-y: auto;">`;
     
     // Original answer
     const ans = pData.answers && pData.answers[currentQuestionIndex] ? pData.answers[currentQuestionIndex] : '';
-    html += `<div style="margin-bottom:1rem; padding: 0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;"><strong>Answer:</strong> ${ans}</div>`;
+    html += `<div style="margin-bottom:1rem; padding: 0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;"><strong>Answer:</strong> ${escapeHtml(String(ans))}</div>`;
     
     // Confidence and Penalty
-    html += `<div style="margin-bottom:1rem;"><strong>AI Confidence:</strong> ${pData.aiGrading.confidence} ${pData.aiGrading.confidence < 0.7 ? '⚠️' : ''}<br>`;
+    html += `<div style="margin-bottom:1rem;"><strong>AI Confidence:</strong> ${pData.aiGrading.confidence ?? 0} ${(pData.aiGrading.confidence || 0) < 0.7 ? '⚠️' : ''}<br>`;
     if (pData.aiGrading.penalty > 0) {
         html += `<strong style="color:var(--danger)">Penalty:</strong> -${pData.aiGrading.penalty} pts (Rejected Words)</div>`;
     } else {
@@ -4461,20 +4473,24 @@ async function viewConceptBreakdown(playerName) {
     }
 
     // Concepts
-    pData.aiGrading.concepts.forEach(c => {
-        const rubItem = (q.acceptedAnswers || []).find((r, i) => (i + 1) === c.conceptId);
+    const concepts = Array.isArray(pData.aiGrading.concepts) ? pData.aiGrading.concepts : [];
+    if (concepts.length === 0) {
+        html += `<p style="color:var(--text-muted);">No concept breakdown available.</p>`;
+    }
+    concepts.forEach(c => {
+        const rubItem = accepted.find((r, i) => (i + 1) === c.conceptId);
         const conceptText = rubItem ? (typeof rubItem === 'string' ? rubItem : rubItem.text) : `Concept ${c.conceptId}`;
         
         let badgeColor = c.tier === 'full' ? 'var(--success)' : c.tier === 'partial' ? '#eab308' : 'var(--danger)';
         
         html += `
             <div style="border: 1px solid var(--glass-border); padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 6px;">
-                <div style="font-weight:bold; margin-bottom:0.25rem;">${conceptText}</div>
+                <div style="font-weight:bold; margin-bottom:0.25rem;">${escapeHtml(conceptText)}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
                     <span style="background:${badgeColor}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.8em; text-transform:uppercase;">${c.tier || (c.matched ? 'Full' : 'None')}</span>
                     <span style="font-weight:bold;">${c.points || 0} pts</span>
                 </div>
-                <div style="color:#cbd5e1;"><em>Reason:</em> ${c.reason || 'N/A'}</div>
+                <div style="color:#cbd5e1;"><em>Reason:</em> ${escapeHtml(c.reason || 'N/A')}</div>
             </div>
         `;
     });
