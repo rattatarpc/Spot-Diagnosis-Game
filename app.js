@@ -4011,7 +4011,7 @@ async function callAIModel(provider, model, apiKey, promptText) {
 
 async function runAIGrading(q, qIndex) {
     const apiKey = HARDCODED_AI_KEY;
-    const provider = localStorage.getItem('aiProvider') || HARDCODED_AI_PROVIDER;
+    const provider = HARDCODED_AI_PROVIDER;
     const pSnap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = pSnap.val() || {};
 
