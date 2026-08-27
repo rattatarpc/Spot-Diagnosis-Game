@@ -3598,3 +3598,37 @@ body[data-role="host"] .hud-item.timer-info {
     text-shadow: 0 4px 20px rgba(139,92,246,0.6);
 }
 .champion-scores-dot { font-size: 3rem; margin-top: 0.6rem; }
+
+/* Typing feedback panel: stack to one column on small screens */
+@media (max-width: 768px) {
+    #feedback-typing-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+    #feedback-typing-panel > div {
+        grid-template-columns: 1fr !important;
+    }
+    #student-ai-reason-container {
+        width: 100%;
+    }
+    #btn-student-ai-reason {
+        width: 100%;
+        white-space: normal;
+    }
+    /* Keep feedback content within the viewport on mobile */
+    #feedback-screen {
+        overflow-x: hidden;
+    }
+    #feedback-screen .glass-container {
+        max-width: 96vw;
+        padding: 1rem;
+    }
+}
+
+/* Options grid stacks to one column on mobile to avoid overflow */
+@media (max-width: 768px) {
+    .kahoot-options-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem;
+    }
+}

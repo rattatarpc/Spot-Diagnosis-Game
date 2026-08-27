@@ -1155,7 +1155,7 @@ function buildTypingFeedbackHTML(playerAns, q) {
     }
 
     return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;text-align:left;">' +
-        '<div style="background:var(--input-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;">' +
+        '<div style="background:var(--input-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;min-width:0;">' +
         '<h4 style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">&#x1F4CB; Answer Keys</h4>' +
         keysHTML + '</div>' +
         '<div style="background:var(--input-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;">' +
