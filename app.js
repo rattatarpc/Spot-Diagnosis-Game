@@ -1273,11 +1273,12 @@ function switchScreen(screenName) {
     }
     if (typeof fxVideoSync === 'function') fxVideoSync();
 
-    // Music mode follows the screen: theme on waiting/results, play during game, none on countdown
+    // Music mode follows the screen: theme on waiting/results, play once the
+    // game has started (countdown onward), back to theme only at the results.
     if (typeof AudioController !== 'undefined' && typeof AudioController.playMusicMode === 'function') {
         let mode = 'theme';
-        if (screenName === 'countdown') mode = 'none';
-        else if (screenName === 'quiz' || screenName === 'feedback') mode = 'play';
+        if (screenName === 'results') mode = 'theme';
+        else if (['countdown', 'quiz', 'feedback', 'preview'].includes(screenName)) mode = 'play';
         AudioController.playMusicMode(mode);
     }
 
