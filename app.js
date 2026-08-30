@@ -560,6 +560,78 @@ const AudioController = (() => {
     let bgmNextTime = 0;
     let chordIdx = 0;
     let currentStyle = MUSIC_STYLES.gameshow;
+    // File-based music (Theme / Play). Falls back to synth if mp3 missing.
+    let musicEl = null;
+    let musicMode = 'none';       // 'theme' | 'play' | 'none'
+    let currentTrack = '';
+    let musicFadeTimer = null;
+    const MUSIC_DIR = 'Song/';
+
+    function getMusicEl() {
+        if (musicEl) return musicEl;
+        musicEl = document.getElementById('bgm-player') || new Audio();
+        musicEl.loop = true;
+        musicEl.preload = 'auto';
+        musicEl.addEventListener('error', () => { startSynthFallback(); });
+        return musicEl;
+    }
+
+    // Stop file music, then start synth if nothing is playing.
+    function startSynthFallback() {
+        if (musicMode === 'none') return;
+        stopFileMusic();
+        if (!bgmRunning && !isMuted) startBGM();
+    }
+
+    function setMusicVolume(v) {
+        if (musicEl) musicEl.volume = Math.max(0, Math.min(1, v));
+    }
+
+    function fadeToVolume(target, dur = 0.5) {
+        if (!musicEl) return;
+        clearTimeout(musicFadeTimer);
+        const from = musicEl.volume;
+        const t0 = performance.now();
+        function step(now) {
+            const p = Math.min(1, (now - t0) / (dur * 1000));
+            musicEl.volume = from + (target - from) * p;
+            if (p < 1) musicFadeTimer = setTimeout(() => step(performance.now()), 30);
+        }
+        step(t0);
+    }
+
+    function stopFileMusic() {
+        if (!musicEl) return;
+        musicEl.pause();
+        musicEl.currentTime = 0;
+    }
+
+    function setMusicFile(path) {
+        const el = getMusicEl();
+        if (currentTrack === path) { if (musicEl.paused && musicMode !== 'none') el.play().catch(()=>{}); return; }
+        currentTrack = path;
+        el.src = MUSIC_DIR + path;
+        el.load();
+        fadeToVolume(masterVolume, 0.3);
+        el.play().catch(() => {});
+    }
+
+    function playMusicMode(mode) {
+        if (isMuted) { musicMode = mode; return; }
+        const themeTrack = localStorage.getItem('spotDiagnosisThemeSong') || 'Them 1 Fun.mp3';
+        const playTrack  = localStorage.getItem('spotDiagnosisPlaySong')  || 'Play 1.mp3';
+        musicMode = mode;
+        stopBGM();
+        if (mode === 'theme') setMusicFile(themeTrack);
+        else if (mode === 'play') setMusicFile(playTrack);
+        else { stopFileMusic(); musicMode = 'none'; }
+    }
+
+    function setTrack(type, path) {
+        if (type === 'theme') localStorage.setItem('spotDiagnosisThemeSong', path);
+        else localStorage.setItem('spotDiagnosisPlaySong', path);
+        if (musicMode === type && !isMuted) playMusicMode(type);
+    }
 
     const beat = () => 60 / currentStyle.bpm;
     const bar  = () => beat() * 4;
@@ -718,7 +790,8 @@ const AudioController = (() => {
         audioUnlocked = true;
         getCtx();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        startBGM();
+        // Start file-based music (theme) on the first user interaction
+        playMusicMode('theme');
     }
 
     function startBGM() {
@@ -769,15 +842,16 @@ const AudioController = (() => {
         if (btn && btn.type === 'checkbox') btn.checked = !isMuted;
         if (isMuted) {
             stopBGM();
+            stopFileMusic();
             if (masterGain) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            btn.innerText = '🔇'; btn.classList.add('muted');
+            if (btn) { btn.innerText = '🔇'; btn.classList.add('muted'); }
         } else {
             if (masterGain) {
                 masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
                 masterGain.gain.linearRampToValueAtTime(0.20 * masterVolume, audioCtx.currentTime + 0.5);
             }
-            startBGM();
-            btn.innerText = '🔊'; btn.classList.remove('muted');
+            if (musicMode !== 'none') playMusicMode(musicMode);
+            if (btn) { btn.innerText = '🔊'; btn.classList.remove('muted'); }
         }
     }
 
@@ -872,9 +946,10 @@ const AudioController = (() => {
         if (masterGain && !isMuted) {
             masterGain.gain.setTargetAtTime(0.20 * masterVolume, audioCtx.currentTime, 0.05);
         }
+        if (musicEl) musicEl.volume = masterVolume;
     }
 
-    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong, playPodiumRise, playChampion };
+    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong, playPodiumRise, playChampion, playMusicMode, setTrack };
 })();
 
 // Unlock audio on the first user interaction (crucial for iOS Safari)
@@ -891,7 +966,17 @@ const musicToggleEl = document.getElementById('btn-music-toggle');
 if (musicToggleEl) {
     musicToggleEl.addEventListener('change', () => AudioController.toggleMute());
 }
-document.getElementById('music-style-select').addEventListener('change', (e) => AudioController.setStyle(e.target.value));
+// File-based music track selectors
+const themeSongSel = document.getElementById('theme-song-select');
+if (themeSongSel) {
+    themeSongSel.value = localStorage.getItem('spotDiagnosisThemeSong') || 'Them 1 Fun.mp3';
+    themeSongSel.addEventListener('change', () => AudioController.setTrack('theme', themeSongSel.value));
+}
+const playSongSel = document.getElementById('play-song-select');
+if (playSongSel) {
+    playSongSel.value = localStorage.getItem('spotDiagnosisPlaySong') || 'Play 1.mp3';
+    playSongSel.addEventListener('change', () => AudioController.setTrack('play', playSongSel.value));
+}
 /* =====================================================================
    HELPER FUNCTIONS
 ===================================================================== */
@@ -1187,6 +1272,14 @@ function switchScreen(screenName) {
         }
     }
     if (typeof fxVideoSync === 'function') fxVideoSync();
+
+    // Music mode follows the screen: theme on waiting/results, play during game, none on countdown
+    if (typeof AudioController !== 'undefined' && typeof AudioController.playMusicMode === 'function') {
+        let mode = 'theme';
+        if (screenName === 'countdown') mode = 'none';
+        else if (screenName === 'quiz' || screenName === 'feedback') mode = 'play';
+        AudioController.playMusicMode(mode);
+    }
 
     // Reset any leftover scroll so switching screens never leaves blank space
     document.getElementById('app').scrollTop = 0;
