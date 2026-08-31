@@ -452,6 +452,46 @@
                     </label>
                 </div>
                 <button id="btn-start-game" class="btn-primary mt-4 host-only">▶ Start Game</button>
+                <!-- Character Picker (Student only) -->
+                <div id="avatar-picker-section" class="student-only avatar-picker-section" style="display:none;">
+
+                    <!-- STATE A: Picker (shown while choosing) -->
+                    <div id="avatar-picker-view">
+                        <div class="avatar-picker-header">Choose Your Avatar</div>
+
+                        <!-- Large preview -->
+                        <div class="avatar-picker-preview-wrap">
+                            <img id="avatar-preview-img" src="" alt="" class="avatar-picker-preview-img">
+                        </div>
+
+                        <!-- Style navigation -->
+                        <div class="avatar-style-nav">
+                            <button id="avatar-style-prev" class="btn-icon avatar-nav-btn" aria-label="Previous style">◀</button>
+                            <span id="avatar-style-label" class="avatar-style-label">adventurer</span>
+                            <button id="avatar-style-next" class="btn-icon avatar-nav-btn" aria-label="Next style">▶</button>
+                        </div>
+
+                        <!-- 4×3 seed grid -->
+                        <div id="avatar-picker-grid" class="avatar-picker-grid">
+                            <!-- Injected by JS -->
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="avatar-picker-actions">
+                            <button id="btn-avatar-confirm" class="btn-primary" style="padding:0.5rem 1.2rem;">Confirm</button>
+                        </div>
+                    </div>
+
+                    <!-- STATE B: Confirmed (shown after confirm) -->
+                    <div id="avatar-confirmed-view" style="display:none; text-align:center; padding: 0.5rem 0;">
+                        <div class="avatar-confirmed-header">Ready!</div>
+                        <img id="avatar-confirmed-img" src="" alt="" class="avatar-confirmed-img">
+                        <div id="avatar-confirmed-name" class="avatar-confirmed-name"></div>
+                        <button id="btn-avatar-change" class="btn-secondary" style="margin-top:0.75rem; padding:0.4rem 1.2rem; font-size:0.9rem;">Change Your Avatar</button>
+                    </div>
+
+                </div>
+
                 <div class="student-only mt-4 waiting-text">Waiting for host to start...</div>
                 <div class="btn-back-floating-wrapper mt-4">
                     <button class="btn-secondary btn-back-floating" onclick="window.location.reload()">Back</button>
@@ -463,7 +503,7 @@
         <section id="countdown-screen" class="screen">
             <div class="glass-container text-center countdown-wrap">
                 <h2 class="countdown-label">Get Ready!</h2>
-                <div id="countdown-number" class="countdown-number">5</div>
+                <div id="countdown-number" class="countdown-number">3</div>
             </div>
         </section>
 
