@@ -63,13 +63,13 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixel-art', 'avataaars'];
+const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixelbot', 'voxel-bot'];
 const DICEBEAR_SEEDS = ['Spot','Maple','Luna','Blaze','Nova','Pixel','Cosmo','Echo','Drift','Storm','Ember','Sage'];
 let playerAvatarStyle = DICEBEAR_STYLES[Math.floor(Math.random() * DICEBEAR_STYLES.length)];
 let playerAvatarSeed  = DICEBEAR_SEEDS[Math.floor(Math.random() * DICEBEAR_SEEDS.length)];
 
 function getDicebearUrl(style, seed) {
-    return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+    return `https://api.dicebear.com/10.x/${style}/svg?seed=${seed}`;
 }
 
 function defaultAvatarUrl(name) {
@@ -4164,7 +4164,7 @@ async function endQuestion() {
 // 'openrouter' (the latter two use an OpenAI-compatible chat API).
 async function callAIModel(provider, model, apiKey, promptText) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     try {
         if (provider === 'gemini') {
             const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
@@ -4177,7 +4177,7 @@ async function callAIModel(provider, model, apiKey, promptText) {
                     contents: [{ role: 'user', parts: [{ text: promptText }] }],
                     generationConfig: { responseMimeType: "application/json" }
                 }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('AI Request timed out')), 15000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('AI Request timed out')), 30000))
             ]);
             return result.response.text();
         }
