@@ -63,7 +63,7 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixelbot', 'voxel-bot'];
+const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixel-art', 'avataaars'];
 const DICEBEAR_SEEDS = ['Spot','Maple','Luna','Blaze','Nova','Pixel','Cosmo','Echo','Drift','Storm','Ember','Sage'];
 let playerAvatarStyle = DICEBEAR_STYLES[Math.floor(Math.random() * DICEBEAR_STYLES.length)];
 let playerAvatarSeed  = DICEBEAR_SEEDS[Math.floor(Math.random() * DICEBEAR_SEEDS.length)];
