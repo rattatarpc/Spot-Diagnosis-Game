@@ -63,16 +63,110 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-function avatarFor(name) {
-    const emojis = ['🦊', '🐼', '🦁', '🐸', '🐙', '🦄', '🐯', '🐨', '🐧', '🦉', '🐰', '🐻', '🐵', '🦋', '🐢', '🐳', '🦈', '🐝'];
+const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixelbot', 'voxel-bot'];
+const DICEBEAR_SEEDS = ['Spot','Maple','Luna','Blaze','Nova','Pixel','Cosmo','Echo','Drift','Storm','Ember','Sage'];
+let playerAvatarStyle = DICEBEAR_STYLES[Math.floor(Math.random() * DICEBEAR_STYLES.length)];
+let playerAvatarSeed  = DICEBEAR_SEEDS[Math.floor(Math.random() * DICEBEAR_SEEDS.length)];
+
+function getDicebearUrl(style, seed) {
+    return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+}
+
+function defaultAvatarUrl(name) {
     const s = String(name || '');
     let h = 0;
     for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return emojis[h % emojis.length];
+    const style = DICEBEAR_STYLES[h % DICEBEAR_STYLES.length];
+    const seed = DICEBEAR_SEEDS[h % DICEBEAR_SEEDS.length];
+    return getDicebearUrl(style, seed);
 }
 
-function playerChipHTML(name) {
-    return `<div class="player-chip"><span class="player-avatar">${avatarFor(name)}</span><span class="player-chip-name">${escapeHtml(name)}</span></div>`;
+function avatarFor(name, url) {
+    return url || defaultAvatarUrl(name);
+}
+
+function playerChipHTML(name, avatarUrl) {
+    const url = avatarUrl || defaultAvatarUrl(name);
+    return `<div class="player-chip"><img src="${url}" class="player-chip-avatar" alt="${escapeHtml(name)}"><span class="player-chip-name">${escapeHtml(name)}</span></div>`;
+}
+
+function initAvatarPicker() {
+    const pickerSec = document.getElementById('avatar-picker-section');
+    if (!pickerSec) return;
+    const viewPicker = document.getElementById('avatar-picker-view');
+    const viewConfirmed = document.getElementById('avatar-confirmed-view');
+    const imgPreview = document.getElementById('avatar-preview-img');
+    const lblStyle = document.getElementById('avatar-style-label');
+    const grid = document.getElementById('avatar-picker-grid');
+    const imgConfirmed = document.getElementById('avatar-confirmed-img');
+    const nameConfirmed = document.getElementById('avatar-confirmed-name');
+
+    let currentStyleIdx = DICEBEAR_STYLES.indexOf(playerAvatarStyle);
+    if (currentStyleIdx < 0) currentStyleIdx = 0;
+
+    function renderGrid() {
+        grid.innerHTML = '';
+        DICEBEAR_SEEDS.forEach(seed => {
+            const cell = document.createElement('div');
+            cell.className = 'avatar-cell' + (seed === playerAvatarSeed ? ' avatar-cell-selected' : '');
+            const img = document.createElement('img');
+            img.src = getDicebearUrl(DICEBEAR_STYLES[currentStyleIdx], seed);
+            cell.appendChild(img);
+            cell.onclick = () => {
+                playerAvatarSeed = seed;
+                updatePreview();
+                renderGrid();
+            };
+            grid.appendChild(cell);
+        });
+    }
+
+    function updatePreview() {
+        const style = DICEBEAR_STYLES[currentStyleIdx];
+        playerAvatarStyle = style;
+        lblStyle.innerText = style;
+        imgPreview.src = getDicebearUrl(style, playerAvatarSeed);
+    }
+
+    document.getElementById('avatar-style-prev').onclick = () => {
+        currentStyleIdx = (currentStyleIdx - 1 + DICEBEAR_STYLES.length) % DICEBEAR_STYLES.length;
+        updatePreview();
+        renderGrid();
+    };
+    document.getElementById('avatar-style-next').onclick = () => {
+        currentStyleIdx = (currentStyleIdx + 1) % DICEBEAR_STYLES.length;
+        updatePreview();
+        renderGrid();
+    };
+
+    document.getElementById('btn-avatar-confirm').onclick = async () => {
+        const url = getDicebearUrl(playerAvatarStyle, playerAvatarSeed);
+        viewPicker.style.display = 'none';
+        viewConfirmed.style.display = 'block';
+        imgConfirmed.src = url;
+        nameConfirmed.innerText = playerName;
+        if (db && roomCode && playerName) {
+            await db.ref(`rooms/${roomCode}/players/${playerName}`).update({ avatarUrl: url });
+        }
+    };
+
+    document.getElementById('btn-avatar-change').onclick = () => {
+        viewConfirmed.style.display = 'none';
+        viewPicker.style.display = 'block';
+    };
+
+    updatePreview();
+    renderGrid();
+}
+
+function showAvatarPicker() {
+    const sec = document.getElementById('avatar-picker-section');
+    if(sec && role === 'student') {
+        sec.style.display = 'block';
+        document.getElementById('avatar-picker-view').style.display = 'block';
+        document.getElementById('avatar-confirmed-view').style.display = 'none';
+        initAvatarPicker(); // re-initialize to ensure it picks up DOM events properly
+    }
 }
 
 function burstConfetti() {
@@ -1254,6 +1348,10 @@ function buildTypingFeedbackHTML(playerAns, q) {
 function switchScreen(screenName) {
     Object.values(screens).forEach(screen => screen.classList.remove('active'));
     screens[screenName].classList.add('active');
+
+    if (screenName === 'lobby') {
+        showAvatarPicker();
+    }
 
     // Ambient background FX: only on casual/waiting screens
     const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
@@ -3357,7 +3455,7 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
         const htp = document.getElementById('host-total-players'); if(htp) htp.innerText = count;
 
         document.getElementById('lobby-players-list').innerHTML = Object.keys(players).map(name =>
-            playerChipHTML(name)
+            playerChipHTML(name, players[name]?.avatarUrl)
         ).join('');
     });
 
@@ -3449,7 +3547,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
         const listEl = document.getElementById('lobby-players-list');
         if(listEl) {
             listEl.innerHTML = Object.keys(players).map(name =>
-                playerChipHTML(name)
+                playerChipHTML(name, players[name]?.avatarUrl)
             ).join('');
         }
     });
@@ -3528,7 +3626,7 @@ if (urlParams.has('room')) {
                 const listEl = document.getElementById('lobby-players-list');
                 if (listEl) {
                     listEl.innerHTML = Object.keys(players).map(name =>
-                        playerChipHTML(name)
+                        playerChipHTML(name, players[name]?.avatarUrl)
                     ).join('');
                 }
             });
@@ -4065,42 +4163,54 @@ async function endQuestion() {
 // response (which callers JSON.parse). Provider can be 'gemini', 'groq', or
 // 'openrouter' (the latter two use an OpenAI-compatible chat API).
 async function callAIModel(provider, model, apiKey, promptText) {
-    if (provider === 'gemini') {
-        const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const generativeModel = genAI.getGenerativeModel({ model: model });
-        const result = await generativeModel.generateContent({
-            contents: [{ role: 'user', parts: [{ text: promptText }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        });
-        return result.response.text();
-    }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    try {
+        if (provider === 'gemini') {
+            const { GoogleGenerativeAI } = await import("https://esm.run/@google/generative-ai");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const generativeModel = genAI.getGenerativeModel({ model: model });
+            // The gemini SDK doesn't natively accept abort signal easily without fetch mocking,
+            // but we can wrap it in a Promise.race for the timeout.
+            const result = await Promise.race([
+                generativeModel.generateContent({
+                    contents: [{ role: 'user', parts: [{ text: promptText }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('AI Request timed out')), 15000))
+            ]);
+            return result.response.text();
+        }
 
-    const baseUrl = provider === 'groq'
-        ? 'https://api.groq.com/openai/v1'
-        : 'https://openrouter.ai/api/v1';
-    const resp = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.href, 'X-Title': 'Spot Diagnosis Game' } : {})
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: [{ role: 'user', content: promptText }],
-            temperature: 0,
-            response_format: { type: 'json_object' }
-        })
-    });
-    if (!resp.ok) {
-        const errText = await resp.text();
-        throw new Error(`AI API error ${resp.status}: ${errText.slice(0, 300)}`);
+        const baseUrl = provider === 'groq'
+            ? 'https://api.groq.com/openai/v1'
+            : 'https://openrouter.ai/api/v1';
+        const resp = await fetch(`${baseUrl}/chat/completions`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+                ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.href, 'X-Title': 'Spot Diagnosis Game' } : {})
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: 'user', content: promptText }],
+                temperature: 0,
+                response_format: { type: 'json_object' }
+            })
+        });
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(`AI API error ${resp.status}: ${errText.slice(0, 300)}`);
+        }
+        const data = await resp.json();
+        const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (!content) throw new Error('AI returned an empty response.');
+        return content;
+    } finally {
+        clearTimeout(timeoutId);
     }
-    const data = await resp.json();
-    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-    if (!content) throw new Error('AI returned an empty response.');
-    return content;
 }
 
 async function runAIGrading(q, qIndex) {
@@ -4167,8 +4277,8 @@ async function runAIGrading(q, qIndex) {
     }
     
     promptText += `\nFor each concept, evaluate the match using 3 tiers:\n`;
-    promptText += `- "full": Meaning is identical to the key (including valid acronyms like STEMI for ST elevation, or same meaning with different word order like 'dilated bowel' for 'bowel dilation').\n`;
-    promptText += `- "partial": Captures some meaning, uses informal synonyms, or related but incomplete.\n`;
+    promptText += `- "full": Meaning is identical to the key (including valid acronyms like STEMI for ST elevation). Spelling must be strictly correct with no noticeable typos.\n`;
+    promptText += `- "partial": Captures some meaning, uses informal synonyms, is related but incomplete, OR contains noticeable spelling errors/typos for medical terms (e.g. 'tretradotoxin' instead of 'tetrodotoxin').\n`;
     promptText += `- "none": Incorrect, unrelated, or the key appears but in a clinically different context (e.g. 'T inverted at inferior wall' is 'none' for 'STE at inferior wall'). Related outcomes like 'MI' for finding 'ST elevation' is 'none'.\n`;
     
     promptText += `\nReturn ONLY valid JSON in this exact shape: {"answers":[{"id":"A1","confidence":0.0,"concepts":[{"conceptId":1,"tier":"full","reason":"English explanation"}]}]}\n`;
@@ -4977,11 +5087,12 @@ async function showResults() {
     const toggleBtn = document.getElementById('btn-toggle-leaderboard');
     if (othersList) {
         if (sorted.length > 3) {
-            othersList.innerHTML = sorted.slice(3).map((p, i) =>
-                `<li style="background: rgba(255,255,255,0.1); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span>#${i+4} ${avatarFor(p[0])} ${escapeHtml(p[0])}</span> <span>${p[1].score} pts</span>
-                </li>`
-            ).join('');
+            othersList.innerHTML = sorted.slice(3).map((p, i) => {
+                const url = avatarFor(p[0], p[1].avatarUrl);
+                return `<li style="background: rgba(255,255,255,0.1); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span style="display:flex; align-items:center; gap:8px;">#${i+4} <img src="${url}" class="lb-avatar" alt=""> ${escapeHtml(p[0])}</span> <span>${p[1].score} pts</span>
+                </li>`;
+            }).join('');
             if(othersTitle) othersTitle.style.display = 'block';
             if(toggleBtn) {
                 toggleBtn.style.display = 'block';
@@ -5013,19 +5124,22 @@ async function showResults() {
 
     // Populate podium data (scores start at 0 and tally up on reveal)
     if (sorted[0]) {
-        document.getElementById('podium-name-1').innerText = `${avatarFor(sorted[0][0])} ${sorted[0][0]}`;
+        const url = avatarFor(sorted[0][0], sorted[0][1].avatarUrl);
+        document.getElementById('podium-name-1').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[0][0])}`;
         const s = document.getElementById('podium-score-1');
         s.dataset.target = sorted[0][1].score;
         s.innerText = '0 pts';
     }
     if (sorted[1]) {
-        document.getElementById('podium-name-2').innerText = `${avatarFor(sorted[1][0])} ${sorted[1][0]}`;
+        const url = avatarFor(sorted[1][0], sorted[1][1].avatarUrl);
+        document.getElementById('podium-name-2').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[1][0])}`;
         const s = document.getElementById('podium-score-2');
         s.dataset.target = sorted[1][1].score;
         s.innerText = '0 pts';
     }
     if (sorted[2]) {
-        document.getElementById('podium-name-3').innerText = `${avatarFor(sorted[2][0])} ${sorted[2][0]}`;
+        const url = avatarFor(sorted[2][0], sorted[2][1].avatarUrl);
+        document.getElementById('podium-name-3').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[2][0])}`;
         const s = document.getElementById('podium-score-3');
         s.dataset.target = sorted[2][1].score;
         s.innerText = '0 pts';
@@ -5070,7 +5184,8 @@ async function showResults() {
             if (spotlight) { spotlight.style.left = '50%'; spotlight.classList.add('active', 'slam'); }
             // Champion name overlay
             if (championOverlay && championName && sorted[0]) {
-                championName.innerText = `${avatarFor(sorted[0][0])} ${sorted[0][0]}`;
+                const url = avatarFor(sorted[0][0], sorted[0][1].avatarUrl);
+                championName.innerHTML = `<img src="${url}" class="champion-avatar" alt=""> ${escapeHtml(sorted[0][0])}`;
                 championOverlay.style.display = 'flex';
                 setTimeout(() => { championOverlay.classList.add('show'); }, 30);
                 setTimeout(() => { championOverlay.classList.remove('show'); championOverlay.style.display = 'none'; }, 4500);
