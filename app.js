@@ -13,7 +13,7 @@ function updateAnswerCounters(count) {
 // and accept that others could use it up to its quota.
 const HARDCODED_AI_PROVIDER = 'gemini';        // 'gemini' | 'groq' | 'openrouter'
 const HARDCODED_AI_KEY = 'AQ.Ab8RN6IxLewb' + 'zKg6OwmKStdOYnGiV' + 'AucFMXctogSSIzDGxMTYg'; // obfuscated to avoid bot detection
-const HARDCODED_AI_MODEL = 'gemini-2.0-flash';
+const HARDCODED_AI_MODEL = 'gemini-3.6-flash';
 
 // True while the maker preview is showing a single question. Blocks advancing
 // through the quiz, submitting answers, and other live-game actions.
@@ -4345,8 +4345,8 @@ async function runAIGrading(q, qIndex) {
 
     // OUTPUT
     promptText += `Return ONE valid JSON object, no markdown. Every answer ID and every concept ID exactly once.\n`;
-    promptText += `"reason" (optional): only if tier is "partial" or clinically contradicted — omit otherwise.\n`;
-    promptText += `SHAPE: {"answers":[{"id":"A1","concepts":[{"conceptId":1,"tier":"full"}]}]}\n\n`;
+    promptText += `"reason": if tier is "partial" or clinically contradicted, explain briefly. Otherwise, it MUST be an empty string "".\n`;
+    promptText += `SHAPE: {"answers":[{"id":"A1","concepts":[{"conceptId":1,"tier":"full","reason":""}]}]}\n\n`;
 
     // STUDENT ANSWERS
     promptText += `ANSWERS\n`;
