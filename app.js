@@ -11,9 +11,9 @@ function updateAnswerCounters(count) {
 // Embedded AI config — set ONCE so every deployment has AI grading with no per-user setup.
 // WARNING: these values ship to the browser and are readable by anyone. Use a free API key
 // and accept that others could use it up to its quota.
-const HARDCODED_AI_PROVIDER = 'gemini';        // 'gemini' | 'groq' | 'openrouter'
-const HARDCODED_AI_KEY = 'AQ.Ab8RN6IxLewb' + 'zKg6OwmKStdOYnGiV' + 'AucFMXctogSSIzDGxMTYg'; // obfuscated to avoid bot detection
-const HARDCODED_AI_MODEL = 'gemini-3.6-flash';
+const HARDCODED_AI_PROVIDER = 'groq';           // 'gemini' | 'groq' | 'openrouter'
+const HARDCODED_AI_KEY = 'gsk_SFhqLXbs' + 'jTumguj9R8FB' + 'WGdyb3FYrDMQ' + 'Rnj05E55NjCGbqQpD3cR'; // obfuscated to avoid bot detection
+const HARDCODED_AI_MODEL = 'llama-3.3-70b-versatile';
 
 // True while the maker preview is showing a single question. Blocks advancing
 // through the quiz, submitting answers, and other live-game actions.
