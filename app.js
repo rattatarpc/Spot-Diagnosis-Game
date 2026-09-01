@@ -4369,10 +4369,7 @@ async function runAIGrading(q, qIndex) {
 
 
     try {
-        console.log(`[AI DEBUG] Calling model=${model} provider=${provider} promptChars=${promptText.length} players=${answersToGrade.length}`);
-        const t0 = Date.now();
         const rawJsonStr = await callAIModel(provider, model, apiKey, promptText);
-        console.log(`[AI DEBUG] Response received in ${Date.now()-t0}ms, chars=${rawJsonStr.length}`);
         const parsed = JSON.parse(rawJsonStr);
         const aiAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
         if (!Array.isArray(aiAnswers)) throw new Error('AI returned an invalid grading format.');
