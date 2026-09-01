@@ -13,7 +13,7 @@ function updateAnswerCounters(count) {
 // and accept that others could use it up to its quota.
 const HARDCODED_AI_PROVIDER = 'groq';           // 'gemini' | 'groq' | 'openrouter'
 const HARDCODED_AI_KEY = 'gsk_SFhqLXbs' + 'jTumguj9R8FB' + 'WGdyb3FYrDMQ' + 'Rnj05E55NjCGbqQpD3cR'; // obfuscated to avoid bot detection
-const HARDCODED_AI_MODEL = 'llama3-70b-8192';
+const HARDCODED_AI_MODEL = 'llama-3.3-70b-versatile';
 
 // True while the maker preview is showing a single question. Blocks advancing
 // through the quiz, submitting answers, and other live-game actions.
