@@ -4345,8 +4345,8 @@ async function runAIGrading(q, qIndex) {
 
     // OUTPUT
     promptText += `Return ONE valid JSON object, no markdown. Every answer ID and every concept ID exactly once.\n`;
-    promptText += `"confidence": 0.0-1.0. "reason" (optional): only if tier is "partial" or clinically contradicted — omit otherwise.\n`;
-    promptText += `SHAPE: {"answers":[{"id":"A1","confidence":0.9,"concepts":[{"conceptId":1,"tier":"full"}]}]}\n\n`;
+    promptText += `"reason" (optional): only if tier is "partial" or clinically contradicted — omit otherwise.\n`;
+    promptText += `SHAPE: {"answers":[{"id":"A1","concepts":[{"conceptId":1,"tier":"full"}]}]}\n\n`;
 
     // STUDENT ANSWERS
     promptText += `ANSWERS\n`;
@@ -4414,7 +4414,6 @@ async function runAIGrading(q, qIndex) {
             updates[`rooms/${roomCode}/players/${source.playerName}/awardedPoints/${qIndex}`] = pts;
             updates[`rooms/${roomCode}/players/${source.playerName}/aiGrading`] = {
                 score: pts > 150 ? pts - 150 : pts,
-                confidence: Math.max(0, Math.min(1, Number(aiAnswer.confidence) || 0)),
                 concepts: conceptsArr,
                 penalty: penalty
             };
@@ -4742,12 +4741,9 @@ async function viewConceptBreakdown(playerName) {
     const ans = pData.answers && pData.answers[currentQuestionIndex] ? pData.answers[currentQuestionIndex] : '';
     html += `<div style="margin-bottom:1rem; padding: 0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;"><strong>Answer:</strong> ${escapeHtml(String(ans))}</div>`;
     
-    // Confidence and Penalty
-    html += `<div style="margin-bottom:1rem;"><strong>AI Confidence:</strong> ${pData.aiGrading.confidence ?? 0} ${(pData.aiGrading.confidence || 0) < 0.7 ? '⚠️' : ''}<br>`;
+    // Penalty
     if (pData.aiGrading.penalty > 0) {
-        html += `<strong style="color:var(--danger)">Penalty:</strong> -${pData.aiGrading.penalty} pts (Rejected Words)</div>`;
-    } else {
-        html += `</div>`;
+        html += `<div style="margin-bottom:1rem;"><strong style="color:var(--danger)">Penalty:</strong> -${pData.aiGrading.penalty} pts (Rejected Words)</div>`;
     }
 
     // Concepts
