@@ -4361,7 +4361,8 @@ async function runAIGrading(q, qIndex) {
             
             // 1. Add answers for this specific chunk
             chunk.forEach((ans, idx) => {
-                const id = `C${chunkIndex}_A${idx}`;
+                const globalIdx = (chunkIndex * CHUNK_SIZE) + idx;
+                const id = `A${globalIdx + 1}`;
                 answerIdMap[id] = ans;
                 chunkPrompt += `${id}: ${JSON.stringify(ans.answer)}\n`;
             });
@@ -4369,7 +4370,8 @@ async function runAIGrading(q, qIndex) {
             // 2. Add local hints for this specific chunk
             chunkPrompt += `\nLOCAL HINTS (regex-only, does NOT detect synonyms — do not override your judgment to match these)\n`;
             chunk.forEach((ans, idx) => {
-                const id = `C${chunkIndex}_A${idx}`;
+                const globalIdx = (chunkIndex * CHUNK_SIZE) + idx;
+                const id = `A${globalIdx + 1}`;
                 const localResults = getTypingKeyResults(ans.answer, q)
                     .map(r => `${r.text}:${r.matched ? 'match' : 'no'}`)
                     .join('; ');
