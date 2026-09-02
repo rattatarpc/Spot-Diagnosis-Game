@@ -4348,31 +4348,51 @@ async function runAIGrading(q, qIndex) {
     promptText += `"reason": if tier is "partial" or clinically contradicted, explain briefly. Otherwise, it MUST be an empty string "".\n`;
     promptText += `SHAPE: {"answers":[{"id":"A1","concepts":[{"conceptId":1,"tier":"full","reason":""}]}]}\n\n`;
 
-    // STUDENT ANSWERS
-    promptText += `ANSWERS\n`;
-    answersToGrade.forEach((ans, index) => {
-        const id = `A${index + 1}`;
-        answerIdMap[id] = ans;
-        promptText += `${id}: ${JSON.stringify(ans.answer)}\n`;
-    });
-
-    // LOCAL PRE-CHECKS (untrusted hints)
-    promptText += `\nLOCAL HINTS (regex-only, does NOT detect synonyms — do not override your judgment to match these)\n`;
-    answersToGrade.forEach((ans, index) => {
-        const id = `A${index + 1}`;
-        const localResults = getTypingKeyResults(ans.answer, q)
-            .map(r => `${r.text}:${r.matched ? 'match' : 'no'}`)
-            .join('; ');
-        promptText += `${id}: ${JSON.stringify(localResults)}\n`;
-    });
-    // ───────────────────────────────────────────────────────────────────────────
-
+    // ── CHUNKING & PARALLEL EXECUTION ──────────────────────────────────────────
+    const CHUNK_SIZE = 15; // Max students per AI request to keep speed blazing fast
+    const chunks = [];
+    for (let i = 0; i < answersToGrade.length; i += CHUNK_SIZE) {
+        chunks.push(answersToGrade.slice(i, i + CHUNK_SIZE));
+    }
 
     try {
-        const rawJsonStr = await callAIModel(provider, model, apiKey, promptText);
-        const parsed = JSON.parse(rawJsonStr);
-        const aiAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
-        if (!Array.isArray(aiAnswers)) throw new Error('AI returned an invalid grading format.');
+        const aiPromises = chunks.map(async (chunk, chunkIndex) => {
+            let chunkPrompt = promptText + `ANSWERS\n`;
+            
+            // 1. Add answers for this specific chunk
+            chunk.forEach((ans, idx) => {
+                const id = `C${chunkIndex}_A${idx}`;
+                answerIdMap[id] = ans;
+                chunkPrompt += `${id}: ${JSON.stringify(ans.answer)}\n`;
+            });
+
+            // 2. Add local hints for this specific chunk
+            chunkPrompt += `\nLOCAL HINTS (regex-only, does NOT detect synonyms — do not override your judgment to match these)\n`;
+            chunk.forEach((ans, idx) => {
+                const id = `C${chunkIndex}_A${idx}`;
+                const localResults = getTypingKeyResults(ans.answer, q)
+                    .map(r => `${r.text}:${r.matched ? 'match' : 'no'}`)
+                    .join('; ');
+                chunkPrompt += `${id}: ${JSON.stringify(localResults)}\n`;
+            });
+
+            // 3. Stagger requests slightly to avoid immediate 429 rate limit collisions on Free Tiers
+            if (chunkIndex > 0) {
+                await new Promise(r => setTimeout(r, chunkIndex * 150));
+            }
+
+            // 4. Call AI Model for this chunk
+            const rawJsonStr = await callAIModel(provider, model, apiKey, chunkPrompt);
+            const parsed = JSON.parse(rawJsonStr);
+            const chunkAiAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
+            
+            if (!Array.isArray(chunkAiAnswers)) throw new Error('AI returned an invalid grading format for a chunk.');
+            return chunkAiAnswers;
+        });
+
+        // Wait for all chunks to finish concurrently
+        const allChunkResults = await Promise.all(aiPromises);
+        const aiAnswers = allChunkResults.flat();
 
         const seenIds = new Set();
         for (const aiAnswer of aiAnswers) {
