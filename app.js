@@ -3692,7 +3692,6 @@ function renderMediaCommon(q, prefix, autoplay = false) {
         ytEl.style.width = '100%';
         ytEl.style.height = '100%';
         ytEl.style.border = 'none';
-        ytEl.setAttribute('allowfullscreen', 'true');
         ytEl.setAttribute('allow', 'autoplay; encrypted-media');
 
         const blocker = document.createElement('div');
@@ -3701,9 +3700,33 @@ function renderMediaCommon(q, prefix, autoplay = false) {
         blocker.style.top = '0';
         blocker.style.left = '0';
         blocker.style.width = '100%';
-        blocker.style.height = '60px'; // Covers YouTube title
-        blocker.style.background = 'rgba(0, 0, 0, 0.9)'; // Dark overlay
+        blocker.style.height = '12%'; 
+        blocker.style.minHeight = '75px'; // Covers YouTube title completely
+        blocker.style.background = '#000000'; // Solid black
         blocker.style.zIndex = '10';
+        blocker.style.display = 'flex';
+        blocker.style.justifyContent = 'flex-end';
+        blocker.style.alignItems = 'flex-start';
+        blocker.style.padding = '8px';
+        blocker.style.boxSizing = 'border-box';
+
+        const fsBtn = document.createElement('button');
+        fsBtn.innerHTML = '⛶ Fullscreen';
+        fsBtn.style.background = 'rgba(255,255,255,0.2)';
+        fsBtn.style.color = 'white';
+        fsBtn.style.border = 'none';
+        fsBtn.style.borderRadius = '4px';
+        fsBtn.style.padding = '6px 10px';
+        fsBtn.style.cursor = 'pointer';
+        fsBtn.style.fontSize = '0.85rem';
+        fsBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                ytContainer.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        };
+        blocker.appendChild(fsBtn);
 
         ytContainer.appendChild(ytEl);
         ytContainer.appendChild(blocker);
@@ -3735,7 +3758,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
             } else if (single.includes('v=')) {
                 videoId = new URLSearchParams(new URL(single).search).get('v');
             }
-            ytEl.src = `https://www.youtube.com/embed/${videoId}?rel=0${autoplay ? '&autoplay=1&mute=1' : ''}`;
+            ytEl.src = `https://www.youtube.com/embed/${videoId}?rel=0&fs=0${autoplay ? '&autoplay=1&mute=1' : ''}`;
             if (fbEl) fbEl.style.display = 'none';
         } else if (vidEl) {
             vidEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
