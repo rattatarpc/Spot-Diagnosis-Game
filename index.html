@@ -217,7 +217,10 @@
                                     <div id="maker-media-container" style="display:none; width:100%; height:100%; justify-content:center; align-items:center;">
                                         <img id="maker-image" style="display:none; max-width:100%; max-height:100%; object-fit:contain; border-radius: 8px; border: 2px dashed var(--glass-border); background: var(--input-bg);">
                                         <video id="maker-video" controls style="display:none; max-width:100%; max-height:100%; border-radius: 8px; border: 2px dashed var(--glass-border); background: var(--input-bg);"></video>
-                                        <iframe id="maker-youtube" style="display:none; max-width:100%; height:100%; min-height: 200px; border-radius: 8px; border: 2px dashed var(--glass-border);" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                        <div id="maker-youtube-container" style="display:none; position:relative; width:100%; aspect-ratio:16/9; border-radius: 8px; overflow: hidden; border: 2px dashed var(--glass-border);">
+                                            <iframe id="maker-youtube" style="width:100%; height:100%; border:none;" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                                            <div class="youtube-title-blocker" style="position:absolute; top:0; left:0; width:100%; height:60px; background:rgba(0,0,0,0.9); z-index:10;"></div>
+                                        </div>
                                     </div>
                                     <input type="checkbox" id="maker-add-media-toggle" style="display:none;">
                                     <div id="maker-media-fields" style="display:none; width:100%; max-width: 400px; margin-top: 10px; background:var(--glass-bg); padding:15px; border-radius: 8px; border:1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
