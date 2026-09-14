@@ -2810,7 +2810,7 @@ window.saveActiveQuestion = async () => {
         const freePoint = document.getElementById('maker-free-point').checked;
 
         syncMediaType();
-        const mediaType = document.getElementById('maker-media-type').value;
+        let mediaType = document.getElementById('maker-media-type').value;
 
         let imageUrl = document.getElementById('maker-img-url').value;
         const fileInput = document.getElementById('maker-img-file');
@@ -2818,34 +2818,28 @@ window.saveActiveQuestion = async () => {
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
 
-            // Auto-detect media type from actual file type (more reliable than syncMediaType)
-            if (!mediaTypeTouched) {
-                if (file.type.startsWith('video/')) {
-                    document.getElementById('maker-media-type').value = 'video';
-                } else if (file.type.startsWith('image/')) {
-                    document.getElementById('maker-media-type').value = 'image';
-                }
+            // Always auto-detect media type from actual file MIME type — most reliable source
+            if (file.type.startsWith('video/')) {
+                mediaType = 'video';
+                document.getElementById('maker-media-type').value = 'video';
+            } else if (file.type.startsWith('image/')) {
+                mediaType = 'image';
+                document.getElementById('maker-media-type').value = 'image';
             }
-            // Re-read media type after possible auto-detection
-            const detectedMediaType = document.getElementById('maker-media-type').value;
-            // Override mediaType for the rest of this save
-            Object.defineProperty(arguments, 'mediaType', { value: detectedMediaType });
-            // Re-assign local var:
-            mediaType !== detectedMediaType && (mediaType = detectedMediaType);
 
-            if (detectedMediaType === 'video') {
+            if (mediaType === 'video') {
                 if (file.size > 5 * 1024 * 1024) {
                     throw new Error("Video file is too large! Please keep videos under 5MB or upload to YouTube and paste the link.");
                 }
                 if (file.type.includes('quicktime') || file.name.toLowerCase().endsWith('.mov')) {
-                    throw new Error("Apple .mov videos are not supported by most browsers! Please convert to vdo or upload to YouTube and paste the link instead.");
+                    throw new Error("Apple .mov videos are not supported by most browsers! Please convert to mp4 or upload to YouTube and paste the link instead.");
                 }
             }
 
             imageUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    if (detectedMediaType === 'image') {
+                    if (mediaType === 'image') {
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
