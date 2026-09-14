@@ -2818,7 +2818,22 @@ window.saveActiveQuestion = async () => {
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
 
-            if (mediaType === 'video') {
+            // Auto-detect media type from actual file type (more reliable than syncMediaType)
+            if (!mediaTypeTouched) {
+                if (file.type.startsWith('video/')) {
+                    document.getElementById('maker-media-type').value = 'video';
+                } else if (file.type.startsWith('image/')) {
+                    document.getElementById('maker-media-type').value = 'image';
+                }
+            }
+            // Re-read media type after possible auto-detection
+            const detectedMediaType = document.getElementById('maker-media-type').value;
+            // Override mediaType for the rest of this save
+            Object.defineProperty(arguments, 'mediaType', { value: detectedMediaType });
+            // Re-assign local var:
+            mediaType !== detectedMediaType && (mediaType = detectedMediaType);
+
+            if (detectedMediaType === 'video') {
                 if (file.size > 5 * 1024 * 1024) {
                     throw new Error("Video file is too large! Please keep videos under 5MB or upload to YouTube and paste the link.");
                 }
@@ -2830,7 +2845,7 @@ window.saveActiveQuestion = async () => {
             imageUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    if (mediaType === 'image') {
+                    if (detectedMediaType === 'image') {
                         const img = new Image();
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
@@ -2883,10 +2898,23 @@ window.saveActiveQuestion = async () => {
             document.getElementById('btn-change-media').innerText = 'Add Media';
         }
 
+        // === BUGFIX: Save media to customQuizData immediately, even if question text is missing.
+        // This prevents media from being "lost" during auto-save when text isn't filled in yet.
+        const currentQ = customQuizData[editIndex];
+        if (currentQ) {
+            currentQ.imageUrl = parsedUrls[0] || '';
+            currentQ.mediaType = mediaType;
+            if (parsedUrls.length > 1 && mediaType !== 'video') {
+                currentQ.imageUrls = parsedUrls;
+            } else {
+                delete currentQ.imageUrls;
+            }
+        }
 
+        // Require question text for full save (not media-only auto-save)
         if (!text) throw new Error("Question text is required");
 
-        let q = { type, text, context, imageUrl, mediaType, timer, freePoint };
+        let q = { type, text, context, imageUrl: parsedUrls[0] || '', mediaType, timer, freePoint };
 
         // Multiple images: store as array on imageUrls when several URLs were pasted
         if (parsedUrls.length > 1 && mediaType !== 'video') {
