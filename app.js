@@ -3695,12 +3695,20 @@ function renderMediaCommon(q, prefix, autoplay = false) {
     }
 
     if (mediaContainer) {
-        if (mediaContainer.dataset.currentUrl === mediaKey && mediaContainer.dataset.currentType === q.mediaType) {
+        // Only skip re-render for in-game screens (not maker preview, where we always want fresh rendering)
+        if (prefix !== 'maker' && mediaContainer.dataset.currentUrl === mediaKey && mediaContainer.dataset.currentType === q.mediaType) {
             return; // Media hasn't changed, skip re-rendering to prevent page shaking
         }
         mediaContainer.dataset.currentUrl = mediaKey;
         mediaContainer.dataset.currentType = q.mediaType || '';
-        mediaContainer.style.display = prefix === 'ekg' ? 'flex' : 'block';
+        // maker-media-container uses flexbox; ekg uses flex; others use block
+        if (prefix === 'maker') {
+            mediaContainer.style.display = 'flex';
+        } else if (prefix === 'ekg') {
+            mediaContainer.style.display = 'flex';
+        } else {
+            mediaContainer.style.display = 'block';
+        }
     }
 
     let ytContainer = document.getElementById(`${prefix}-youtube-container`);
@@ -3789,7 +3797,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
             ytEl.src = `https://www.youtube.com/embed/${videoId}?rel=0&fs=0${autoplay ? '&autoplay=1&mute=1' : ''}`;
             if (fbEl) fbEl.style.display = 'none';
         } else if (vidEl) {
-            vidEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
+            vidEl.style.display = (prefix === 'ekg' || prefix === 'maker') ? 'block' : 'inline-block';
             vidEl.src = single;
             const p = autoplay ? vidEl.play() : null;
             if (autoplay && p && p.catch) p.catch(() => {});
@@ -3806,7 +3814,7 @@ function renderMediaCommon(q, prefix, autoplay = false) {
             }
         }
     } else if (imgEl) {
-        imgEl.style.display = prefix === 'ekg' ? 'block' : 'inline-block';
+        imgEl.style.display = (prefix === 'ekg' || prefix === 'maker') ? 'block' : 'inline-block';
         imgEl.src = single;
     }
 }
