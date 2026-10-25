@@ -236,7 +236,83 @@ h1, h2, h3 {
     right: 20px;
     display: flex;
     gap: 10px;
+    align-items: center;
     z-index: 1000;
+}
+
+/* User Account / Auth Tier Menu */
+.user-menu-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.auth-tier-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    color: var(--text-main);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-family: inherit;
+    line-height: 1.2;
+}
+
+.auth-tier-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    filter: brightness(1.1);
+}
+
+.auth-tier-btn[aria-expanded="true"] .auth-tier-caret {
+    transform: rotate(180deg);
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 140px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    padding: 0.35rem;
+    z-index: 1002;
+    overflow: hidden;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+}
+
+.user-menu-logout {
+    color: #ef4444;
+}
+
+.user-menu-logout:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
 }
 
 .global-controls .custom-select-wrapper {

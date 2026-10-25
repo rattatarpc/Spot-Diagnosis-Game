@@ -1371,13 +1371,30 @@ function applyAuthTierUI(tier) {
         el.style.display = isAdmin ? '' : 'none';
     });
 
+    const userMenuContainer = document.getElementById('user-menu-container');
     const badge = document.getElementById('auth-tier-badge');
-    if (badge) {
+    const label = document.getElementById('auth-tier-label');
+    const dropdown = document.getElementById('user-menu-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+
+    if (userMenuContainer) {
+        if (!tier) {
+            userMenuContainer.style.display = 'none';
+        } else {
+            userMenuContainer.style.display = 'inline-flex';
+            if (label) label.innerText = isAdmin ? 'Admin' : 'Guest';
+            if (badge) {
+                badge.style.borderColor = isAdmin ? 'var(--primary)' : '#8b3dff';
+                badge.style.color = isAdmin ? 'var(--primary)' : '#c4b5fd';
+                badge.setAttribute('aria-expanded', 'false');
+            }
+        }
+    } else if (badge) {
         if (!tier) {
             badge.style.display = 'none';
         } else {
             badge.style.display = 'inline-block';
-            badge.innerText = isAdmin ? '🔐 Admin' : '👤 Guest';
+            badge.innerText = isAdmin ? 'Admin' : 'Guest';
             badge.style.borderColor = isAdmin ? 'var(--primary)' : '#8b3dff';
             badge.style.color = isAdmin ? 'var(--primary)' : '#c4b5fd';
         }
@@ -1392,6 +1409,11 @@ function applyAuthTierUI(tier) {
 }
 
 function logoutToLoginScreen() {
+    const dropdown = document.getElementById('user-menu-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+    const badge = document.getElementById('auth-tier-badge');
+    if (badge) badge.setAttribute('aria-expanded', 'false');
+
     applyAuthTierUI(null);
     const uInp = document.getElementById('login-admin-user');
     const pInp = document.getElementById('login-admin-pass');
@@ -1542,6 +1564,30 @@ document.getElementById('btn-login-guest')?.addEventListener('click', () => {
     document.body.setAttribute('data-role', 'student');
     applyAuthTierUI('guest');
     switchScreen('role');
+});
+
+// User Profile / Auth Tier dropdown toggle & logout in global controls
+const userMenuContainer = document.getElementById('user-menu-container');
+const userMenuDropdown = document.getElementById('user-menu-dropdown');
+const authTierBadge = document.getElementById('auth-tier-badge');
+
+authTierBadge?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!userMenuDropdown) return;
+    const isShowing = userMenuDropdown.style.display === 'block';
+    userMenuDropdown.style.display = isShowing ? 'none' : 'block';
+    authTierBadge.setAttribute('aria-expanded', !isShowing);
+});
+
+document.addEventListener('click', (e) => {
+    if (userMenuDropdown && !userMenuContainer?.contains(e.target)) {
+        userMenuDropdown.style.display = 'none';
+        authTierBadge?.setAttribute('aria-expanded', 'false');
+    }
+});
+
+document.getElementById('btn-dropdown-logout')?.addEventListener('click', () => {
+    logoutToLoginScreen();
 });
 
 document.getElementById('btn-role-logout')?.addEventListener('click', () => {
@@ -7073,7 +7119,7 @@ async function renderOfflineStudentResultScreen() {
 
 async function promptOfflineTeacherLogin(prefillCode = '') {
     const { value: creds, isConfirmed } = await Swal.fire({
-        title: '🔑 เข้าหน้าตรวจควิซออฟไลน์',
+        title: 'Check & Score Formative',
         width: 460,
         html: `
             <div style="text-align:left; display:flex; flex-direction:column; gap:0.75rem;">

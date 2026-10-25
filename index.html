@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spot Diagnosis Game</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -54,7 +54,19 @@
 
         <!-- Global Controls -->
         <div class="global-controls">
-            <span id="auth-tier-badge" style="display:none; font-size:0.78rem; padding:0.25rem 0.65rem; border-radius:999px; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-muted); font-weight:600;"></span>
+            <!-- User / Auth Tier Dropdown Menu -->
+            <div class="user-menu-container" id="user-menu-container" style="display: none;">
+                <button id="auth-tier-badge" class="auth-tier-btn" type="button" aria-haspopup="true" aria-expanded="false" title="Account Menu">
+                    <span id="auth-tier-label">Guest</span>
+                    <span class="auth-tier-caret" style="font-size: 0.65rem; transition: transform 0.2s;">▼</span>
+                </button>
+                <div class="user-menu-dropdown" id="user-menu-dropdown" style="display: none;">
+                    <div id="btn-dropdown-logout" class="user-menu-item user-menu-logout">
+                        <span style="font-size: 1rem;">🚪</span>
+                        <span>Log Out</span>
+                    </div>
+                </div>
+            </div>
             <span id="connection-status" class="connection-status" role="status" aria-live="polite">Offline</span>
             <button id="btn-settings" class="btn-icon" type="button" title="Appearance & Sound" aria-label="Open appearance and sound settings" onclick="openSettingsModal(event)">⚙️</button>
         </div>
@@ -93,8 +105,7 @@
                     <button id="btn-goto-offline-student" class="btn-primary mb-2" style="background: linear-gradient(135deg, #8b3dff, #6366f1); border-color: #8b3dff;">Formative Assignment</button>
                     <button id="btn-goto-offline-review" class="btn-primary mb-2" style="background: linear-gradient(135deg, #0ea5e9, #2563eb); border-color: #0ea5e9;">Formative Review</button>
                     <button id="btn-goto-maker" class="btn-secondary btn-create-host admin-only-ui">Create & Host</button>
-                    <button id="btn-goto-offline-teacher-login" class="btn-secondary admin-only-ui" style="margin-top: 0.5rem; font-size: 0.95rem;">🔑 ตรวจควิซออฟไลน์ (รหัสผู้ตรวจ)</button>
-                    <button id="btn-role-logout" class="btn-secondary" style="margin-top: 0.9rem; font-size: 0.85rem; opacity: 0.85;">🚪 ออกจากระบบ / สลับบัญชี</button>
+                    <button id="btn-goto-offline-teacher-login" class="btn-secondary admin-only-ui" style="margin-top: 0.5rem; font-size: 0.95rem;">Check & Score Formative</button>
                 </div>
             </div>
         </section>
@@ -124,7 +135,7 @@
 
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
                     <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.4rem; padding: 1.2rem 2.5rem; width: 100%; max-width: 360px;">🎮 Create New Game</button>
-                    <button id="btn-open-offline-dashboard-login" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px; border-color: #8b3dff; color: #c4b5fd;">📋 จัดการ / ตรวจควิซออฟไลน์</button>
+                    <button id="btn-open-offline-dashboard-login" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px; border-color: #8b3dff; color: #c4b5fd;">Check & Score Formative</button>
                     <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Download Shared Quiz</button>
                     <button id="btn-export-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Export My Quizzes</button>
                     <button id="btn-import-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Import My Quizzes</button>
@@ -1095,6 +1106,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <script src="app-services.js?v=4"></script>
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>
