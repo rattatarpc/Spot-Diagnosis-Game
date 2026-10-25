@@ -47,30 +47,68 @@
             <div class="nav-dropdown" id="nav-dropdown-menu" style="display: none;">
                 <div class="nav-item" data-target="role">Main Menu</div>
                 <div class="nav-item" data-target="join">Join a Game</div>
-                <div class="nav-item" data-target="dashboard">My Quiz Library</div>
+                <div class="nav-item admin-only-ui" id="nav-item-dashboard" data-target="dashboard">My Quiz Library</div>
+                <div class="nav-item" id="nav-item-logout" data-target="logout" style="border-top: 1px solid var(--glass-border); color: #fca5a5;">🚪 Log Out / สลับบัญชี</div>
             </div>
         </div>
 
         <!-- Global Controls -->
         <div class="global-controls">
+            <span id="auth-tier-badge" style="display:none; font-size:0.78rem; padding:0.25rem 0.65rem; border-radius:999px; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-muted); font-weight:600;"></span>
             <span id="connection-status" class="connection-status" role="status" aria-live="polite">Offline</span>
             <button id="btn-settings" class="btn-icon" type="button" title="Appearance & Sound" aria-label="Open appearance and sound settings" onclick="openSettingsModal(event)">⚙️</button>
         </div>
         <!-- Hidden background music player -->
         <audio id="bgm-player" loop preload="none"></audio>
 
+        <!-- 0. Login Gateway Screen -->
+        <section id="login-screen" class="screen active">
+            <div class="glass-container text-center" style="max-width: 500px; width: 94%;">
+                <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
+                <h1 class="title-gradient" style="margin-bottom: 0.25rem;">Spot Diagnosis</h1>
+                <p class="subtitle" style="margin-bottom: 1.5rem;">กรุณาเลือกช่องทางเข้าใช้งาน</p>
+
+                <!-- Guest / Student Quick Entry -->
+                <div style="background: rgba(139, 61, 255, 0.1); border: 1.5px solid #8b3dff; border-radius: 14px; padding: 1.15rem; margin-bottom: 1.25rem;">
+                    <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-main); margin-bottom: 0.35rem;">🎓 สำหรับผู้เล่นทั่วไป / นักศึกษา</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.85rem;">เข้าเล่นควิซแบบสด (Live Room) หรือทำควิซออฟไลน์ / ดูผลคะแนน</div>
+                    <button id="btn-login-guest" class="btn-primary" style="width: 100%; background: linear-gradient(135deg, #8b3dff, #6366f1); border-color: #8b3dff;">👤 Log in as Guest (เข้าเล่นควิซ)</button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0; color: var(--text-muted); font-size: 0.82rem;">
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                    <span>หรือสำหรับอาจารย์ / Host</span>
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                </div>
+
+                <!-- Admin / Host Login Box -->
+                <div style="background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 1.15rem; text-align: left;">
+                    <div style="font-weight: 700; font-size: 1rem; color: var(--primary); margin-bottom: 0.75rem; text-align: center;">🔐 Admin / Host Login</div>
+                    <div class="input-group" style="margin-bottom: 0.65rem;">
+                        <input type="text" id="login-admin-user" placeholder="Username" autocomplete="username" style="margin: 0;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0.85rem;">
+                        <input type="password" id="login-admin-pass" placeholder="Password" autocomplete="current-password" style="margin: 0;">
+                    </div>
+                    <div id="login-admin-error" style="display: none; color: var(--danger); font-size: 0.85rem; text-align: center; margin-bottom: 0.65rem; font-weight: 600;"></div>
+                    <button id="btn-login-admin" class="btn-secondary btn-create-host" style="width: 100%;">เข้าสู่ระบบ Admin</button>
+                </div>
+            </div>
+        </section>
+
         <!-- 1. Role Selection Screen -->
-        <section id="role-screen" class="screen active">
+        <section id="role-screen" class="screen">
             <div class="glass-container text-center">
                 <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
                 <h1 class="title-gradient">Spot Diagnosis</h1>
-                <p class="subtitle">The live classroom diagnosis quiz game</p>
+                <p class="subtitle" id="role-screen-subtitle">The live classroom diagnosis quiz game</p>
 
                 <div class="role-buttons">
                     <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room (Live)</button>
                     <button id="btn-goto-offline-student" class="btn-primary mb-2" style="background: linear-gradient(135deg, #8b3dff, #6366f1); border-color: #8b3dff;">📋 Self-Paced Quiz (Offline / ดูผล)</button>
-                    <button id="btn-goto-maker" class="btn-secondary btn-create-host">Create & Host</button>
-                    <button id="btn-goto-offline-teacher-login" class="btn-secondary" style="margin-top: 0.5rem; font-size: 0.95rem;">🔑 ตรวจควิซออฟไลน์ (รหัสผู้ตรวจ)</button>
+                    <button id="btn-goto-maker" class="btn-secondary btn-create-host admin-only-ui">Create & Host</button>
+                    <button id="btn-goto-offline-teacher-login" class="btn-secondary admin-only-ui" style="margin-top: 0.5rem; font-size: 0.95rem;">🔑 ตรวจควิซออฟไลน์ (รหัสผู้ตรวจ)</button>
+                    <button id="btn-role-logout" class="btn-secondary" style="margin-top: 0.9rem; font-size: 0.85rem; opacity: 0.85;">🚪 ออกจากระบบ / สลับบัญชี</button>
                 </div>
             </div>
         </section>
@@ -88,7 +126,7 @@
                 </div>
                 <button id="btn-join-room" class="btn-primary">Join</button>
                 <div class="btn-back-floating-wrapper">
-                    <button class="btn-secondary btn-back-floating mt-3 back-to-role" onclick="window.location.reload()">Back</button>
+                    <button class="btn-secondary btn-back-floating mt-3 back-to-role">Back</button>
                 </div>
             </div>
         </section>
@@ -1070,7 +1108,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-    <script src="app-services.js?v=3"></script>
-    <script src="app.js?v=11"></script>
+    <script src="app-services.js?v=4"></script>
+    <script src="app.js?v=12"></script>
 </body>
 </html>

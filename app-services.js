@@ -222,6 +222,18 @@ const AppServices = (() => {
         download(filename, `\uFEFF${csv}`, 'text/csv;charset=utf-8');
     }
 
+    // ── Admin / Guest Gateway Verification ──────────────────────────────────
+    // Default Admin credentials: Username = "Admin" (case-insensitive), Password = "00"
+    const ADMIN_USER_NORM = 'admin';
+    const ADMIN_PASS_HASH = hashPinSync('00', 'spot-admin-v1');
+
+    function verifyAdminCredentials(username, password) {
+        const u = String(username ?? '').trim().toLowerCase();
+        const p = String(password ?? '');
+        if (u !== ADMIN_USER_NORM) return false;
+        return hashPinSync(p, 'spot-admin-v1') === ADMIN_PASS_HASH;
+    }
+
     return {
         createId,
         downloadJson,
@@ -238,7 +250,8 @@ const AppServices = (() => {
         isAttemptReleased,
         computeAttemptTotalScore,
         buildOfflineAttemptsCsv,
-        downloadOfflineAttemptsCsv
+        downloadOfflineAttemptsCsv,
+        verifyAdminCredentials
     };
 })();
 

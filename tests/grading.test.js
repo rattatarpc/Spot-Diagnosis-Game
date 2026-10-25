@@ -9,7 +9,8 @@ const {
     getAssignmentWindowState,
     canStudentSeeAnswerKey,
     computeAttemptTotalScore,
-    buildOfflineAttemptsCsv
+    buildOfflineAttemptsCsv,
+    verifyAdminCredentials
 } = require('../app-services.js');
 
 test('Levenshtein distance handles exact and typo matches', () => {
@@ -129,4 +130,13 @@ test('buildOfflineAttemptsCsv formats Thai text and scores properly', () => {
     assert.ok(csv.includes('"released"'));
     assert.ok(csv.includes('"135"')); // 100 + 35
     assert.ok(csv.includes('"ทำได้ดีมาก ""เยี่ยม"""'));
+});
+
+test('verifyAdminCredentials accepts Admin / 00 and rejects wrong inputs', () => {
+    assert.equal(verifyAdminCredentials('Admin', '00'), true);
+    assert.equal(verifyAdminCredentials('admin', '00'), true);
+    assert.equal(verifyAdminCredentials('  ADMIN  ', '00'), true);
+    assert.equal(verifyAdminCredentials('Admin', '0'), false);
+    assert.equal(verifyAdminCredentials('Admin', '000'), false);
+    assert.equal(verifyAdminCredentials('other', '00'), false);
 });

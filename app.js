@@ -535,6 +535,7 @@ function fxInit() {
 document.addEventListener('DOMContentLoaded', fxInit);
 
 const screens = {
+    login: document.getElementById('login-screen'),
     role: document.getElementById('role-screen'),
     join: document.getElementById('join-screen'),
     dashboard: document.getElementById('dashboard-screen'),
@@ -1353,16 +1354,73 @@ function buildTypingFeedbackHTML(playerAns, q) {
 
 
 
+// Current login tier: 'admin' | 'guest' | null
+let authTier = sessionStorage.getItem('spotDiagnosis_authTier') || null;
+
+function applyAuthTierUI(tier) {
+    authTier = tier;
+    if (tier) {
+        sessionStorage.setItem('spotDiagnosis_authTier', tier);
+    } else {
+        sessionStorage.removeItem('spotDiagnosis_authTier');
+    }
+    document.body.setAttribute('data-auth-tier', tier || 'none');
+
+    const isAdmin = tier === 'admin';
+    document.querySelectorAll('.admin-only-ui').forEach(el => {
+        el.style.display = isAdmin ? '' : 'none';
+    });
+
+    const badge = document.getElementById('auth-tier-badge');
+    if (badge) {
+        if (!tier) {
+            badge.style.display = 'none';
+        } else {
+            badge.style.display = 'inline-block';
+            badge.innerText = isAdmin ? '🔐 Admin' : '👤 Guest';
+            badge.style.borderColor = isAdmin ? 'var(--primary)' : '#8b3dff';
+            badge.style.color = isAdmin ? 'var(--primary)' : '#c4b5fd';
+        }
+    }
+
+    const sub = document.getElementById('role-screen-subtitle');
+    if (sub) {
+        sub.innerText = isAdmin
+            ? 'โหมดผู้ดูแลระบบ (Admin / Host) — สร้างและจัดการควิซได้ทั้งหมด'
+            : 'โหมดผู้เล่น (Guest) — เลือกเข้าเล่นควิซแบบสด หรือทำควิซออฟไลน์';
+    }
+}
+
+function logoutToLoginScreen() {
+    applyAuthTierUI(null);
+    const uInp = document.getElementById('login-admin-user');
+    const pInp = document.getElementById('login-admin-pass');
+    const errEl = document.getElementById('login-admin-error');
+    if (uInp) uInp.value = '';
+    if (pInp) pInp.value = '';
+    if (errEl) errEl.style.display = 'none';
+    switchScreen('login');
+}
+
 function switchScreen(screenName) {
-    Object.values(screens).forEach(screen => screen.classList.remove('active'));
-    screens[screenName].classList.add('active');
+    // Guard admin-only screens so Guest or unauthenticated users cannot open them
+    const adminOnlyScreens = ['dashboard', 'maker', 'offlineTeacher'];
+    if (adminOnlyScreens.includes(screenName) && authTier !== 'admin') {
+        screenName = authTier ? 'role' : 'login';
+    }
+    if (screenName === 'role' && !authTier) {
+        screenName = 'login';
+    }
+
+    Object.values(screens).forEach(screen => { if (screen) screen.classList.remove('active'); });
+    if (screens[screenName]) screens[screenName].classList.add('active');
 
     if (screenName === 'lobby') {
         showAvatarPicker();
     }
 
     // Ambient background FX: only on casual/waiting screens
-    const fxScreens = ['role', 'join', 'lobby', 'countdown', 'feedback'];
+    const fxScreens = ['login', 'role', 'join', 'lobby', 'countdown', 'feedback'];
     const fxNowOn = fxScreens.includes(screenName);
     const fxWasOn = document.body.classList.contains('fx-active');
     document.body.classList.toggle('fx-active', fxNowOn);
@@ -1441,13 +1499,63 @@ document.querySelectorAll('.nav-item').forEach(item => {
             db.ref(`rooms/${roomCode}`).update({ gameState: 'ended' });
             roomCode = null;
         }
-        if (target === 'role') {
-            window.location.reload();
+        if (target === 'logout') {
+            logoutToLoginScreen();
+        } else if (target === 'role') {
+            switchScreen(authTier ? 'role' : 'login');
         } else {
             switchScreen(target);
         }
     });
 });
+
+// ── Login Gateway Handlers (Admin vs Guest) ─────────────────────────────────
+function handleAdminLoginSubmit() {
+    const uInp = document.getElementById('login-admin-user');
+    const pInp = document.getElementById('login-admin-pass');
+    const errEl = document.getElementById('login-admin-error');
+    const user = uInp ? uInp.value : '';
+    const pass = pInp ? pInp.value : '';
+
+    if (AppServices.verifyAdminCredentials(user, pass)) {
+        if (errEl) errEl.style.display = 'none';
+        applyAuthTierUI('admin');
+        switchScreen('role');
+    } else {
+        if (errEl) {
+            errEl.innerText = '❌ Username หรือ Password ไม่ถูกต้อง';
+            errEl.style.display = 'block';
+        }
+    }
+}
+
+document.getElementById('btn-login-admin')?.addEventListener('click', handleAdminLoginSubmit);
+document.getElementById('login-admin-pass')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleAdminLoginSubmit();
+});
+document.getElementById('login-admin-user')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleAdminLoginSubmit();
+});
+
+document.getElementById('btn-login-guest')?.addEventListener('click', () => {
+    role = 'student';
+    document.body.setAttribute('data-role', 'student');
+    applyAuthTierUI('guest');
+    switchScreen('role');
+});
+
+document.getElementById('btn-role-logout')?.addEventListener('click', () => {
+    logoutToLoginScreen();
+});
+
+// Initialize auth tier on page load (restore session if already logged in)
+if (authTier === 'admin' || authTier === 'guest') {
+    applyAuthTierUI(authTier);
+    switchScreen('role');
+} else {
+    applyAuthTierUI(null);
+    switchScreen('login');
+}
 
 document.getElementById('btn-goto-join').addEventListener('click', () => {
     role = 'student';
@@ -3607,6 +3715,7 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
 
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('room')) {
+    if (!authTier) applyAuthTierUI('guest');
     role = 'student';
     document.body.setAttribute('data-role', 'student');
     const rm = urlParams.get('room');
@@ -7609,6 +7718,7 @@ document.getElementById('btn-offline-export-csv')?.addEventListener('click', () 
 
 // Deep-link support: ?assign=CODE(&sid=STUDENT_ID)
 if (urlParams.has('assign')) {
+    if (!authTier) applyAuthTierUI('guest');
     const aCode = (urlParams.get('assign') || '').trim().toUpperCase();
     const sId = (urlParams.get('sid') || '').trim();
     role = 'student';
