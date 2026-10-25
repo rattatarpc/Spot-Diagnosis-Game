@@ -6328,7 +6328,31 @@ async function enterOfflineAssignment() {
     const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?assign=${encodeURIComponent(assignCode)}&sid=${encodeURIComponent(studentId)}`;
     window.history.replaceState({ path: newUrl }, '', newUrl);
 
-    // 1. If already submitted/graded/released -> go straight to result view (1 attempt rule, Spec #2)
+    // 1. If user entered via "Formative Review" mode, look up their submitted result
+    if (offlineState.joinEntryMode === 'review') {
+        if (!existingAttempt) {
+            return Swal.fire('ไม่พบข้อมูลการทำควิซ', 'ยังไม่มีประวัติการทำควิซของรหัสนักศึกษานี้ กรุณาเข้าทำผ่านเมนู Formative Assignment ก่อนครับ', 'info');
+        }
+        if (existingAttempt.status === 'in_progress') {
+            const res = await Swal.fire({
+                title: 'คุณยังทำควิซนี้ค้างอยู่',
+                text: 'คุณยังไม่ได้กดส่งคำตอบ ต้องการเข้าไปทำควิซต่อหรือไม่?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'เข้าไปทำต่อ',
+                cancelButtonText: 'ยกเลิก'
+            });
+            if (!res.isConfirmed) return;
+        } else {
+            offlineState.attempt = existingAttempt;
+            offlineState.studentName = existingAttempt.name || studentName || studentId;
+            await renderOfflineStudentResultScreen();
+            switchScreen('offlineStudentResult');
+            return;
+        }
+    }
+
+    // 2. If already submitted/graded/released -> go straight to result view (1 attempt rule, Spec #2)
     if (existingAttempt && existingAttempt.status && existingAttempt.status !== 'in_progress') {
         offlineState.attempt = existingAttempt;
         offlineState.studentName = existingAttempt.name || studentName || studentId;
@@ -7634,10 +7658,40 @@ async function editOfflineAssignmentWindowModal() {
 }
 
 // Wire up offline mode buttons
-document.getElementById('btn-goto-offline-student')?.addEventListener('click', () => {
+function openOfflineJoinScreen(mode = 'assignment') {
     role = 'student';
     document.body.setAttribute('data-role', 'student');
+    offlineState.joinEntryMode = mode;
+
+    const titleEl = document.getElementById('offline-join-title');
+    const subEl = document.getElementById('offline-join-subtitle');
+    const enterBtn = document.getElementById('btn-offline-enter');
+    const hintEl = document.getElementById('offline-join-hint');
+    const nameInp = document.getElementById('offline-student-name');
+
+    if (mode === 'review') {
+        if (titleEl) titleEl.innerText = '📊 Formative Review';
+        if (subEl) subEl.innerText = 'กรอกรหัสควิซ รหัสนักศึกษา และชื่อ เพื่อดูผลคะแนนและ Feedback';
+        if (enterBtn) enterBtn.innerText = '🔍 ดูผลคะแนน & Feedback';
+        if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษาเดิม</strong> ที่เคยส่งคำตอบไว้เพื่อดูคะแนน เฉลย และคำแนะนำจากอาจารย์';
+        if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
+    } else {
+        if (titleEl) titleEl.innerText = '📋 Formative Assignment';
+        if (subEl) subEl.innerText = 'เข้าทำควิซออฟไลน์ หรือทำต่อจากที่ค้างไว้';
+        if (enterBtn) enterBtn.innerText = '🚀 เริ่มทำควิซ';
+        if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษา + ชื่อ-นามสกุล</strong> เพื่อเริ่มทำข้อสอบ (บันทึกอัตโนมัติ)';
+        if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
+    }
+
     switchScreen('offlineJoin');
+}
+
+document.getElementById('btn-goto-offline-student')?.addEventListener('click', () => {
+    openOfflineJoinScreen('assignment');
+});
+
+document.getElementById('btn-goto-offline-review')?.addEventListener('click', () => {
+    openOfflineJoinScreen('review');
 });
 
 document.getElementById('btn-goto-offline-teacher-login')?.addEventListener('click', () => {
