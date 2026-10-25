@@ -131,16 +131,11 @@ const AppServices = (() => {
         return { state: 'open', now: nowMs, opensAt, closesAt };
     }
 
-    // Answer key visibility rule (Spec #7):
+    // Answer key visibility rule:
     // Answer keys & correct options are shown to a student ONLY when their
-    // attempt (or the whole assignment) is released AND the assignment is closed.
-    function canStudentSeeAnswerKey(meta = {}, attempt = {}, nowMs = Date.now()) {
-        const isReleased = Boolean(meta.resultsReleasedAll || attempt.released);
-        if (!isReleased) return false;
-        const closesAt = meta.closesAt ? Number(meta.closesAt) : null;
-        if (closesAt && nowMs < closesAt) return false;
-        if (!closesAt && !meta.closedManually) return false;
-        return true;
+    // attempt (or the whole assignment) has been released by the instructor.
+    function canStudentSeeAnswerKey(meta = {}, attempt = {}) {
+        return Boolean(meta.resultsReleasedAll || attempt.released);
     }
 
     function isAttemptReleased(meta = {}, attempt = {}) {

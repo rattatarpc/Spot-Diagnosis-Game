@@ -6448,10 +6448,6 @@ async function enterOfflineAssignment() {
     offlineState.quiz = quiz;
     offlineState.submitting = false;
 
-    // Update URL so student can bookmark or refresh
-    const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?assign=${encodeURIComponent(assignCode)}&sid=${encodeURIComponent(studentId)}`;
-    window.history.replaceState({ path: newUrl }, '', newUrl);
-
     // 1. If user entered via "Formative Review" mode, look up their submitted result
     if (isReviewMode) {
         if (!existingAttempt) {
@@ -7085,7 +7081,7 @@ async function renderOfflineStudentResultScreen() {
     const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
     const maxPossible = quiz.reduce((sum, q) => sum + getQuestionMaxScoreOffline(q), 0);
     const released = AppServices.isAttemptReleased(meta, att);
-    const showKey = true;
+    const showKey = AppServices.canStudentSeeAnswerKey(meta, att);
 
     let statusBadgeHtml = '';
     if (!released) {
@@ -7093,7 +7089,7 @@ async function renderOfflineStudentResultScreen() {
             <div class="offline-review-status-box" style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
                 <strong>Submitted — Pending Instructor Review & Feedback</strong>
                 <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
-                    The score shown below is a preliminary auto-graded score. Your instructor may adjust points and add feedback later.
+                    The score shown below is a preliminary auto-graded score. The answer key and instructor feedback will be available after the instructor releases the results.
                 </div>
             </div>
         `;
@@ -7106,7 +7102,7 @@ async function renderOfflineStudentResultScreen() {
     }
 
     let overallFeedbackHtml = '';
-    if (att.overallFeedback && String(att.overallFeedback).trim()) {
+    if (released && att.overallFeedback && String(att.overallFeedback).trim()) {
         overallFeedbackHtml = `
             <div class="offline-review-feedback-box" style="background:rgba(139,61,255,0.14); border:1.5px solid #8b3dff; border-radius:12px; padding:1rem 1.25rem; margin:1rem 0; text-align:left;">
                 <div style="font-weight:700; color:#c4b5fd; margin-bottom:0.35rem;">Overall Feedback from Instructor</div>
@@ -7204,7 +7200,7 @@ async function renderOfflineStudentResultScreen() {
         }
 
         let commentHtml = '';
-        if (g.comment && String(g.comment).trim()) {
+        if (released && g.comment && String(g.comment).trim()) {
             commentHtml = `
                 <div style="margin-top:0.55rem; padding:0.55rem 0.8rem; background:rgba(139,61,255,0.14); border-left:3px solid #8b3dff; border-radius:6px; font-size:0.9rem;">
                     <strong>Instructor Feedback:</strong> <span style="white-space:pre-wrap;">${escapeHtml(g.comment)}</span>
@@ -7368,9 +7364,9 @@ function renderOfflineTeacherHeader() {
 
     const releaseBtn = document.getElementById('btn-offline-release-all');
     if (releaseBtn) {
-        releaseBtn.innerText = meta.resultsReleasedAll ? 'Unrelease All Results' : 'Release All Results';
-        releaseBtn.style.background = meta.resultsReleasedAll ? 'var(--danger)' : 'var(--success)';
-        releaseBtn.style.borderColor = meta.resultsReleasedAll ? 'var(--danger)' : 'var(--success)';
+        releaseBtn.innerText = meta.resultsReleasedAll ? 'All Results Released' : 'Release All Results';
+        releaseBtn.style.background = 'var(--success)';
+        releaseBtn.style.borderColor = 'var(--success)';
     }
 }
 
@@ -7430,7 +7426,7 @@ function renderOfflineTeacherStudentsTab(container) {
                 <td style="padding:0.65rem;">${formatDurationClock(att.elapsedSec || 0)}</td>
                 <td style="padding:0.65rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
                     <button class="btn-pill btn-pill-primary btn-grade-student" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">Grade / Feedback</button>
-                    <button class="btn-pill btn-pill-outline btn-release-one" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">${att.released ? 'Unrelease' : 'Release'}</button>
+                    <button class="btn-pill ${isRel ? 'btn-pill-primary' : 'btn-pill-outline'} btn-release-one" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem; ${isRel ? 'background:var(--success); border-color:var(--success); color:#fff;' : ''}" title="${isRel ? 'Click to cancel release for this student' : 'Release result to this student'}">${isRel ? 'Released' : 'Release'}</button>
                     <button class="btn-pill btn-pill-danger-outline btn-reset-attempt" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;" title="Reset this student's attempt">Reset</button>
                 </td>
             </tr>
@@ -7461,11 +7457,22 @@ function renderOfflineTeacherStudentsTab(container) {
     container.querySelectorAll('.btn-release-one').forEach(btn => {
         btn.onclick = async () => {
             const sid = btn.dataset.sid;
-            const cur = Boolean(offlineState.attemptsMap?.[sid]?.released);
-            await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${sid}`).update({
-                released: !cur,
-                status: !cur ? 'released' : 'graded'
-            });
+            const att = offlineState.attemptsMap?.[sid] || {};
+            const cur = AppServices.isAttemptReleased(offlineState.meta || {}, att);
+            const nextRel = !cur;
+            const updates = {};
+            if (!nextRel && offlineState.meta?.resultsReleasedAll) {
+                updates[`rooms/offline_${offlineState.assignCode}/meta/resultsReleasedAll`] = false;
+                Object.entries(offlineState.attemptsMap || {}).forEach(([otherSid, otherAtt]) => {
+                    if (otherSid !== sid && otherAtt) {
+                        updates[`rooms/offline_${offlineState.assignCode}/attempts/${otherSid}/released`] = true;
+                        updates[`rooms/offline_${offlineState.assignCode}/attempts/${otherSid}/status`] = 'released';
+                    }
+                });
+            }
+            updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/released`] = nextRel;
+            updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/status`] = nextRel ? 'released' : 'graded';
+            await db.ref().update(updates);
         };
     });
     container.querySelectorAll('.btn-reset-attempt').forEach(btn => {
@@ -7546,7 +7553,7 @@ async function openStudentGradingModal(studentId) {
                     <textarea id="swal-overall-feedback" class="swal2-textarea" style="margin:0; width:100%; min-height:90px;" placeholder="Write praise, review points, or overall advice...">${escapeHtml(att.overallFeedback || '')}</textarea>
                 </div>
                 <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; font-size:0.92rem;">
-                    <input type="checkbox" id="swal-release-this-student" ${att.released ? 'checked' : ''}>
+                    <input type="checkbox" id="swal-release-this-student" ${AppServices.isAttemptReleased(offlineState.meta || {}, att) ? 'checked' : ''}>
                     <span>Release score and feedback to this student immediately</span>
                 </label>
             </div>
@@ -7947,23 +7954,28 @@ document.getElementById('btn-offline-edit-window')?.addEventListener('click', ()
 
 document.getElementById('btn-offline-release-all')?.addEventListener('click', async () => {
     const cur = Boolean(offlineState.meta?.resultsReleasedAll);
-    const winState = AppServices.getAssignmentWindowState(offlineState.meta || {}, Date.now());
-    const isClosed = winState.state === 'closed' || offlineState.meta?.closedManually;
+    const nextState = !cur;
 
     const res = await Swal.fire({
-        title: cur ? 'Unrelease results for all students?' : 'Release results to all students?',
-        html: !cur && !isClosed
-            ? `<p>All students will be able to see their graded scores and feedback immediately.</p><p style="font-size:0.85rem; color:#eab308;">Note: Since the quiz is not closed yet, the answer key will remain hidden until due time to prevent leaks.</p>`
-            : `<p>All students who enter with their ID will see their scores and feedback.</p>`,
+        title: cur ? 'Cancel release for all students?' : 'Release results to all students?',
+        html: cur
+            ? `<p>Students will no longer see the answer key and instructor feedback until released again.</p>`
+            : `<p>All students will be able to see their graded scores, answer key, and feedback immediately.</p>`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: cur ? 'Unrelease Results' : 'Release All Results',
-        cancelButtonText: 'Cancel'
+        confirmButtonText: cur ? 'Cancel Release' : 'Release All Results',
+        cancelButtonText: 'Close'
     });
     if (res.isConfirmed) {
-        await db.ref(`rooms/offline_${offlineState.assignCode}/meta`).update({
-            resultsReleasedAll: !cur
+        const updates = {
+            [`rooms/offline_${offlineState.assignCode}/meta/resultsReleasedAll`]: nextState
+        };
+        Object.entries(offlineState.attemptsMap || {}).forEach(([sid, att]) => {
+            if (!att) return;
+            updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/released`] = nextState;
+            updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/status`] = nextState ? 'released' : 'graded';
         });
+        await db.ref().update(updates);
     }
 });
 
@@ -7988,6 +8000,7 @@ if (urlParams.has('assign')) {
     const idInp = document.getElementById('offline-student-id');
     if (codeInp) codeInp.value = aCode;
     if (idInp && sId) idInp.value = sId;
+    window.history.replaceState({}, '', window.location.pathname);
     switchScreen('offlineJoin');
 }
 

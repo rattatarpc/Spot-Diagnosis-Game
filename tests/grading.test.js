@@ -72,19 +72,11 @@ test('getAssignmentWindowState evaluates open/close timestamps', () => {
     assert.equal(getAssignmentWindowState({}, 500).state, 'open');
 });
 
-test('canStudentSeeAnswerKey requires BOTH released AND closed', () => {
+test('canStudentSeeAnswerKey requires attempt or assignment to be released', () => {
     const metaOpen = { closesAt: 2000, resultsReleasedAll: false };
-    // Not released, not closed
-    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: false }, 1500), false);
-    // Individual released, but quiz still open -> NO answer key leak!
-    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: true }, 1500), false);
-    // Whole room released, but quiz still open -> NO answer key leak!
-    assert.equal(canStudentSeeAnswerKey({ closesAt: 2000, resultsReleasedAll: true }, {}, 1500), false);
-    // Quiz closed, but not released -> NO
-    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: false }, 2500), false);
-    // Quiz closed AND released (individual or room) -> YES
-    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: true }, 2500), true);
-    assert.equal(canStudentSeeAnswerKey({ closesAt: 2000, resultsReleasedAll: true }, {}, 2500), true);
+    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: false }), false);
+    assert.equal(canStudentSeeAnswerKey(metaOpen, { released: true }), true);
+    assert.equal(canStudentSeeAnswerKey({ closesAt: 2000, resultsReleasedAll: true }, { released: false }), true);
 });
 
 test('computeAttemptTotalScore prefers teacherPoints over autoPoints and skips slides/freePoint', () => {
