@@ -1400,12 +1400,6 @@ function applyAuthTierUI(tier) {
         }
     }
 
-    const sub = document.getElementById('role-screen-subtitle');
-    if (sub) {
-        sub.innerText = isAdmin
-            ? 'โหมดผู้ดูแลระบบ (Admin / Host) — สร้างและจัดการควิซได้ทั้งหมด'
-            : 'โหมดผู้เล่น (Guest) — เลือกเข้าเล่นควิซแบบสด หรือทำควิซออฟไลน์';
-    }
 }
 
 function logoutToLoginScreen() {
@@ -1760,7 +1754,7 @@ async function renderDashboard() {
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px;">
                 <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">Host Live</button>
-                <button class="btn-pill btn-pill-outline btn-create-offline" data-index="${index}" style="border-color:#8b3dff; color:#c4b5fd;">📋 เปิดควิซออฟไลน์</button>
+                <button class="btn-pill btn-pill-outline btn-create-offline" data-index="${index}" style="border-color:#8b3dff; color:#c4b5fd;">Set as Formative</button>
                 <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">Share / Get Code</button>
                 <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">Edit</button>
                 <button class="btn-pill btn-pill-danger-outline btn-delete-quiz" data-index="${index}" title="Delete quiz" aria-label="Delete quiz">🗑️</button>
@@ -1869,7 +1863,7 @@ async function renderDashboard() {
             const library = await getLocalQuizzes();
             const quiz = library[idx];
             if (!quiz || !quiz.questions || quiz.questions.length === 0) {
-                return Swal.fire('Wait!', 'ควิซนี้ยังไม่มีคำถาม กรุณาเพิ่มคำถามก่อนเปิดรอบออฟไลน์', 'warning');
+                return Swal.fire('Wait!', 'This quiz has no questions. Please add questions before setting as formative.', 'warning');
             }
             if (typeof openCreateOfflineAssignmentModal === 'function') {
                 openCreateOfflineAssignmentModal(quiz);
@@ -6106,57 +6100,57 @@ async function openCreateOfflineAssignmentModal(quiz) {
     const defaultClose = now + 7 * 24 * 3600 * 1000; // +7 days
 
     const { value: formValues, isConfirmed } = await Swal.fire({
-        title: '📋 เปิดรอบควิซออฟไลน์',
+        title: 'Set as Formative',
         width: 560,
         html: `
             <div style="text-align:left; font-size:0.92rem; display:flex; flex-direction:column; gap:0.75rem;">
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">ชื่อรอบควิซออฟไลน์</label>
-                    <input id="swal-off-title" class="swal2-input" style="margin:0; width:100%;" value="${escapeHtml(quiz.title || 'Untitled Quiz')}">
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Formative's Name</label>
+                    <input id="swal-off-title" class="swal2-input" style="margin:0; width:100%;" value="${escapeHtml(quiz.title || 'Untitled Formative')}">
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
                     <div>
-                        <label style="font-weight:600; display:block; margin-bottom:4px;">เวลาเริ่มเปิดให้ทำ (เว้นว่าง = เปิดทันที)</label>
+                        <label style="font-weight:600; display:block; margin-bottom:4px;">Start Time (Leave blank = open immediately)</label>
                         <input id="swal-off-opens" type="datetime-local" class="swal2-input" style="margin:0; width:100%; font-size:0.85rem;">
                     </div>
                     <div>
-                        <label style="font-weight:600; display:block; margin-bottom:4px;">เวลาปิดรับคำตอบ</label>
+                        <label style="font-weight:600; display:block; margin-bottom:4px;">Due Time (Close Submissions)</label>
                         <input id="swal-off-closes" type="datetime-local" class="swal2-input" style="margin:0; width:100%; font-size:0.85rem;" value="${toDatetimeLocalValue(defaultClose)}">
                     </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
                     <div>
-                        <label style="font-weight:600; display:block; margin-bottom:4px;">จำกัดเวลารวมต่อคน (นาที, 0 = ไม่จำกัด)</label>
+                        <label style="font-weight:600; display:block; margin-bottom:4px;">Time Limit per Attempt (Minutes, 0 = unlimited)</label>
                         <input id="swal-off-limit" type="number" min="0" max="600" class="swal2-input" style="margin:0; width:100%;" value="30">
                     </div>
                     <div>
-                        <label style="font-weight:600; display:block; margin-bottom:4px;">🔑 รหัสผู้ตรวจ (PIN สำหรับครู)</label>
+                        <label style="font-weight:600; display:block; margin-bottom:4px;">Reviewer PIN (for teacher grading)</label>
                         <input id="swal-off-pin" type="text" maxlength="12" class="swal2-input" style="margin:0; width:100%; font-family:monospace; font-weight:700;" value="${defaultPin}">
                     </div>
                 </div>
                 <div style="background:rgba(139,61,255,0.12); border:1px solid #8b3dff; border-radius:8px; padding:0.65rem; font-size:0.82rem; color:var(--text-muted);">
-                    💡 ระบบจะสำเนาข้อสอบ (${quiz.questions.length} ข้อ) ไว้ในรอบนี้ การแก้ไขควิซต้นฉบับภายหลังจะไม่กระทบผู้เล่นที่กำลังทำอยู่
+                    A snapshot of this quiz (${quiz.questions.length} questions) will be stored for this assignment. Future edits to the original quiz will not affect active attempts.
                 </div>
             </div>
         `,
         focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: '🚀 สร้างรอบควิซออฟไลน์',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: 'Create Formative',
+        cancelButtonText: 'Cancel',
         preConfirm: () => {
-            const title = document.getElementById('swal-off-title').value.trim() || 'Offline Quiz';
+            const title = document.getElementById('swal-off-title').value.trim() || 'Formative Assignment';
             const opensStr = document.getElementById('swal-off-opens').value;
             const closesStr = document.getElementById('swal-off-closes').value;
             const limitMin = Number(document.getElementById('swal-off-limit').value || 0);
             const pin = document.getElementById('swal-off-pin').value.trim();
             if (!pin || pin.length < 4) {
-                Swal.showValidationMessage('กรุณาตั้งรหัสผู้ตรวจ (PIN) อย่างน้อย 4 ตัวอักษร');
+                Swal.showValidationMessage('Please set a Reviewer PIN of at least 4 characters.');
                 return false;
             }
             const opensAt = opensStr ? new Date(opensStr).getTime() : null;
             const closesAt = closesStr ? new Date(closesStr).getTime() : null;
             if (opensAt && closesAt && closesAt <= opensAt) {
-                Swal.showValidationMessage('เวลาปิดรับต้องมากกว่าเวลาเปิด');
+                Swal.showValidationMessage('Due time must be after the start time.');
                 return false;
             }
             return { title, opensAt, closesAt, timeLimitSec: Math.max(0, Math.round(limitMin * 60)), pin };
@@ -6166,7 +6160,7 @@ async function openCreateOfflineAssignmentModal(quiz) {
     if (!isConfirmed || !formValues) return;
 
     Swal.fire({
-        title: '⏳ กำลังสร้างรอบควิซออฟไลน์...',
+        title: 'Creating Formative Assignment...',
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
@@ -6210,33 +6204,33 @@ async function openCreateOfflineAssignmentModal(quiz) {
         renderLocalOfflineAssignments();
         showOfflineShareModal(assignCode, formValues.pin, meta);
     } catch (err) {
-        console.error('Failed to create offline assignment:', err);
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างรอบควิซออฟไลน์ได้: ' + (err.message || err), 'error');
+        console.error('Failed to create formative assignment:', err);
+        Swal.fire('Error', 'Unable to create formative assignment: ' + (err.message || err), 'error');
     }
 }
 
 function showOfflineShareModal(assignCode, reviewerPin, meta = {}) {
     const shareUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?assign=${assignCode}`;
     Swal.fire({
-        title: '🎉 เปิดรอบควิซออฟไลน์สำเร็จ!',
+        title: 'Formative Assignment Created!',
         width: 560,
         html: `
             <div style="text-align:center;">
-                <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:0.3rem;">รหัสสำหรับผู้เล่น (Assignment Code)</div>
+                <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:0.3rem;">Student Assignment Code</div>
                 <div style="font-size:2.2rem; font-weight:800; letter-spacing:0.12em; color:var(--primary); margin-bottom:0.5rem;">${escapeHtml(assignCode)}</div>
                 <div style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:8px; padding:0.55rem; margin-bottom:0.9rem; font-size:0.9rem;">
-                    🔑 <strong>รหัสผู้ตรวจ (PIN อาจารย์):</strong> <code style="font-size:1.15rem; font-weight:700;">${escapeHtml(reviewerPin || '(ใช้ PIN ที่ตั้งไว้)')}</code>
-                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">เก็บไว้ใช้เข้าตรวจคำตอบหรือแชร์ให้อาจารย์ท่านอื่น</div>
+                    <strong>Reviewer PIN (Teacher):</strong> <code style="font-size:1.15rem; font-weight:700;">${escapeHtml(reviewerPin || '(Use configured PIN)')}</code>
+                    <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Keep this PIN to grade responses or share with co-teachers.</div>
                 </div>
                 <div id="offline-share-qr" style="display:flex; justify-content:center; margin:0.75rem auto; background:#fff; padding:12px; border-radius:10px; width:fit-content;"></div>
                 <div style="font-size:0.78rem; color:var(--text-muted); word-break:break-all; margin-bottom:0.75rem;">${escapeHtml(shareUrl)}</div>
                 <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
-                    <button id="btn-copy-offline-link" class="btn-pill btn-pill-outline">📋 คัดลอกลิงก์ผู้เล่น</button>
-                    <button id="btn-open-offline-dash-now" class="btn-pill btn-pill-primary">📊 เปิดหน้าตรวจคำตอบ</button>
+                    <button id="btn-copy-offline-link" class="btn-pill btn-pill-outline">Copy Student Link</button>
+                    <button id="btn-open-offline-dash-now" class="btn-pill btn-pill-primary">Open Grading Dashboard</button>
                 </div>
             </div>
         `,
-        confirmButtonText: 'ปิดหน้าต่าง',
+        confirmButtonText: 'Close',
         didRender: () => {
             const qrEl = document.getElementById('offline-share-qr');
             if (qrEl && typeof QRCode !== 'undefined') {
@@ -6246,7 +6240,7 @@ function showOfflineShareModal(assignCode, reviewerPin, meta = {}) {
             if (copyBtn) {
                 copyBtn.onclick = () => {
                     navigator.clipboard.writeText(shareUrl).then(() => {
-                        copyBtn.innerText = '✅ คัดลอกแล้ว!';
+                        copyBtn.innerText = 'Copied!';
                     });
                 };
             }
@@ -6277,17 +6271,17 @@ async function renderLocalOfflineAssignments() {
         div.className = 'quiz-glass-card';
         div.innerHTML = `
             <div>
-                <strong style="font-size:1.15rem; color:var(--primary);">${escapeHtml(item.title || 'Offline Quiz')}</strong>
+                <strong style="font-size:1.15rem; color:var(--primary);">${escapeHtml(item.title || 'Formative Assignment')}</strong>
                 <div style="font-size:0.88rem; color:var(--text-muted); margin-top:4px;">
-                    รหัสผู้เล่น: <strong style="color:var(--text-main);">${escapeHtml(item.assignCode)}</strong>
-                    &nbsp;|&nbsp; PIN ครู: <code>${escapeHtml(item.pin || '***')}</code>
-                    &nbsp;|&nbsp; ปิดรับ: ${formatDateTimeTh(item.closesAt)}
+                    Code: <strong style="color:var(--text-main);">${escapeHtml(item.assignCode)}</strong>
+                    &nbsp;|&nbsp; PIN: <code>${escapeHtml(item.pin || '***')}</code>
+                    &nbsp;|&nbsp; Due: ${formatDateTimeTh(item.closesAt)}
                 </div>
             </div>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:8px;">
-                <button class="btn-pill btn-pill-primary btn-open-saved-assign" data-code="${escapeHtml(item.assignCode)}" data-pin="${escapeHtml(item.pin || '')}">📊 ดูผล / ตรวจ</button>
-                <button class="btn-pill btn-pill-outline btn-share-saved-assign" data-code="${escapeHtml(item.assignCode)}" data-pin="${escapeHtml(item.pin || '')}">🔗 QR / ลิงก์</button>
-                <button class="btn-pill btn-pill-danger-outline btn-remove-saved-assign" data-code="${escapeHtml(item.assignCode)}" title="ลบออกจากรายการเครื่องนี้">🗑️</button>
+                <button class="btn-pill btn-pill-primary btn-open-saved-assign" data-code="${escapeHtml(item.assignCode)}" data-pin="${escapeHtml(item.pin || '')}">Grade & Review</button>
+                <button class="btn-pill btn-pill-outline btn-share-saved-assign" data-code="${escapeHtml(item.assignCode)}" data-pin="${escapeHtml(item.pin || '')}">QR & Link</button>
+                <button class="btn-pill btn-pill-danger-outline btn-remove-saved-assign" data-code="${escapeHtml(item.assignCode)}" title="Delete from this device">🗑️</button>
             </div>
         `;
         listEl.appendChild(div);
