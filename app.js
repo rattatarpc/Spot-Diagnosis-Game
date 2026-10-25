@@ -7670,15 +7670,15 @@ function openOfflineJoinScreen(mode = 'assignment') {
     const nameInp = document.getElementById('offline-student-name');
 
     if (mode === 'review') {
-        if (titleEl) titleEl.innerText = '📊 Formative Review';
+        if (titleEl) titleEl.innerText = 'Formative Review';
         if (subEl) subEl.innerText = 'กรอกรหัสควิซ รหัสนักศึกษา และชื่อ เพื่อดูผลคะแนนและ Feedback';
-        if (enterBtn) enterBtn.innerText = '🔍 ดูผลคะแนน & Feedback';
+        if (enterBtn) enterBtn.innerText = 'View Score & Feedback';
         if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษาเดิม</strong> ที่เคยส่งคำตอบไว้เพื่อดูคะแนน เฉลย และคำแนะนำจากอาจารย์';
         if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
     } else {
-        if (titleEl) titleEl.innerText = '📋 Formative Assignment';
+        if (titleEl) titleEl.innerText = 'Formative Assignment';
         if (subEl) subEl.innerText = 'เข้าทำควิซออฟไลน์ หรือทำต่อจากที่ค้างไว้';
-        if (enterBtn) enterBtn.innerText = '🚀 เริ่มทำควิซ';
+        if (enterBtn) enterBtn.innerText = 'เริ่มทำควิซ';
         if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษา + ชื่อ-นามสกุล</strong> เพื่อเริ่มทำข้อสอบ (บันทึกอัตโนมัติ)';
         if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
     }
