@@ -67,8 +67,10 @@
                 <p class="subtitle">The live classroom diagnosis quiz game</p>
 
                 <div class="role-buttons">
-                    <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room</button>
+                    <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room (Live)</button>
+                    <button id="btn-goto-offline-student" class="btn-primary mb-2" style="background: linear-gradient(135deg, #8b3dff, #6366f1); border-color: #8b3dff;">📋 Self-Paced Quiz (Offline / ดูผล)</button>
                     <button id="btn-goto-maker" class="btn-secondary btn-create-host">Create & Host</button>
+                    <button id="btn-goto-offline-teacher-login" class="btn-secondary" style="margin-top: 0.5rem; font-size: 0.95rem;">🔑 ตรวจควิซออฟไลน์ (รหัสผู้ตรวจ)</button>
                 </div>
             </div>
         </section>
@@ -98,6 +100,7 @@
 
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
                     <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.4rem; padding: 1.2rem 2.5rem; width: 100%; max-width: 360px;">🎮 Create New Game</button>
+                    <button id="btn-open-offline-dashboard-login" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px; border-color: #8b3dff; color: #c4b5fd;">📋 จัดการ / ตรวจควิซออฟไลน์</button>
                     <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Download Shared Quiz</button>
                     <button id="btn-export-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Export My Quizzes</button>
                     <button id="btn-import-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Import My Quizzes</button>
@@ -107,6 +110,11 @@
 
                 <div id="local-quizzes-list" class="questions-list">
                     <!-- Local quizzes injected here -->
+                </div>
+
+                <div id="local-offline-assignments-section" style="margin-top: 2.5rem; display: none;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem; text-align: center;">📋 รอบควิซออฟไลน์ที่สร้างในเครื่องนี้</h3>
+                    <div id="local-offline-assignments-list" class="questions-list"></div>
                 </div>
 
                 <div class="btn-back-floating-wrapper mt-4">
@@ -724,6 +732,119 @@
                 </div>
             </div>
         </section>
+
+        <!-- 9. Offline Student Join / Lookup Screen -->
+        <section id="offline-join-screen" class="screen">
+            <div class="glass-container text-center" style="max-width: 540px;">
+                <h2 class="title-gradient">📋 Self-Paced Quiz</h2>
+                <p class="subtitle">เข้าทำควิซออฟไลน์ ทำต่อจากที่ค้างไว้ หรือกลับมาดูคะแนนและ Feedback</p>
+                <div class="input-group mt-4">
+                    <input type="text" id="offline-assign-code" placeholder="รหัสควิซ 6 หลัก (Assignment Code)" maxlength="8" autocomplete="off" style="text-transform: uppercase;">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="offline-student-id" placeholder="รหัสนักศึกษา / เลขประจำตัว (ใช้ดูผลภายหลัง)" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="offline-student-name" placeholder="ชื่อ - นามสกุล" autocomplete="off">
+                </div>
+                <button id="btn-offline-enter" class="btn-primary" style="width: 100%; max-width: 320px;">เข้าสู่ควิซ / ดูผลคะแนน</button>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.9rem;">
+                    💡 หากเคยส่งคำตอบไปแล้ว ให้กรอก <strong>รหัสควิซ + รหัสนักศึกษาเดิม</strong> เพื่อดูคะแนนและ Feedback จากอาจารย์
+                </p>
+                <div class="btn-back-floating-wrapper">
+                    <button class="btn-secondary btn-back-floating mt-3 back-to-role">Back</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Offline Self-Paced Quiz Runner Screen -->
+        <section id="offline-quiz-screen" class="screen">
+            <div class="glass-container" style="max-width: 1050px; width: 96%; margin-top: 3.5rem;">
+                <!-- Header bar: Title, Remaining Time, Window closes, Autosave indicator, Submit -->
+                <div id="offline-quiz-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem; padding-bottom:0.85rem; margin-bottom:1rem; border-bottom:1px solid var(--glass-border);">
+                    <div>
+                        <div id="offline-quiz-title" style="font-size:1.25rem; font-weight:700; color:var(--primary);"></div>
+                        <div id="offline-student-badge" style="font-size:0.85rem; color:var(--text-muted);"></div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                        <div id="offline-autosave-status" style="font-size:0.8rem; color:var(--text-muted);">💾 บันทึกอัตโนมัติ</div>
+                        <div id="offline-timer-badge" style="background:var(--input-bg); border:1.5px solid var(--primary); padding:0.4rem 0.9rem; border-radius:999px; font-weight:700; font-size:1.05rem; color:var(--text-main);">⏱ --:--</div>
+                        <button id="btn-offline-submit-all" class="btn-primary" style="padding:0.5rem 1.2rem; font-size:0.95rem; background:var(--success); border-color:var(--success);">✅ ส่งคำตอบทั้งหมด</button>
+                    </div>
+                </div>
+
+                <!-- Question Navigator Pills -->
+                <div id="offline-question-nav" style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-bottom:1.2rem;"></div>
+
+                <!-- Current Question Body -->
+                <div id="offline-question-card" style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:14px; padding:1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                        <span id="offline-q-number" style="font-weight:700; color:var(--primary); font-size:0.95rem;"></span>
+                        <span id="offline-q-type-badge" style="font-size:0.8rem; color:var(--text-muted);"></span>
+                    </div>
+                    <h2 id="offline-q-text" style="font-size:1.45rem; margin:0 0 0.6rem 0; color:var(--text-main);"></h2>
+                    <div id="offline-q-context" style="font-size:1.05rem; color:var(--text-muted); margin-bottom:1rem; white-space:pre-wrap; display:none;"></div>
+
+                    <!-- Media container for offline question -->
+                    <div id="offline-media-container" style="display:none; text-align:center; margin-bottom:1rem;">
+                        <div id="offline-images" class="media-images-grid" style="display:none;"></div>
+                        <img id="offline-image" class="zoomable" style="max-height:340px; max-width:100%; border-radius:10px; display:none;" alt="Question media">
+                        <video id="offline-video" style="max-height:340px; max-width:100%; border-radius:10px; display:none;" controls playsinline webkit-playsinline></video>
+                        <div id="offline-video-fallback" style="display:none; color:var(--danger); padding:0.75rem;">ไม่สามารถเล่นวิดีโอได้</div>
+                    </div>
+
+                    <!-- Answer Area -->
+                    <div id="offline-answer-area"></div>
+                </div>
+
+                <!-- Prev / Next Navigation -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; gap:1rem;">
+                    <button id="btn-offline-prev" class="btn-secondary" style="min-width:130px;">⬅ ข้อก่อนหน้า</button>
+                    <span id="offline-answered-summary" style="font-size:0.9rem; color:var(--text-muted);"></span>
+                    <button id="btn-offline-next" class="btn-primary" style="min-width:130px;">ข้อถัดไป ➡</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. Offline Student Result & Feedback View Screen -->
+        <section id="offline-student-result-screen" class="screen">
+            <div class="glass-container" style="max-width: 960px; width: 96%; margin-top: 3.5rem; max-height: 88vh; overflow-y: auto;">
+                <div id="offline-student-result-content"></div>
+                <div class="text-center mt-4" style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+                    <button id="btn-offline-refresh-result" class="btn-secondary">🔄 รีเฟรชสถานะผล</button>
+                    <button class="btn-primary back-to-role">กลับหน้าหลัก</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12. Offline Teacher Reviewer Dashboard Screen -->
+        <section id="offline-teacher-screen" class="screen">
+            <div class="glass-container" style="max-width: 1180px; width: 96%; margin-top: 3.5rem; max-height: 90vh; overflow-y: auto;">
+                <div id="offline-teacher-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:1rem; padding-bottom:1rem; border-bottom:1px solid var(--glass-border);">
+                    <div>
+                        <h2 id="offline-teacher-title" style="margin:0; color:var(--primary);">📋 จัดการควิซออฟไลน์</h2>
+                        <div id="offline-teacher-meta" style="font-size:0.9rem; color:var(--text-muted); margin-top:0.35rem;"></div>
+                    </div>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button id="btn-offline-share-info" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">🔗 โค้ด & QR</button>
+                        <button id="btn-offline-edit-window" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">⏰ ตั้งเวลาเปิด/ปิด</button>
+                        <button id="btn-offline-release-all" class="btn-primary" style="padding:0.45rem 0.9rem; font-size:0.88rem; background:var(--success); border-color:var(--success);">📢 ปล่อยผลทั้งหมด</button>
+                        <button id="btn-offline-export-csv" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">📥 Export CSV</button>
+                        <button class="btn-secondary back-to-dashboard" style="padding:0.45rem 0.9rem; font-size:0.88rem;">กลับคลังควิซ</button>
+                    </div>
+                </div>
+
+                <!-- Teacher View Tabs -->
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0;">
+                    <button class="btn-pill btn-pill-primary offline-t-tab" data-tab="students">👥 รายชื่อผู้เล่น</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="by-question">📝 ตรวจรายข้อข้ามคน</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="stats">📊 สถิติรายข้อ & กราฟคะแนน</button>
+                </div>
+
+                <!-- Tab Body -->
+                <div id="offline-teacher-body"></div>
+            </div>
+        </section>
     </div>
 
     <!-- Image Zoom Modal Overlay -->
@@ -949,7 +1070,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-    <script src="app-services.js?v=2"></script>
-    <script src="app.js?v=9"></script>
+    <script src="app-services.js?v=3"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>

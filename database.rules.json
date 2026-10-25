@@ -1,0 +1,40 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true
+    },
+    "quizzes": {
+      ".read": true,
+      ".write": true
+    },
+    "teachers": {
+      ".read": true,
+      ".write": true
+    },
+    "assignments": {
+      "$assignCode": {
+        ".read": true,
+        ".write": "!data.exists()",
+        "meta": {
+          ".read": true,
+          ".write": true,
+          ".validate": "newData.hasChildren(['title', 'reviewerPinHash', 'createdAt'])"
+        },
+        "quiz": {
+          ".read": true,
+          ".write": "!data.exists()"
+        },
+        "attempts": {
+          "$studentId": {
+            ".read": true,
+            ".write": true,
+            "answers": {
+              ".write": "!data.parent().child('status').exists() || data.parent().child('status').val() === 'in_progress'"
+            }
+          }
+        }
+      }
+    }
+  }
+}
