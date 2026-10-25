@@ -7118,23 +7118,23 @@ async function promptOfflineTeacherLogin(prefillCode = '') {
         html: `
             <div style="text-align:left; display:flex; flex-direction:column; gap:0.75rem;">
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">รหัสควิซออฟไลน์ (Assignment Code)</label>
-                    <input id="swal-t-code" class="swal2-input" style="margin:0; width:100%; text-transform:uppercase;" placeholder="เช่น AB12CD" value="${escapeHtml(prefillCode)}">
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Assignment Code</label>
+                    <input id="swal-t-code" class="swal2-input" style="margin:0; width:100%; text-transform:uppercase;" placeholder="e.g. AB12CD" value="${escapeHtml(prefillCode)}">
                 </div>
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">รหัสผู้ตรวจ (Reviewer PIN)</label>
-                    <input id="swal-t-pin" type="password" class="swal2-input" style="margin:0; width:100%;" placeholder="PIN 4-12 หลัก">
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Reviewer PIN</label>
+                    <input id="swal-t-pin" type="password" class="swal2-input" style="margin:0; width:100%;" placeholder="4-12 digits PIN">
                 </div>
             </div>
         `,
         showCancelButton: true,
-        confirmButtonText: 'เข้าสู่ระบบตรวจ',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: 'Access Grading',
+        cancelButtonText: 'Cancel',
         preConfirm: () => {
             const code = document.getElementById('swal-t-code').value.trim().toUpperCase();
             const pin = document.getElementById('swal-t-pin').value.trim();
             if (!code || !pin) {
-                Swal.showValidationMessage('กรุณากรอกรหัสควิซและ PIN ผู้ตรวจ');
+                Swal.showValidationMessage('Please enter Assignment Code and Reviewer PIN');
                 return false;
             }
             return { code, pin };
@@ -7151,13 +7151,13 @@ async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
     const code = String(assignCode || '').trim().toUpperCase();
     const snap = await db.ref(`rooms/offline_${code}`).get();
     if (!snap.exists()) {
-        return Swal.fire('ไม่พบข้อมูล', `ไม่พบรอบควิซออฟไลน์รหัส "${code}"`, 'error');
+        return Swal.fire('Not Found', `Formative assignment code "${code}" not found`, 'error');
     }
     const data = snap.val() || {};
     const meta = data.meta || {};
 
     if (!AppServices.verifyPinSync(reviewerPin, meta.reviewerPinHash, code)) {
-        return Swal.fire('PIN ไม่ถูกต้อง', 'รหัสผู้ตรวจ (Reviewer PIN) ไม่ถูกต้อง', 'error');
+        return Swal.fire('Invalid PIN', 'The Reviewer PIN is incorrect.', 'error');
     }
 
     role = 'host';
