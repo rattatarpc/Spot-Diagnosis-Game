@@ -6362,7 +6362,7 @@ async function enterOfflineAssignment() {
 
     if (isReviewMode) {
         if (!rawAssignCode || (!rawStudentId && !studentName)) {
-            return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา หรือ ชื่อของคุณ', 'warning');
+            return Swal.fire('Incomplete Information', 'Please enter the Assignment Code and your Student ID or Name.', 'warning');
         }
     } else {
         if (!rawAssignCode || (!rawStudentId && !studentName)) {
@@ -6428,7 +6428,9 @@ async function enterOfflineAssignment() {
     }
 
     if (!assignData) {
-        return Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
+        return isReviewMode
+            ? Swal.fire('Quiz Not Found', `Formative assignment code "${assignCode}" was not found.`, 'error')
+            : Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
     }
 
     const meta = assignData.meta || {};
@@ -6453,20 +6455,20 @@ async function enterOfflineAssignment() {
     // 1. If user entered via "Formative Review" mode, look up their submitted result
     if (isReviewMode) {
         if (!existingAttempt) {
-            return Swal.fire('ไม่พบข้อมูลการทำควิซ', 'ยังไม่มีประวัติการทำควิซของรหัสหรือชื่อนี้ กรุณาเข้าทำผ่านเมนู Formative Assignment ก่อนครับ', 'info');
+            return Swal.fire('No Attempt Found', 'No quiz submission was found for this Student ID or Name. Please complete the quiz via Formative Assignment first.', 'info');
         }
         const isAlreadyReleasedOrGraded = AppServices.isAttemptReleased(meta, existingAttempt) ||
             (existingAttempt.grading && Object.keys(existingAttempt.grading).length > 0);
         if (existingAttempt.status === 'in_progress' && !isAlreadyReleasedOrGraded) {
             const res = await Swal.fire({
-                title: 'คุณยังไม่ได้กดส่งคำตอบขั้นสุดท้าย',
-                text: 'คุณต้องการส่งคำตอบเพื่อดูผลคะแนนทันที หรือกลับเข้าไปทำควิซต่อ?',
+                title: 'Quiz Still In Progress',
+                text: 'You have not submitted your final answers yet. Would you like to submit now to view your score, or continue the quiz?',
                 icon: 'question',
                 showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'ดูผลคะแนน',
-                denyButtonText: 'เข้าไปทำต่อ',
-                cancelButtonText: 'ยกเลิก'
+                confirmButtonText: 'View Score',
+                denyButtonText: 'Continue Quiz',
+                cancelButtonText: 'Cancel'
             });
             if (res.isConfirmed) {
                 offlineState.attempt = existingAttempt;
@@ -7083,70 +7085,109 @@ async function renderOfflineStudentResultScreen() {
     const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
     const maxPossible = quiz.reduce((sum, q) => sum + getQuestionMaxScoreOffline(q), 0);
     const released = AppServices.isAttemptReleased(meta, att);
-    const showKey = AppServices.canStudentSeeAnswerKey(meta, att, Date.now());
+    const showKey = true;
 
     let statusBadgeHtml = '';
     if (!released) {
         statusBadgeHtml = `
-            <div style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
-                ⏳ <strong>ส่งคำตอบเรียบร้อยแล้ว — รออาจารย์ตรวจและปล่อยผล Feedback</strong>
+            <div class="offline-review-status-box" style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
+                <strong>Submitted — Pending Instructor Review & Feedback</strong>
                 <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
-                    คะแนนด้านล่างเป็นคะแนนเบื้องต้นจากระบบอัตโนมัติ/AI อาจารย์สามารถปรับคะแนนและส่งคำแนะนำเพิ่มเติมได้ภายหลัง
-                </div>
-            </div>
-        `;
-    } else if (!showKey) {
-        statusBadgeHtml = `
-            <div style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
-                ✅ <strong>อาจารย์ปล่อยผลและ Feedback แล้ว</strong>
-                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
-                    🔒 เฉลยคำตอบที่ถูกต้องจะเปิดแสดงเมื่อควิซปิดรับคำตอบแล้ว (${formatDateTimeTh(meta.closesAt)}) เพื่อป้องกันเฉลยรั่วไหล
+                    The score shown below is a preliminary auto-graded score. Your instructor may adjust points and add feedback later.
                 </div>
             </div>
         `;
     } else {
         statusBadgeHtml = `
-            <div style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
-                🎉 <strong>ประกาศผลคะแนน เฉลย และ Feedback ครบถ้วนแล้ว</strong>
+            <div class="offline-review-status-box" style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
+                <strong>Score, Answer Key & Feedback Released</strong>
             </div>
         `;
     }
 
     let overallFeedbackHtml = '';
-    if (released && att.overallFeedback && String(att.overallFeedback).trim()) {
+    if (att.overallFeedback && String(att.overallFeedback).trim()) {
         overallFeedbackHtml = `
-            <div style="background:rgba(139,61,255,0.14); border:1.5px solid #8b3dff; border-radius:12px; padding:1rem 1.25rem; margin:1rem 0; text-align:left;">
-                <div style="font-weight:700; color:#c4b5fd; margin-bottom:0.35rem;">💬 คำแนะนำภาพรวมจากอาจารย์ผู้ตรวจ</div>
+            <div class="offline-review-feedback-box" style="background:rgba(139,61,255,0.14); border:1.5px solid #8b3dff; border-radius:12px; padding:1rem 1.25rem; margin:1rem 0; text-align:left;">
+                <div style="font-weight:700; color:#c4b5fd; margin-bottom:0.35rem;">Overall Feedback from Instructor</div>
                 <div style="white-space:pre-wrap; color:var(--text-main); line-height:1.6;">${escapeHtml(att.overallFeedback)}</div>
             </div>
         `;
     }
+
+    const renderAnswerPart = (item) => {
+        const text = typeof item === 'string' ? item : (item?.text || '');
+        if (!text) return '';
+        const isImg = (typeof item === 'object' && item?.isImage) || text.startsWith('data:image/');
+        if (isImg) {
+            return `<img src="${escapeHtml(text)}" alt="Option image" style="max-height:70px; border-radius:6px; vertical-align:middle; background:#fff; border:1px solid var(--glass-border);">`;
+        }
+        return escapeHtml(text);
+    };
 
     // Per-question breakdown list
     let questionsHtml = '';
     quiz.forEach((q, idx) => {
         if (!q || q.type === 'slide') return;
         const ansVal = getOfflineAnswerValue(att, idx);
-        const ansText = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal != null && String(ansVal) !== '' ? String(ansVal) : '(ไม่ได้ตอบ)');
+        let ansDisplayHtml = '';
+        if (Array.isArray(ansVal)) {
+            const parts = ansVal.map(renderAnswerPart).filter(Boolean);
+            ansDisplayHtml = parts.length > 0 ? parts.join(', ') : '(No answer)';
+        } else if (ansVal != null && String(ansVal).trim() !== '') {
+            ansDisplayHtml = renderAnswerPart(String(ansVal));
+        } else {
+            ansDisplayHtml = '(No answer)';
+        }
+
         const g = (att.grading && att.grading[idx]) || {};
         const hasTeacherPts = g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '';
         const finalPts = hasTeacherPts ? Number(g.teacherPoints) : Number(g.autoPoints || 0);
         const qMax = getQuestionMaxScoreOffline(q);
 
-        // Answer key section ONLY if showKey === true (Spec #5 & #7)
+        // Question context & image(s)
+        let qContextHtml = '';
+        if (q.context && String(q.context).trim()) {
+            qContextHtml = `<div style="margin-top:0.35rem; font-size:0.88rem; color:var(--text-muted); white-space:pre-wrap;">${escapeHtml(q.context)}</div>`;
+        }
+        let qMediaHtml = '';
+        const imgUrls = Array.isArray(q.imageUrls) && q.imageUrls.length > 0
+            ? q.imageUrls
+            : (q.imageUrl && q.mediaType !== 'video' ? [q.imageUrl] : []);
+        if (imgUrls.length > 0) {
+            qMediaHtml = `<div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.55rem;">` +
+                imgUrls.map(u => `<img src="${escapeHtml(u)}" alt="Question media" style="max-height:140px; max-width:100%; border-radius:8px; border:1px solid var(--glass-border); object-fit:contain; background:#000;">`).join('') +
+                `</div>`;
+        }
+
+        // Answer key section
         let keyHtml = '';
         if (showKey) {
             if (q.type === 'typing') {
-                const keys = (q.acceptedAnswers || []).map(a => typeof a === 'string' ? a : `${a.text} (${a.points ?? 10} pts)`).join(' • ');
-                keyHtml = `<div style="margin-top:0.5rem; font-size:0.88rem; color:var(--success);"><strong>🔑 เฉลย (Accepted Keys):</strong> ${escapeHtml(keys || '-')}</div>`;
+                const rawKeys = (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0)
+                    ? q.acceptedAnswers
+                    : (q.correctAnswer ? [q.correctAnswer] : []);
+                const keys = rawKeys
+                    .map(a => {
+                        if (typeof a === 'string') return a;
+                        if (a && typeof a === 'object' && a.text) {
+                            return a.points !== undefined ? `${a.text} (${a.points} pts)` : a.text;
+                        }
+                        return '';
+                    })
+                    .filter(Boolean)
+                    .join(' • ');
+                keyHtml = `<div class="offline-review-correct-key" style="margin-top:0.5rem; font-size:0.9rem; color:var(--success);"><strong>Correct Answer (Accepted Keys):</strong> ${escapeHtml(keys || '-')}</div>`;
             } else {
-                const corr = (q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : []))
-                    .map(c => typeof c === 'string' ? c : c.text).join(', ');
-                keyHtml = `<div style="margin-top:0.5rem; font-size:0.88rem; color:var(--success);"><strong>🔑 เฉลย:</strong> ${escapeHtml(corr || '-')}</div>`;
+                const rawCorr = (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0)
+                    ? q.correctAnswers
+                    : (q.correctAnswer ? [q.correctAnswer] : (Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : []));
+                const corrParts = rawCorr.map(renderAnswerPart).filter(Boolean);
+                keyHtml = `<div class="offline-review-correct-key" style="margin-top:0.5rem; font-size:0.9rem; color:var(--success);"><strong>Correct Answer:</strong> ${corrParts.length > 0 ? corrParts.join(', ') : '-'}</div>`;
             }
         }
 
-        // AI concept breakdown (only show concept details if showKey is true, otherwise hide rubric concept text so key doesn't leak early)
+        // AI concept breakdown
         let aiHtml = '';
         if (showKey && Array.isArray(g.aiConcepts) && g.aiConcepts.length > 0) {
             const accepted = Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : [];
@@ -7154,30 +7195,35 @@ async function renderOfflineStudentResultScreen() {
                 g.aiConcepts.map(c => {
                     const rub = accepted[c.conceptId - 1];
                     const cLabel = rub ? (typeof rub === 'string' ? rub : rub.text) : `Concept #${c.conceptId}`;
-                    return `<div>• <strong>${escapeHtml(cLabel)}</strong>: <span style="text-transform:uppercase;">${escapeHtml(c.tier)}</span> (${c.points || 0} pts)${c.reason ? ` — <em>${escapeHtml(c.reason)}</em>` : ''}</div>`;
+                    const reasonText = c.reason && c.reason.includes('ตรวจด้วยระบบสำรอง')
+                        ? 'Graded by fallback matcher (pending instructor review)'
+                        : (c.reason || '');
+                    return `<div>• <strong>${escapeHtml(cLabel)}</strong>: <span style="text-transform:uppercase;">${escapeHtml(c.tier)}</span> (${c.points || 0} pts)${reasonText ? ` — <em>${escapeHtml(reasonText)}</em>` : ''}</div>`;
                 }).join('') +
                 `</div>`;
         }
 
         let commentHtml = '';
-        if (released && g.comment && String(g.comment).trim()) {
+        if (g.comment && String(g.comment).trim()) {
             commentHtml = `
                 <div style="margin-top:0.55rem; padding:0.55rem 0.8rem; background:rgba(139,61,255,0.14); border-left:3px solid #8b3dff; border-radius:6px; font-size:0.9rem;">
-                    <strong>💬 ความเห็นอาจารย์:</strong> <span style="white-space:pre-wrap;">${escapeHtml(g.comment)}</span>
+                    <strong>Instructor Feedback:</strong> <span style="white-space:pre-wrap;">${escapeHtml(g.comment)}</span>
                 </div>
             `;
         }
 
         questionsHtml += `
-            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; margin-bottom:0.85rem; text-align:left;">
+            <div class="offline-review-q-card" style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; margin-bottom:0.85rem; text-align:left;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
-                    <div style="font-weight:700; color:var(--text-main);">ข้อที่ ${idx + 1}: ${escapeHtml(q.text || '')}</div>
+                    <div style="font-weight:700; color:var(--text-main);">Question ${idx + 1}: ${escapeHtml(q.text || '')}</div>
                     <div style="white-space:nowrap; font-weight:700; color:${finalPts > 0 ? 'var(--success)' : 'var(--text-muted)'};">
-                        ${finalPts} / ${qMax} pts ${hasTeacherPts && released ? '<span style="font-size:0.75rem; color:#c4b5fd;">(อาจารย์ปรับคะแนน)</span>' : ''}
+                        ${finalPts} / ${qMax} pts ${hasTeacherPts && released ? '<span style="font-size:0.75rem; color:#c4b5fd;">(Adjusted by Instructor)</span>' : ''}
                     </div>
                 </div>
-                <div style="margin-top:0.45rem; font-size:0.92rem; color:var(--text-muted);">
-                    <strong>คำตอบของคุณ:</strong> <span style="color:var(--text-main);">${escapeHtml(ansText)}</span>
+                ${qContextHtml}
+                ${qMediaHtml}
+                <div style="margin-top:0.5rem; font-size:0.92rem; color:var(--text-muted);">
+                    <strong>Your Answer:</strong> <span style="color:var(--text-main);">${ansDisplayHtml}</span>
                 </div>
                 ${keyHtml}
                 ${aiHtml}
@@ -7188,21 +7234,28 @@ async function renderOfflineStudentResultScreen() {
 
     cont.innerHTML = `
         <div class="text-center">
-            <h2 class="title-gradient" style="margin-bottom:0.25rem;">${escapeHtml(meta.title || 'ผลการทำควิซออฟไลน์')}</h2>
+            <h2 class="title-gradient" style="margin-bottom:0.25rem;">${escapeHtml(meta.title || 'Formative Review')}</h2>
             <div style="color:var(--text-muted); font-size:0.92rem;">
-                ผู้เล่น: <strong>${escapeHtml(att.name || offlineState.studentName || '')}</strong> (รหัส: <code>${escapeHtml(offlineState.studentId)}</code>)
-                • เวลาที่ใช้: <strong>${formatDurationClock(att.elapsedSec || 0)}</strong>
+                Student: <strong>${escapeHtml(att.name || offlineState.studentName || '')}</strong> (ID: <code>${escapeHtml(offlineState.studentId)}</code>)
+                • Time Spent: <strong>${formatDurationClock(att.elapsedSec || 0)}</strong>
             </div>
-            <div style="margin:1.1rem auto; padding:1rem 1.5rem; border-radius:14px; background:var(--input-bg); border:2px solid var(--primary); display:inline-block;">
-                <div style="font-size:0.85rem; color:var(--text-muted);">คะแนนรวมของคุณ</div>
+            <div class="offline-review-summary-box" style="margin:1.1rem auto; padding:1rem 1.5rem; border-radius:14px; background:var(--input-bg); border:2px solid var(--primary); display:inline-block;">
+                <div style="font-size:0.85rem; color:var(--text-muted);">Total Score</div>
                 <div style="font-size:2.4rem; font-weight:800; color:var(--primary);">${totalScore} <span style="font-size:1.1rem; color:var(--text-muted);">/ ${maxPossible}</span></div>
             </div>
         </div>
         ${statusBadgeHtml}
         ${overallFeedbackHtml}
-        <h3 style="margin:1.25rem 0 0.75rem 0; font-size:1.1rem; color:var(--text-main); text-align:left;">รายละเอียดรายข้อ</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin:1.25rem 0 0.75rem 0;">
+            <h3 style="margin:0; font-size:1.1rem; color:var(--text-main); text-align:left;">Question Breakdown</h3>
+            <button type="button" id="btn-offline-print-top" class="btn-secondary no-print" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem;">Print / Save PDF</button>
+        </div>
         ${questionsHtml}
     `;
+
+    document.getElementById('btn-offline-print-top')?.addEventListener('click', () => {
+        window.print();
+    });
 }
 
 // ── Tickets #4 & #6: Teacher Reviewer Dashboard, Grading, Cross-Question, Stats, CSV, Reset ──
@@ -7811,19 +7864,25 @@ function openOfflineJoinScreen(mode = 'assignment') {
     const subEl = document.getElementById('offline-join-subtitle');
     const enterBtn = document.getElementById('btn-offline-enter');
     const hintEl = document.getElementById('offline-join-hint');
+    const codeInp = document.getElementById('offline-assign-code');
+    const idInp = document.getElementById('offline-student-id');
     const nameInp = document.getElementById('offline-student-name');
 
     if (mode === 'review') {
         if (titleEl) titleEl.innerText = 'Formative Review';
-        if (subEl) subEl.innerText = 'กรอกรหัสควิซ รหัสนักศึกษา และชื่อ เพื่อดูผลคะแนนและ Feedback';
+        if (subEl) subEl.innerText = 'Enter your assignment code, student ID, and name to view your score and feedback';
         if (enterBtn) enterBtn.innerText = 'View Score & Feedback';
-        if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษาเดิม</strong> ที่เคยส่งคำตอบไว้เพื่อดูคะแนน เฉลย และคำแนะนำจากอาจารย์';
-        if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
+        if (hintEl) hintEl.innerHTML = 'Enter the <strong>Assignment Code + Student ID / Name</strong> you used to view your score, answer key, and instructor feedback.';
+        if (codeInp) codeInp.placeholder = '6-Digit Assignment Code';
+        if (idInp) idInp.placeholder = 'Student ID';
+        if (nameInp) nameInp.placeholder = 'Full Name';
     } else {
         if (titleEl) titleEl.innerText = 'Formative Assignment';
         if (subEl) subEl.innerText = 'เข้าทำควิซออฟไลน์ หรือทำต่อจากที่ค้างไว้';
         if (enterBtn) enterBtn.innerText = 'เริ่มทำควิซ';
         if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษา + ชื่อ-นามสกุล</strong> เพื่อเริ่มทำข้อสอบ (บันทึกอัตโนมัติ)';
+        if (codeInp) codeInp.placeholder = 'รหัสควิซ 6 หลัก (Assignment Code)';
+        if (idInp) idInp.placeholder = 'รหัสนักศึกษา / เลขประจำตัว (ใช้ดูผลภายหลัง)';
         if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
     }
 
@@ -7864,7 +7923,11 @@ document.getElementById('btn-offline-submit-all')?.addEventListener('click', () 
 
 document.getElementById('btn-offline-refresh-result')?.addEventListener('click', async () => {
     await renderOfflineStudentResultScreen();
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'อัปเดตสถานะล่าสุดแล้ว', showConfirmButton: false, timer: 1300 });
+    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Results updated', showConfirmButton: false, timer: 1300 });
+});
+
+document.getElementById('btn-offline-print-result')?.addEventListener('click', () => {
+    window.print();
 });
 
 document.querySelectorAll('.offline-t-tab').forEach(btn => {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spot Diagnosis Game</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -844,9 +844,10 @@
         <section id="offline-student-result-screen" class="screen">
             <div class="glass-container" style="max-width: 960px; width: 96%; margin-top: 3.5rem; max-height: 88vh; overflow-y: auto;">
                 <div id="offline-student-result-content"></div>
-                <div class="text-center mt-4" style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-                    <button id="btn-offline-refresh-result" class="btn-secondary">🔄 รีเฟรชสถานะผล</button>
-                    <button class="btn-primary back-to-role">กลับหน้าหลัก</button>
+                <div class="text-center mt-4 offline-result-actions" style="display:flex; gap:0.75rem; justify-content:center; align-items:center; flex-wrap:wrap;">
+                    <button id="btn-offline-refresh-result" class="btn-secondary" style="width:auto; min-width:150px; padding:0.65rem 1.35rem;">Refresh Results</button>
+                    <button id="btn-offline-print-result" class="btn-secondary" style="width:auto; min-width:150px; padding:0.65rem 1.35rem;">Print / Save PDF</button>
+                    <button class="btn-primary back-to-role" style="width:auto; min-width:160px; padding:0.65rem 1.35rem;">Back to Main Menu</button>
                 </div>
             </div>
         </section>
@@ -1103,6 +1104,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <script src="app-services.js?v=5"></script>
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
 </body>
 </html>

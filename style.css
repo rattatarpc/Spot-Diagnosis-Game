@@ -3893,3 +3893,82 @@ body[data-role="host"] .hud-item.timer-info {
         gap: 0.6rem;
     }
 }
+
+/* Print-friendly layout for Formative Review / Student Result Screen */
+@media print {
+    html, body {
+        background: #ffffff !important;
+        background-image: none !important;
+        color: #0f172a !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        font-size: 11pt;
+    }
+    #app {
+        height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+    .screen {
+        display: none !important;
+    }
+    .screen.active {
+        display: block !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    #offline-student-result-screen .glass-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0.5rem !important;
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    #bg-video,
+    #ambient-fx,
+    .global-home,
+    .global-controls,
+    .offline-result-actions,
+    .no-print {
+        display: none !important;
+    }
+    .title-gradient {
+        background: none !important;
+        -webkit-text-fill-color: #0f172a !important;
+        color: #0f172a !important;
+        text-shadow: none !important;
+    }
+    .offline-review-q-card,
+    .offline-review-summary-box,
+    .offline-review-feedback-box,
+    .offline-review-status-box {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+    }
+    .offline-review-q-card *,
+    .offline-review-summary-box *,
+    .offline-review-feedback-box *,
+    .offline-review-status-box * {
+        color: #0f172a !important;
+    }
+    .offline-review-correct-key,
+    .offline-review-correct-key * {
+        color: #047857 !important;
+    }
+}
