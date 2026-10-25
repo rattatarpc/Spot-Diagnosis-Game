@@ -147,6 +147,91 @@ const AppServices = (() => {
         return Boolean(meta.resultsReleasedAll || attempt.released);
     }
 
+    // Flexible lookup for an offline student attempt by Student ID and/or Name.
+    // Handles exact ID, case-insensitive/numeric ID, swapped ID/Name fields, and Name-only lookup.
+    // Returns { studentId, attempt } or null.
+    function findMatchingOfflineAttempt(attemptsMap = {}, rawStudentId = '', rawStudentName = '', allowNameFallback = true) {
+        if (!attemptsMap || typeof attemptsMap !== 'object') return null;
+
+        const entries = Object.entries(attemptsMap).filter(([, att]) => att && typeof att === 'object');
+        if (entries.length === 0) return null;
+
+        const statusRank = (att) => {
+            if (att.released || att.status === 'released') return 4;
+            if (att.status === 'graded') return 3;
+            if (att.status === 'submitted') return 2;
+            return 1;
+        };
+        const sortedEntries = [...entries].sort((a, b) => {
+            const rDiff = statusRank(b[1]) - statusRank(a[1]);
+            if (rDiff !== 0) return rDiff;
+            const tA = Number(a[1].submittedAt || a[1].lastActiveAt || a[1].startedAt || 0);
+            const tB = Number(b[1].submittedAt || b[1].lastActiveAt || b[1].startedAt || 0);
+            return tB - tA;
+        });
+
+        const normId = (s) => sanitizeStudentId(s).toLowerCase();
+        const normName = (s) => String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+        const sidSanitized = sanitizeStudentId(rawStudentId);
+        const sidIdNorm = normId(rawStudentId);
+        const nameIdNorm = normId(rawStudentName);
+        const sidNameNorm = normName(rawStudentId);
+        const nameTextNorm = normName(rawStudentName);
+
+        // 1. Exact key match on sanitized studentId
+        if (sidSanitized && Object.prototype.hasOwnProperty.call(attemptsMap, sidSanitized)) {
+            const direct = attemptsMap[sidSanitized];
+            if (direct && typeof direct === 'object') {
+                return { studentId: String(sidSanitized), attempt: direct };
+            }
+        }
+
+        // 2. Case-insensitive or numeric Student ID match on rawStudentId
+        if (sidIdNorm) {
+            const byId = sortedEntries.find(([k, att]) =>
+                normId(k) === sidIdNorm || normId(att.studentId) === sidIdNorm
+            );
+            if (byId) return { studentId: String(byId[0]), attempt: byId[1] };
+
+            const trimmedId = String(rawStudentId ?? '').trim();
+            if (/^\d+$/.test(trimmedId)) {
+                const numVal = Number(trimmedId);
+                const byNum = sortedEntries.find(([k, att]) =>
+                    (/^\d+$/.test(String(k)) && Number(k) === numVal) ||
+                    (/^\d+$/.test(String(att.studentId || '')) && Number(att.studentId) === numVal)
+                );
+                if (byNum) return { studentId: String(byNum[0]), attempt: byNum[1] };
+            }
+        }
+
+        if (!allowNameFallback && sidSanitized) {
+            return null;
+        }
+
+        // 3. Swapped input match: rawStudentName matches an attempt key or att.studentId
+        if (nameIdNorm) {
+            const bySwappedId = sortedEntries.find(([k, att]) =>
+                normId(k) === nameIdNorm || normId(att.studentId) === nameIdNorm
+            );
+            if (bySwappedId) return { studentId: String(bySwappedId[0]), attempt: bySwappedId[1] };
+        }
+
+        // 4. Name match: rawStudentName matches att.name (case-insensitive)
+        if (nameTextNorm) {
+            const byName = sortedEntries.find(([, att]) => normName(att.name) === nameTextNorm);
+            if (byName) return { studentId: String(byName[0]), attempt: byName[1] };
+        }
+
+        // 5. Name match on rawStudentId: user typed their Name into the Student ID box
+        if (sidNameNorm) {
+            const byIdAsName = sortedEntries.find(([, att]) => normName(att.name) === sidNameNorm);
+            if (byIdAsName) return { studentId: String(byIdAsName[0]), attempt: byIdAsName[1] };
+        }
+
+        return null;
+    }
+
     // Compute total score for an attempt from per-question grading entries.
     // Teacher override (teacherPoints) takes precedence over autoPoints when set.
     function computeAttemptTotalScore(grading = {}, quiz = []) {
@@ -248,6 +333,7 @@ const AppServices = (() => {
         getAssignmentWindowState,
         canStudentSeeAnswerKey,
         isAttemptReleased,
+        findMatchingOfflineAttempt,
         computeAttemptTotalScore,
         buildOfflineAttemptsCsv,
         downloadOfflineAttemptsCsv,

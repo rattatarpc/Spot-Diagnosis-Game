@@ -10,7 +10,8 @@ const {
     canStudentSeeAnswerKey,
     computeAttemptTotalScore,
     buildOfflineAttemptsCsv,
-    verifyAdminCredentials
+    verifyAdminCredentials,
+    findMatchingOfflineAttempt
 } = require('../app-services.js');
 
 test('Levenshtein distance handles exact and typo matches', () => {
@@ -139,4 +140,24 @@ test('verifyAdminCredentials accepts Admin / 00 and rejects wrong inputs', () =>
     assert.equal(verifyAdminCredentials('Admin', '0'), false);
     assert.equal(verifyAdminCredentials('Admin', '000'), false);
     assert.equal(verifyAdminCredentials('other', '00'), false);
+});
+
+test('findMatchingOfflineAttempt matches by exact ID, case-insensitive ID, swapped fields, and Name fallback', () => {
+    const attempts = {
+        '600': { studentId: '600', name: 'PS', status: 'released', released: true, totalScore: 300 },
+        '900': { studentId: '900', name: 'PD', status: 'in_progress', totalScore: 0 }
+    };
+
+    // Exact Student ID
+    assert.equal(findMatchingOfflineAttempt(attempts, '600', 'PS', true)?.studentId, '600');
+    // Leading zero / numeric ID equivalence
+    assert.equal(findMatchingOfflineAttempt(attempts, '0600', '', true)?.studentId, '600');
+    // Swapped fields (Name put in Student ID box, ID put in Name box)
+    assert.equal(findMatchingOfflineAttempt(attempts, 'PS', '600', true)?.studentId, '600');
+    // Name only in Name box (e.g. Student ID left blank or has quiz code)
+    assert.equal(findMatchingOfflineAttempt(attempts, 'NELZHQ', 'ps', true)?.studentId, '600');
+    // Name only in Student ID box
+    assert.equal(findMatchingOfflineAttempt(attempts, '  ps ', '', true)?.studentId, '600');
+    // In assignment mode (allowNameFallback = false), new Student ID does not collide with another student of same name
+    assert.equal(findMatchingOfflineAttempt(attempts, '700', 'PS', false), null);
 });

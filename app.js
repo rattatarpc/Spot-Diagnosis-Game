@@ -6179,7 +6179,7 @@ async function openCreateOfflineAssignmentModal(quiz) {
         // Generate unique 6-char assignment code
         let assignCode = AppServices.generateAssignCode();
         for (let tries = 0; tries < 5; tries++) {
-            const snap = await db.ref(`rooms/offline_${assignCode}/meta`).get();
+            const snap = await db.ref(`rooms/offline_${assignCode}/meta`).once('value');
             if (!snap.exists()) break;
             assignCode = AppServices.generateAssignCode();
         }
@@ -6322,6 +6322,10 @@ function stopOfflineStudentTimers() {
         clearInterval(offlineState.flushInterval);
         offlineState.flushInterval = null;
     }
+    if (offlineState.metaListenerRef) {
+        offlineState.metaListenerRef.off();
+        offlineState.metaListenerRef = null;
+    }
 }
 
 function getOfflineAnswerValue(attempt, qIndex) {
@@ -6345,28 +6349,96 @@ function isOfflineQuestionAnswered(attempt, q, qIndex) {
 
 async function enterOfflineAssignment() {
     if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
+    stopOfflineStudentTimers();
+
     const codeInput = document.getElementById('offline-assign-code');
     const idInput = document.getElementById('offline-student-id');
     const nameInput = document.getElementById('offline-student-name');
 
-    const assignCode = (codeInput?.value || '').trim().toUpperCase();
+    const rawAssignCode = (codeInput?.value || '').trim().toUpperCase();
     const rawStudentId = (idInput?.value || '').trim();
-    const studentId = AppServices.sanitizeStudentId(rawStudentId);
     const studentName = (nameInput?.value || '').trim();
+    const isReviewMode = offlineState.joinEntryMode === 'review';
 
-    if (!assignCode || !studentId) {
-        return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว', 'warning');
+    if (isReviewMode) {
+        if (!rawAssignCode || (!rawStudentId && !studentName)) {
+            return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา หรือ ชื่อของคุณ', 'warning');
+        }
+    } else {
+        if (!rawAssignCode || (!rawStudentId && !studentName)) {
+            return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว', 'warning');
+        }
     }
 
-    const assignSnap = await db.ref(`rooms/offline_${assignCode}`).get();
-    if (!assignSnap.exists()) {
+    let assignCode = rawAssignCode;
+    let assignSnap = assignCode ? await db.ref(`rooms/offline_${assignCode}`).once('value') : null;
+    let assignData = (assignSnap && assignSnap.exists()) ? (assignSnap.val() || {}) : null;
+
+    let matched = assignData
+        ? AppServices.findMatchingOfflineAttempt(assignData.attempts || {}, rawStudentId, studentName, isReviewMode)
+        : null;
+
+    // In Review Mode, if the room wasn't found (e.g. user entered Student ID in the first box)
+    // or if this room had no matching attempt (e.g. multiple formative sessions created for the same quiz),
+    // search across offline_* rooms so the student can still review their score seamlessly.
+    if (isReviewMode && !matched) {
+        try {
+            const roomsSnap = await db.ref('rooms')
+                .orderByKey()
+                .startAt('offline_')
+                .endAt('offline_\uf8ff')
+                .once('value');
+            if (roomsSnap && roomsSnap.exists()) {
+                const allRooms = roomsSnap.val() || {};
+                const candidates = [];
+                for (const [roomKey, roomVal] of Object.entries(allRooms)) {
+                    if (!roomVal || typeof roomVal !== 'object' || !roomVal.attempts) continue;
+                    const rCode = roomKey.replace(/^offline_/, '');
+                    let m = AppServices.findMatchingOfflineAttempt(roomVal.attempts, rawStudentId, studentName, true);
+                    if (!m && !assignData && rawAssignCode) {
+                        m = AppServices.findMatchingOfflineAttempt(
+                            roomVal.attempts,
+                            rawAssignCode,
+                            rawStudentId || studentName,
+                            true
+                        );
+                    }
+                    if (m) {
+                        const sameTitle = assignData && assignData.meta && roomVal.meta &&
+                            (roomVal.meta.title === assignData.meta.title ||
+                             (roomVal.meta.sourceQuizTitle && roomVal.meta.sourceQuizTitle === assignData.meta.sourceQuizTitle));
+                        const ts = Number(m.attempt.submittedAt || m.attempt.lastActiveAt || m.attempt.startedAt || roomVal.meta?.createdAt || 0);
+                        candidates.push({ rCode, roomVal, matched: m, sameTitle: Boolean(sameTitle), ts });
+                    }
+                }
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) => {
+                        if (a.sameTitle !== b.sameTitle) return a.sameTitle ? -1 : 1;
+                        return b.ts - a.ts;
+                    });
+                    const best = candidates[0];
+                    assignCode = best.rCode;
+                    assignData = best.roomVal;
+                    matched = best.matched;
+                }
+            }
+        } catch (fallbackErr) {
+            console.warn('Formative review cross-room lookup fallback failed:', fallbackErr);
+        }
+    }
+
+    if (!assignData) {
         return Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
     }
 
-    const assignData = assignSnap.val() || {};
     const meta = assignData.meta || {};
     const quiz = Array.isArray(assignData.quiz) ? assignData.quiz : Object.values(assignData.quiz || {});
-    const existingAttempt = (assignData.attempts && assignData.attempts[studentId]) || null;
+    const studentId = matched
+        ? matched.studentId
+        : AppServices.sanitizeStudentId(rawStudentId || studentName);
+    const existingAttempt = matched
+        ? matched.attempt
+        : ((assignData.attempts && assignData.attempts[studentId]) || null);
 
     offlineState.assignCode = assignCode;
     offlineState.studentId = studentId;
@@ -6379,20 +6451,30 @@ async function enterOfflineAssignment() {
     window.history.replaceState({ path: newUrl }, '', newUrl);
 
     // 1. If user entered via "Formative Review" mode, look up their submitted result
-    if (offlineState.joinEntryMode === 'review') {
+    if (isReviewMode) {
         if (!existingAttempt) {
-            return Swal.fire('ไม่พบข้อมูลการทำควิซ', 'ยังไม่มีประวัติการทำควิซของรหัสนักศึกษานี้ กรุณาเข้าทำผ่านเมนู Formative Assignment ก่อนครับ', 'info');
+            return Swal.fire('ไม่พบข้อมูลการทำควิซ', 'ยังไม่มีประวัติการทำควิซของรหัสหรือชื่อนี้ กรุณาเข้าทำผ่านเมนู Formative Assignment ก่อนครับ', 'info');
         }
-        if (existingAttempt.status === 'in_progress') {
+        const isAlreadyReleasedOrGraded = AppServices.isAttemptReleased(meta, existingAttempt) ||
+            (existingAttempt.grading && Object.keys(existingAttempt.grading).length > 0);
+        if (existingAttempt.status === 'in_progress' && !isAlreadyReleasedOrGraded) {
             const res = await Swal.fire({
-                title: 'คุณยังทำควิซนี้ค้างอยู่',
-                text: 'คุณยังไม่ได้กดส่งคำตอบ ต้องการเข้าไปทำควิซต่อหรือไม่?',
+                title: 'คุณยังไม่ได้กดส่งคำตอบขั้นสุดท้าย',
+                text: 'คุณต้องการส่งคำตอบเพื่อดูผลคะแนนทันที หรือกลับเข้าไปทำควิซต่อ?',
                 icon: 'question',
+                showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'เข้าไปทำต่อ',
+                confirmButtonText: 'ดูผลคะแนน',
+                denyButtonText: 'เข้าไปทำต่อ',
                 cancelButtonText: 'ยกเลิก'
             });
-            if (!res.isConfirmed) return;
+            if (res.isConfirmed) {
+                offlineState.attempt = existingAttempt;
+                offlineState.studentName = existingAttempt.name || studentName || studentId;
+                await submitOfflineAttempt('manual');
+                return;
+            }
+            if (!res.isDenied) return;
         } else {
             offlineState.attempt = existingAttempt;
             offlineState.studentName = existingAttempt.name || studentName || studentId;
@@ -6403,7 +6485,7 @@ async function enterOfflineAssignment() {
     }
 
     // 2. If already submitted/graded/released -> go straight to result view (1 attempt rule, Spec #2)
-    if (existingAttempt && existingAttempt.status && existingAttempt.status !== 'in_progress') {
+    if (existingAttempt && ((existingAttempt.status && existingAttempt.status !== 'in_progress') || AppServices.isAttemptReleased(meta, existingAttempt))) {
         offlineState.attempt = existingAttempt;
         offlineState.studentName = existingAttempt.name || studentName || studentId;
         await renderOfflineStudentResultScreen();
@@ -6983,8 +7065,8 @@ async function renderOfflineStudentResultScreen() {
 
     // Fetch latest meta and attempt from Firebase
     const [metaSnap, attSnap] = await Promise.all([
-        db.ref(`rooms/offline_${offlineState.assignCode}/meta`).get(),
-        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).get()
+        db.ref(`rooms/offline_${offlineState.assignCode}/meta`).once('value'),
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).once('value')
     ]);
 
     if (metaSnap.exists()) offlineState.meta = metaSnap.val() || {};
@@ -6993,6 +7075,10 @@ async function renderOfflineStudentResultScreen() {
     const meta = offlineState.meta || {};
     const att = offlineState.attempt || {};
     const quiz = offlineState.quiz || [];
+
+    if (!att.grading || Object.keys(att.grading).length === 0) {
+        att.grading = await gradeEntireOfflineAttempt(quiz, att);
+    }
 
     const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
     const maxPossible = quiz.reduce((sum, q) => sum + getQuestionMaxScoreOffline(q), 0);
@@ -7159,7 +7245,7 @@ async function promptOfflineTeacherLogin(prefillCode = '') {
 async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
     if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
     const code = String(assignCode || '').trim().toUpperCase();
-    const snap = await db.ref(`rooms/offline_${code}`).get();
+    const snap = await db.ref(`rooms/offline_${code}`).once('value');
     if (!snap.exists()) {
         return Swal.fire('Not Found', `Formative assignment code "${code}" not found`, 'error');
     }
