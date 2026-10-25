@@ -315,6 +315,19 @@ h1, h2, h3 {
     color: #dc2626;
 }
 
+/* Offline Teacher Reviewer Screen */
+.offline-teacher-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.offline-teacher-actions button {
+    width: auto !important;
+}
+
 .global-controls .custom-select-wrapper {
     min-width: 160px;
 }

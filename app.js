@@ -6063,6 +6063,16 @@ function formatDateTimeTh(ms) {
     });
 }
 
+function formatDateTimeEn(ms) {
+    if (!ms) return 'None';
+    const d = new Date(Number(ms));
+    if (isNaN(d.getTime())) return 'None';
+    return d.toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
 function toDatetimeLocalValue(ms) {
     if (!ms) return '';
     const d = new Date(Number(ms));
@@ -7197,23 +7207,31 @@ async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
 
 function renderOfflineTeacherHeader() {
     const meta = offlineState.meta || {};
-    const code = offlineState.assignCode;
     const winState = AppServices.getAssignmentWindowState(meta, Date.now());
     const isClosed = winState.state === 'closed' || meta.closedManually;
-    const statusLabel = isClosed ? '🔒 ปิดรับคำตอบแล้ว'
-        : winState.state === 'not_open_yet' ? '⏳ รอถึงเวลาเปิด'
-        : '🟢 กำลังเปิดรับคำตอบ';
+    const statusLabel = isClosed ? 'Closed'
+        : winState.state === 'not_open_yet' ? 'Scheduled (Not open yet)'
+        : 'Open (Accepting Submissions)';
 
     const titleEl = document.getElementById('offline-teacher-title');
     const metaEl = document.getElementById('offline-teacher-meta');
-    if (titleEl) titleEl.innerText = `📋 ${meta.title || 'Offline Quiz'} (${code})`;
+    if (titleEl) titleEl.innerText = meta.title || 'Formative Assignment';
     if (metaEl) {
+        const timeLimitStr = meta.timeLimitSec ? `${Math.round(meta.timeLimitSec / 60)} mins` : 'Unlimited';
+        const releasedStr = meta.resultsReleasedAll ? 'Released to all' : 'Not released';
         metaEl.innerHTML =
-            `สถานะ: <strong>${statusLabel}</strong>` +
-            ` &nbsp;|&nbsp; เปิด: ${formatDateTimeTh(meta.opensAt)}` +
-            ` &nbsp;|&nbsp; ปิด: ${formatDateTimeTh(meta.closesAt)}` +
-            ` &nbsp;|&nbsp; จำกัดเวลา: ${meta.timeLimitSec ? Math.round(meta.timeLimitSec / 60) + ' นาที' : 'ไม่จำกัด'}` +
-            ` &nbsp;|&nbsp; ปล่อยผลทั้งห้อง: <strong>${meta.resultsReleasedAll ? 'ปล่อยแล้ว ✅' : 'ยังไม่ปล่อย'}</strong>`;
+            `Status: <strong>${statusLabel}</strong>` +
+            ` &nbsp;|&nbsp; Opens: ${formatDateTimeEn(meta.opensAt)}` +
+            ` &nbsp;|&nbsp; Due: ${formatDateTimeEn(meta.closesAt)}` +
+            ` &nbsp;|&nbsp; Time Limit: ${timeLimitStr}` +
+            ` &nbsp;|&nbsp; Results: <strong>${releasedStr}</strong>`;
+    }
+
+    const releaseBtn = document.getElementById('btn-offline-release-all');
+    if (releaseBtn) {
+        releaseBtn.innerText = meta.resultsReleasedAll ? 'Unrelease All Results' : 'Release All Results';
+        releaseBtn.style.background = meta.resultsReleasedAll ? 'var(--danger)' : 'var(--success)';
+        releaseBtn.style.borderColor = meta.resultsReleasedAll ? 'var(--danger)' : 'var(--success)';
     }
 }
 
@@ -7245,7 +7263,7 @@ function renderOfflineTeacherStudentsTab(container) {
     );
 
     if (entries.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:2.5rem;">ยังไม่มีผู้เล่นเข้าทำควิซนี้</div>`;
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:2.5rem;">No students have attempted this quiz yet</div>`;
         return;
     }
 
@@ -7256,10 +7274,10 @@ function renderOfflineTeacherStudentsTab(container) {
         const total = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
         const isRel = AppServices.isAttemptReleased(meta, att);
         const needsRev = Object.values(att.grading || {}).some(g => g && g.needsReview);
-        const statusText = isRel ? '📢 ปล่อยผลแล้ว'
-            : att.status === 'graded' ? '✅ ตรวจแล้ว'
-            : att.status === 'submitted' ? '📩 ส่งแล้ว'
-            : '✏️ กำลังทำ';
+        const statusText = isRel ? 'Released'
+            : att.status === 'graded' ? 'Graded'
+            : att.status === 'submitted' ? 'Submitted'
+            : 'In Progress';
 
         rowsHtml += `
             <tr style="border-bottom:1px solid var(--glass-border);">
@@ -7267,14 +7285,14 @@ function renderOfflineTeacherStudentsTab(container) {
                 <td style="padding:0.65rem; font-weight:600;">${escapeHtml(att.name || '-')}</td>
                 <td style="padding:0.65rem;">
                     ${statusText}
-                    ${needsRev ? '<span style="background:#eab308; color:#000; font-size:0.72rem; padding:2px 6px; border-radius:6px; margin-left:4px; font-weight:700;">ควรตรวจซ้ำ</span>' : ''}
+                    ${needsRev ? '<span style="background:#eab308; color:#000; font-size:0.72rem; padding:2px 6px; border-radius:6px; margin-left:4px; font-weight:700;">Needs Review</span>' : ''}
                 </td>
                 <td style="padding:0.65rem; font-weight:700; color:var(--primary);">${total} / ${maxPossible}</td>
                 <td style="padding:0.65rem;">${formatDurationClock(att.elapsedSec || 0)}</td>
                 <td style="padding:0.65rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
-                    <button class="btn-pill btn-pill-primary btn-grade-student" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">🔍 ตรวจ / Feedback</button>
-                    <button class="btn-pill btn-pill-outline btn-release-one" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">${att.released ? '🔒 ยกเลิกปล่อยรายคน' : '📢 ปล่อยผลคนนี้'}</button>
-                    <button class="btn-pill btn-pill-danger-outline btn-reset-attempt" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;" title="รีเซ็ตให้ทำใหม่">♻️ รีเซ็ต</button>
+                    <button class="btn-pill btn-pill-primary btn-grade-student" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">Grade / Feedback</button>
+                    <button class="btn-pill btn-pill-outline btn-release-one" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;">${att.released ? 'Unrelease' : 'Release'}</button>
+                    <button class="btn-pill btn-pill-danger-outline btn-reset-attempt" data-sid="${escapeHtml(sid)}" style="padding:0.3rem 0.7rem; font-size:0.82rem;" title="Reset this student's attempt">Reset</button>
                 </td>
             </tr>
         `;
@@ -7285,12 +7303,12 @@ function renderOfflineTeacherStudentsTab(container) {
             <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.92rem;">
                 <thead>
                     <tr style="border-bottom:2px solid var(--glass-border); color:var(--text-muted);">
-                        <th style="padding:0.65rem;">รหัส</th>
-                        <th style="padding:0.65rem;">ชื่อ - นามสกุล</th>
-                        <th style="padding:0.65rem;">สถานะ</th>
-                        <th style="padding:0.65rem;">คะแนน</th>
-                        <th style="padding:0.65rem;">เวลาที่ใช้</th>
-                        <th style="padding:0.65rem;">จัดการ</th>
+                        <th style="padding:0.65rem;">Student ID</th>
+                        <th style="padding:0.65rem;">Name</th>
+                        <th style="padding:0.65rem;">Status</th>
+                        <th style="padding:0.65rem;">Score</th>
+                        <th style="padding:0.65rem;">Time Spent</th>
+                        <th style="padding:0.65rem;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -7316,13 +7334,13 @@ function renderOfflineTeacherStudentsTab(container) {
             const sid = btn.dataset.sid;
             const att = offlineState.attemptsMap?.[sid];
             const res = await Swal.fire({
-                title: `รีเซ็ตการทำของ ${att?.name || sid}?`,
-                text: 'ข้อมูลคำตอบและคะแนนของรหัสนี้จะถูกลบ เพื่อให้ผู้เล่นเข้าทำใหม่ได้อีกครั้ง',
+                title: `Reset attempt for ${att?.name || sid}?`,
+                text: 'All answers and scores for this student will be cleared so they can take the quiz again.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: 'var(--danger)',
-                confirmButtonText: 'ลบและให้ทำใหม่',
-                cancelButtonText: 'ยกเลิก'
+                confirmButtonText: 'Reset Attempt',
+                cancelButtonText: 'Cancel'
             });
             if (res.isConfirmed) {
                 await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${sid}`).remove();
@@ -7340,7 +7358,7 @@ async function openStudentGradingModal(studentId) {
     quiz.forEach((q, idx) => {
         if (!q || q.type === 'slide') return;
         const ansVal = getOfflineAnswerValue(att, idx);
-        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '(ไม่ได้ตอบ)');
+        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '(No response)');
         const g = (att.grading && att.grading[idx]) || {};
         const effectivePts = (g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '')
             ? g.teacherPoints
@@ -7353,25 +7371,25 @@ async function openStudentGradingModal(studentId) {
 
         let aiConceptText = '';
         if (Array.isArray(g.aiConcepts) && g.aiConcepts.length > 0) {
-            aiConceptText = `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">🤖 AI Breakdown: ` +
+            aiConceptText = `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">AI Breakdown: ` +
                 g.aiConcepts.map(c => `#${c.conceptId}:${c.tier}(${c.points || 0}pt)${c.reason ? ' [' + escapeHtml(c.reason) + ']' : ''}`).join(' • ') +
                 `</div>`;
         }
 
         qItemsHtml += `
             <div style="border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); border-radius:10px; padding:0.85rem; margin-bottom:0.75rem;">
-                <div style="font-weight:700; color:var(--primary); margin-bottom:4px;">ข้อ ${idx + 1}: ${escapeHtml(q.text || '')}</div>
-                <div style="font-size:0.88rem; margin-bottom:4px;"><strong>คำตอบผู้เล่น:</strong> <span style="color:var(--text-main);">${escapeHtml(String(ansStr))}</span></div>
-                <div style="font-size:0.82rem; color:var(--success);"><strong>เฉลย:</strong> ${escapeHtml(keyStr || '-')}</div>
+                <div style="font-weight:700; color:var(--primary); margin-bottom:4px;">Question ${idx + 1}: ${escapeHtml(q.text || '')}</div>
+                <div style="font-size:0.88rem; margin-bottom:4px;"><strong>Student Answer:</strong> <span style="color:var(--text-main);">${escapeHtml(String(ansStr))}</span></div>
+                <div style="font-size:0.82rem; color:var(--success);"><strong>Correct Answer:</strong> ${escapeHtml(keyStr || '-')}</div>
                 ${aiConceptText}
                 <div style="display:grid; grid-template-columns:140px 1fr; gap:0.6rem; margin-top:0.6rem; align-items:center;">
                     <div>
-                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">คะแนน (เต็ม ${maxPts})</label>
+                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">Score (Max ${maxPts})</label>
                         <input type="number" class="swal2-input offline-grade-pts" data-qidx="${idx}" style="margin:0; width:100%; height:36px; font-size:0.95rem;" value="${escapeHtml(String(effectivePts))}">
                     </div>
                     <div>
-                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">คอมเมนต์รายข้อ</label>
-                        <input type="text" class="swal2-input offline-grade-comment" data-qidx="${idx}" style="margin:0; width:100%; height:36px; font-size:0.9rem;" placeholder="คำแนะนำสำหรับข้อนี้ (ไม่บังคับ)" value="${escapeHtml(g.comment || '')}">
+                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">Question Feedback</label>
+                        <input type="text" class="swal2-input offline-grade-comment" data-qidx="${idx}" style="margin:0; width:100%; height:36px; font-size:0.9rem;" placeholder="Feedback for this question (optional)" value="${escapeHtml(g.comment || '')}">
                     </div>
                 </div>
             </div>
@@ -7379,24 +7397,24 @@ async function openStudentGradingModal(studentId) {
     });
 
     const { value: saved, isConfirmed } = await Swal.fire({
-        title: `ตรวจคำตอบ: ${att.name || studentId} (${studentId})`,
+        title: `Grade & Feedback: ${att.name || studentId} (${studentId})`,
         width: 780,
         html: `
             <div style="text-align:left; max-height:62vh; overflow-y:auto; padding-right:4px;">
                 ${qItemsHtml}
                 <div style="margin-top:1rem;">
-                    <label style="font-weight:700; display:block; margin-bottom:6px; color:#c4b5fd;">💬 คำแนะนำและ Feedback ภาพรวมถึงผู้เล่น</label>
-                    <textarea id="swal-overall-feedback" class="swal2-textarea" style="margin:0; width:100%; min-height:90px;" placeholder="เขียนคำชม จุดที่ควรทบทวน หรือคำแนะนำเพิ่มเติม...">${escapeHtml(att.overallFeedback || '')}</textarea>
+                    <label style="font-weight:700; display:block; margin-bottom:6px; color:#c4b5fd;">Overall Feedback for Student</label>
+                    <textarea id="swal-overall-feedback" class="swal2-textarea" style="margin:0; width:100%; min-height:90px;" placeholder="Write praise, review points, or overall advice...">${escapeHtml(att.overallFeedback || '')}</textarea>
                 </div>
                 <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; font-size:0.92rem;">
                     <input type="checkbox" id="swal-release-this-student" ${att.released ? 'checked' : ''}>
-                    <span>📢 ปล่อยผลและ Feedback ให้ผู้เล่นคนนี้เห็นทันที</span>
+                    <span>Release score and feedback to this student immediately</span>
                 </label>
             </div>
         `,
         showCancelButton: true,
-        confirmButtonText: '💾 บันทึกคะแนนและ Feedback',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: 'Save Score & Feedback',
+        cancelButtonText: 'Cancel',
         preConfirm: () => {
             const newGrading = JSON.parse(JSON.stringify(att.grading || {}));
             document.querySelectorAll('.offline-grade-pts').forEach(inp => {
@@ -7442,7 +7460,7 @@ function renderOfflineTeacherByQuestionTab(container) {
     });
 
     if (gradableIndices.length === 0) {
-        container.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--text-muted);">ไม่มีข้อคำถามที่ต้องตรวจ</div>`;
+        container.innerHTML = `<div style="padding:2rem; text-align:center; color:var(--text-muted);">No gradable questions in this quiz</div>`;
         return;
     }
     if (!gradableIndices.includes(offlineState.activeQuestionIdxForCrossGrade)) {
@@ -7454,7 +7472,7 @@ function renderOfflineTeacherByQuestionTab(container) {
 
     const pillsHtml = gradableIndices.map(idx => `
         <button class="btn-pill ${idx === qIdx ? 'btn-pill-primary' : 'btn-pill-outline'} btn-cross-q-select" data-qidx="${idx}">
-            ข้อ ${idx + 1}
+            Q${idx + 1}
         </button>
     `).join('');
 
@@ -7464,7 +7482,7 @@ function renderOfflineTeacherByQuestionTab(container) {
 
     const rowsHtml = entries.map(([sid, att]) => {
         const ansVal = getOfflineAnswerValue(att, qIdx);
-        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '(ไม่ได้ตอบ)');
+        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '(No response)');
         const g = (att.grading && att.grading[qIdx]) || {};
         const pts = (g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '')
             ? g.teacherPoints
@@ -7480,32 +7498,32 @@ function renderOfflineTeacherByQuestionTab(container) {
                     <input type="number" class="form-control cross-pts-input" data-sid="${escapeHtml(sid)}" value="${escapeHtml(String(pts))}" style="width:100%; padding:0.35rem 0.5rem;">
                 </div>
                 <div>
-                    <input type="text" class="form-control cross-comment-input" data-sid="${escapeHtml(sid)}" placeholder="คอมเมนต์ข้อนี้..." value="${escapeHtml(g.comment || '')}" style="width:100%; padding:0.35rem 0.5rem;">
+                    <input type="text" class="form-control cross-comment-input" data-sid="${escapeHtml(sid)}" placeholder="Feedback for this question..." value="${escapeHtml(g.comment || '')}" style="width:100%; padding:0.35rem 0.5rem;">
                 </div>
             </div>
         `;
     }).join('');
 
     container.innerHTML = `
-        <div style="display:flex; gap:0.45rem; flex-wrap:wrap; margin-bottom:1rem;">${pillsHtml}</div>
+        <div style="display:flex; gap:0.45rem; flex-wrap:wrap; margin-bottom:1rem; justify-content:center;">${pillsHtml}</div>
         <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; margin-bottom:1rem; text-align:left;">
-            <div style="font-weight:700; font-size:1.1rem; color:var(--primary);">ข้อที่ ${qIdx + 1}: ${escapeHtml(q.text || '')} (เต็ม ${maxPts} pts)</div>
-            <div style="font-size:0.88rem; color:var(--success); margin-top:4px;">🔑 เฉลย: ${escapeHtml(keyStr || '-')}</div>
+            <div style="font-weight:700; font-size:1.1rem; color:var(--primary);">Question ${qIdx + 1}: ${escapeHtml(q.text || '')} (Max ${maxPts} pts)</div>
+            <div style="font-size:0.88rem; color:var(--success); margin-top:4px;">Correct Answer: ${escapeHtml(keyStr || '-')}</div>
         </div>
         ${entries.length === 0
-            ? `<div style="padding:2rem; text-align:center; color:var(--text-muted);">ยังไม่มีผู้เล่นส่งคำตอบ</div>`
+            ? `<div style="padding:2rem; text-align:center; color:var(--text-muted);">No student submissions yet</div>`
             : `
                 <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; overflow:hidden;">
                     <div style="display:grid; grid-template-columns:180px 1fr 110px 240px; gap:0.65rem; padding:0.65rem; border-bottom:2px solid var(--glass-border); font-weight:700; color:var(--text-muted); text-align:left; font-size:0.85rem;">
-                        <div>ผู้เล่น</div>
-                        <div>คำตอบ</div>
-                        <div>คะแนน (/${maxPts})</div>
-                        <div>คอมเมนต์รายข้อ</div>
+                        <div>Student</div>
+                        <div>Answer</div>
+                        <div>Score (/${maxPts})</div>
+                        <div>Question Feedback</div>
                     </div>
                     ${rowsHtml}
                 </div>
                 <div style="text-align:right; margin-top:1rem;">
-                    <button id="btn-save-cross-question" class="btn-primary">💾 บันทึกคะแนนข้อที่ ${qIdx + 1} ของทุกคน</button>
+                    <button id="btn-save-cross-question" class="btn-primary" style="width:auto; padding:0.6rem 1.4rem;">Save Question ${qIdx + 1} Scores</button>
                 </div>
             `
         }
@@ -7542,7 +7560,7 @@ function renderOfflineTeacherByQuestionTab(container) {
             });
 
             await db.ref().update(updates);
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'บันทึกคะแนนรายข้อเรียบร้อย', showConfirmButton: false, timer: 1600 });
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Question scores saved successfully', showConfirmButton: false, timer: 1600 });
         };
     }
 }
@@ -7552,7 +7570,7 @@ function renderOfflineTeacherStatsTab(container) {
     const quiz = offlineState.quiz || [];
     const attempts = Object.values(offlineState.attemptsMap || {}).filter(a => a && a.status !== 'in_progress');
     if (attempts.length === 0) {
-        container.innerHTML = `<div style="padding:2.5rem; text-align:center; color:var(--text-muted);">ยังไม่มีผู้เล่นที่ส่งคำตอบแล้วเพื่อคำนวณสถิติ</div>`;
+        container.innerHTML = `<div style="padding:2.5rem; text-align:center; color:var(--text-muted);">No submitted attempts yet to compute statistics</div>`;
         return;
     }
 
@@ -7575,12 +7593,12 @@ function renderOfflineTeacherStatsTab(container) {
     const histHtml = buckets.map((cnt, i) => {
         const wPct = Math.round((cnt / maxBucket) * 100);
         return `
-            <div style="display:grid; grid-template-columns:80px 1fr 50px; align-items:center; gap:0.6rem; margin-bottom:0.4rem; font-size:0.88rem;">
+            <div style="display:grid; grid-template-columns:80px 1fr 60px; align-items:center; gap:0.6rem; margin-bottom:0.4rem; font-size:0.88rem;">
                 <div style="color:var(--text-muted);">${bucketLabels[i]}</div>
                 <div style="background:rgba(255,255,255,0.06); border-radius:6px; height:18px; overflow:hidden;">
                     <div style="width:${wPct}%; height:100%; background:linear-gradient(90deg, #8b3dff, var(--primary));"></div>
                 </div>
-                <div style="font-weight:700;">${cnt} คน</div>
+                <div style="font-weight:700;">${cnt} ${cnt === 1 ? 'student' : 'students'}</div>
             </div>
         `;
     }).join('');
@@ -7604,7 +7622,7 @@ function renderOfflineTeacherStatsTab(container) {
 
         qStatsRows += `
             <tr style="border-bottom:1px solid var(--glass-border);">
-                <td style="padding:0.6rem;">ข้อ ${idx + 1}</td>
+                <td style="padding:0.6rem;">Q${idx + 1}</td>
                 <td style="padding:0.6rem;">${escapeHtml(q.text || '')}</td>
                 <td style="padding:0.6rem; font-weight:700; color:${accuracyPct < 50 ? 'var(--danger)' : 'var(--success)'};">${accuracyPct}% (${fullOrPositiveCount}/${attempts.length})</td>
                 <td style="padding:0.6rem;">${avgPts} / ${qMax}</td>
@@ -7614,34 +7632,34 @@ function renderOfflineTeacherStatsTab(container) {
 
     container.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:0.85rem; margin-bottom:1.25rem;">
-            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem;">
-                <div style="font-size:0.82rem; color:var(--text-muted);">จำนวนผู้ส่งคำตอบ</div>
-                <div style="font-size:1.8rem; font-weight:800; color:var(--primary);">${attempts.length} คน</div>
+            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:0.82rem; color:var(--text-muted);">Total Submissions</div>
+                <div style="font-size:1.8rem; font-weight:800; color:var(--primary);">${attempts.length} ${attempts.length === 1 ? 'student' : 'students'}</div>
             </div>
-            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem;">
-                <div style="font-size:0.82rem; color:var(--text-muted);">คะแนนเฉลี่ย</div>
+            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:0.82rem; color:var(--text-muted);">Average Score</div>
                 <div style="font-size:1.8rem; font-weight:800; color:var(--success);">${avgTotal} <span style="font-size:0.9rem; color:var(--text-muted);">/ ${maxPossible}</span></div>
             </div>
-            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem;">
-                <div style="font-size:0.82rem; color:var(--text-muted);">สูงสุด / ต่ำสุด</div>
+            <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; text-align:center;">
+                <div style="font-size:0.82rem; color:var(--text-muted);">Highest / Lowest</div>
                 <div style="font-size:1.5rem; font-weight:800;">${maxTotal} / ${minTotal}</div>
             </div>
         </div>
 
         <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1.1rem; margin-bottom:1.25rem; text-align:left;">
-            <h4 style="margin:0 0 0.75rem 0; color:var(--primary);">📊 การกระจายคะแนนรวม (Score Distribution)</h4>
+            <h4 style="margin:0 0 0.75rem 0; color:var(--primary);">Score Distribution</h4>
             ${histHtml}
         </div>
 
         <div style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1.1rem; text-align:left;">
-            <h4 style="margin:0 0 0.75rem 0; color:var(--primary);">📋 สถิติรายข้อ (ข้อที่คนตอบผิดเยอะจะแสดงสีแดง)</h4>
+            <h4 style="margin:0 0 0.75rem 0; color:var(--primary);">Question Performance (low accuracy highlighted in red)</h4>
             <table style="width:100%; border-collapse:collapse; font-size:0.92rem;">
                 <thead>
                     <tr style="border-bottom:2px solid var(--glass-border); color:var(--text-muted);">
-                        <th style="padding:0.6rem;">ข้อ</th>
-                        <th style="padding:0.6rem;">คำถาม</th>
-                        <th style="padding:0.6rem;">อัตราได้คะแนน</th>
-                        <th style="padding:0.6rem;">คะแนนเฉลี่ย</th>
+                        <th style="padding:0.6rem;">Question</th>
+                        <th style="padding:0.6rem;">Prompt</th>
+                        <th style="padding:0.6rem;">Accuracy Rate</th>
+                        <th style="padding:0.6rem;">Avg Score</th>
                     </tr>
                 </thead>
                 <tbody>${qStatsRows}</tbody>
@@ -7654,31 +7672,31 @@ function renderOfflineTeacherStatsTab(container) {
 async function editOfflineAssignmentWindowModal() {
     const meta = offlineState.meta || {};
     const { value: updated, isConfirmed } = await Swal.fire({
-        title: '⏰ แก้ไขเวลาเปิด–ปิด / ต่อเวลา',
+        title: 'Schedule Window & Time Limit',
         width: 500,
         html: `
             <div style="text-align:left; display:flex; flex-direction:column; gap:0.75rem; font-size:0.92rem;">
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">เวลาเริ่มเปิดให้ทำ</label>
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Start Time (Leave blank = open immediately)</label>
                     <input id="swal-edit-opens" type="datetime-local" class="swal2-input" style="margin:0; width:100%;" value="${toDatetimeLocalValue(meta.opensAt)}">
                 </div>
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">เวลาปิดรับคำตอบ (เปลี่ยนเป็นอนาคตเพื่อต่อเวลาได้)</label>
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Due Time (Close Submissions)</label>
                     <input id="swal-edit-closes" type="datetime-local" class="swal2-input" style="margin:0; width:100%;" value="${toDatetimeLocalValue(meta.closesAt)}">
                 </div>
                 <div>
-                    <label style="font-weight:600; display:block; margin-bottom:4px;">จำกัดเวลารวมต่อคน (นาที, 0 = ไม่จำกัด)</label>
+                    <label style="font-weight:600; display:block; margin-bottom:4px;">Time Limit per Attempt (Minutes, 0 = unlimited)</label>
                     <input id="swal-edit-limit" type="number" min="0" max="600" class="swal2-input" style="margin:0; width:100%;" value="${Math.round((meta.timeLimitSec || 0) / 60)}">
                 </div>
                 <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.35rem; cursor:pointer;">
                     <input type="checkbox" id="swal-edit-closed-manually" ${meta.closedManually ? 'checked' : ''}>
-                    <span>🔒 ปิดรับคำตอบทันทีด้วยมือ (บังคับส่งคนที่กำลังทำอยู่และเปิดให้ดูเฉลยได้เมื่อปล่อยผล)</span>
+                    <span>Close submissions now manually (force submit in-progress attempts)</span>
                 </label>
             </div>
         `,
         showCancelButton: true,
-        confirmButtonText: '💾 บันทึกการตั้งค่าเวลา',
-        cancelButtonText: 'ยกเลิก',
+        confirmButtonText: 'Save Schedule',
+        cancelButtonText: 'Cancel',
         preConfirm: () => {
             const opensStr = document.getElementById('swal-edit-opens').value;
             const closesStr = document.getElementById('swal-edit-closes').value;
@@ -7784,14 +7802,14 @@ document.getElementById('btn-offline-release-all')?.addEventListener('click', as
     const isClosed = winState.state === 'closed' || offlineState.meta?.closedManually;
 
     const res = await Swal.fire({
-        title: cur ? 'ยกเลิกการปล่อยผลทั้งห้อง?' : '📢 ปล่อยผลและ Feedback ทั้งห้อง?',
+        title: cur ? 'Unrelease results for all students?' : 'Release results to all students?',
         html: !cur && !isClosed
-            ? `<p>ผู้เล่นทุกคนจะเห็นคะแนนที่ครูตรวจและ Feedback ทันที</p><p style="font-size:0.85rem; color:#eab308;">🔒 หมายเหตุ: เนื่องจากควิซยังไม่ถึงเวลาปิดรับ ระบบจะ<strong>ยังไม่แสดงเฉลยคำตอบ</strong>จนกว่าควิซจะปิดรับ เพื่อป้องกันเฉลยรั่วไหล</p>`
-            : `<p>ผู้เล่นทุกคนที่เข้ามาด้วยรหัสของตนจะเห็นคะแนนและ Feedback</p>`,
+            ? `<p>All students will be able to see their graded scores and feedback immediately.</p><p style="font-size:0.85rem; color:#eab308;">Note: Since the quiz is not closed yet, the answer key will remain hidden until due time to prevent leaks.</p>`
+            : `<p>All students who enter with their ID will see their scores and feedback.</p>`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: cur ? 'ยกเลิกการปล่อยผล' : '📢 ยืนยันปล่อยผลทั้งหมด',
-        cancelButtonText: 'ปิด'
+        confirmButtonText: cur ? 'Unrelease Results' : 'Release All Results',
+        cancelButtonText: 'Cancel'
     });
     if (res.isConfirmed) {
         await db.ref(`rooms/offline_${offlineState.assignCode}/meta`).update({

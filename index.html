@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spot Diagnosis Game</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -854,25 +854,23 @@
         <!-- 12. Offline Teacher Reviewer Dashboard Screen -->
         <section id="offline-teacher-screen" class="screen">
             <div class="glass-container" style="max-width: 1180px; width: 96%; margin-top: 3.5rem; max-height: 90vh; overflow-y: auto;">
-                <div id="offline-teacher-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:1rem; padding-bottom:1rem; border-bottom:1px solid var(--glass-border);">
-                    <div>
-                        <h2 id="offline-teacher-title" style="margin:0; color:var(--primary);">📋 จัดการควิซออฟไลน์</h2>
-                        <div id="offline-teacher-meta" style="font-size:0.9rem; color:var(--text-muted); margin-top:0.35rem;"></div>
-                    </div>
-                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                        <button id="btn-offline-share-info" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">🔗 โค้ด & QR</button>
-                        <button id="btn-offline-edit-window" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">⏰ ตั้งเวลาเปิด/ปิด</button>
-                        <button id="btn-offline-release-all" class="btn-primary" style="padding:0.45rem 0.9rem; font-size:0.88rem; background:var(--success); border-color:var(--success);">📢 ปล่อยผลทั้งหมด</button>
-                        <button id="btn-offline-export-csv" class="btn-secondary" style="padding:0.45rem 0.9rem; font-size:0.88rem;">📥 Export CSV</button>
-                        <button class="btn-secondary back-to-dashboard" style="padding:0.45rem 0.9rem; font-size:0.88rem;">กลับคลังควิซ</button>
+                <div id="offline-teacher-header" style="text-align: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+                    <h2 id="offline-teacher-title" class="title-gradient" style="margin: 0 0 0.5rem 0; font-size: 2rem;"></h2>
+                    <div id="offline-teacher-meta" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6;"></div>
+                    <div class="offline-teacher-actions" style="display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; align-items: center;">
+                        <button id="btn-offline-share-info" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Code & QR</button>
+                        <button id="btn-offline-edit-window" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Schedule Window</button>
+                        <button id="btn-offline-release-all" class="btn-primary" style="width: auto; min-width: 150px; padding: 0.55rem 1.15rem; font-size: 0.92rem; background: var(--success); border-color: var(--success);">Release All Results</button>
+                        <button id="btn-offline-export-csv" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Export CSV</button>
+                        <button class="btn-secondary back-to-dashboard" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Back to Library</button>
                     </div>
                 </div>
 
                 <!-- Teacher View Tabs -->
-                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin: 1rem 0;">
-                    <button class="btn-pill btn-pill-primary offline-t-tab" data-tab="students">👥 รายชื่อผู้เล่น</button>
-                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="by-question">📝 ตรวจรายข้อข้ามคน</button>
-                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="stats">📊 สถิติรายข้อ & กราฟคะแนน</button>
+                <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.25rem 0;">
+                    <button class="btn-pill btn-pill-primary offline-t-tab" data-tab="students" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Students</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="by-question" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Grade by Question</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="stats" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Stats & Score Chart</button>
                 </div>
 
                 <!-- Tab Body -->
@@ -1105,6 +1103,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <script src="app-services.js?v=4"></script>
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
 </body>
 </html>
