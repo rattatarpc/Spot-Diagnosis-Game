@@ -6010,43 +6010,54 @@ async function openCreateOfflineAssignmentModal(quiz) {
 
     if (!isConfirmed || !formValues) return;
 
-    // Generate unique 6-char assignment code
-    let assignCode = AppServices.generateAssignCode();
-    for (let tries = 0; tries < 5; tries++) {
-        const snap = await db.ref(`assignments/${assignCode}/meta`).get();
-        if (!snap.exists()) break;
-        assignCode = AppServices.generateAssignCode();
+    Swal.fire({
+        title: '⏳ กำลังสร้างรอบควิซออฟไลน์...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        // Generate unique 6-char assignment code
+        let assignCode = AppServices.generateAssignCode();
+        for (let tries = 0; tries < 5; tries++) {
+            const snap = await db.ref(`rooms/offline_${assignCode}/meta`).get();
+            if (!snap.exists()) break;
+            assignCode = AppServices.generateAssignCode();
+        }
+
+        const reviewerPinHash = AppServices.hashPinSync(formValues.pin, assignCode);
+        const quizSnapshot = JSON.parse(JSON.stringify(quiz.questions));
+        const meta = {
+            title: formValues.title,
+            sourceQuizTitle: quiz.title || '',
+            opensAt: formValues.opensAt || null,
+            closesAt: formValues.closesAt || null,
+            timeLimitSec: formValues.timeLimitSec,
+            reviewerPinHash,
+            resultsReleasedAll: false,
+            closedManually: false,
+            createdAt: Date.now()
+        };
+
+        await db.ref(`rooms/offline_${assignCode}`).set({
+            meta,
+            quiz: quizSnapshot
+        });
+
+        await saveTeacherAssignmentLocal({
+            assignCode,
+            title: meta.title,
+            pin: formValues.pin,
+            createdAt: meta.createdAt,
+            closesAt: meta.closesAt
+        });
+
+        renderLocalOfflineAssignments();
+        showOfflineShareModal(assignCode, formValues.pin, meta);
+    } catch (err) {
+        console.error('Failed to create offline assignment:', err);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างรอบควิซออฟไลน์ได้: ' + (err.message || err), 'error');
     }
-
-    const reviewerPinHash = AppServices.hashPinSync(formValues.pin, assignCode);
-    const quizSnapshot = JSON.parse(JSON.stringify(quiz.questions));
-    const meta = {
-        title: formValues.title,
-        sourceQuizTitle: quiz.title || '',
-        opensAt: formValues.opensAt || null,
-        closesAt: formValues.closesAt || null,
-        timeLimitSec: formValues.timeLimitSec,
-        reviewerPinHash,
-        resultsReleasedAll: false,
-        closedManually: false,
-        createdAt: Date.now()
-    };
-
-    await db.ref(`assignments/${assignCode}`).set({
-        meta,
-        quiz: quizSnapshot
-    });
-
-    await saveTeacherAssignmentLocal({
-        assignCode,
-        title: meta.title,
-        pin: formValues.pin,
-        createdAt: meta.createdAt,
-        closesAt: meta.closesAt
-    });
-
-    renderLocalOfflineAssignments();
-    showOfflineShareModal(assignCode, formValues.pin, meta);
 }
 
 function showOfflineShareModal(assignCode, reviewerPin, meta = {}) {
@@ -6188,7 +6199,7 @@ async function enterOfflineAssignment() {
         return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว', 'warning');
     }
 
-    const assignSnap = await db.ref(`assignments/${assignCode}`).get();
+    const assignSnap = await db.ref(`rooms/offline_${assignCode}`).get();
     if (!assignSnap.exists()) {
         return Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
     }
@@ -6255,7 +6266,7 @@ async function enterOfflineAssignment() {
             status: 'in_progress',
             answers: {}
         };
-        await db.ref(`assignments/${assignCode}/attempts/${studentId}`).set(newAttempt);
+        await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).set(newAttempt);
         offlineState.attempt = newAttempt;
         offlineState.studentName = studentName;
     } else {
@@ -6298,7 +6309,7 @@ function startOfflineQuizRunner() {
 
     // Listen to live meta changes so if teacher extends or closes the window, we react immediately
     if (offlineState.metaListenerRef) offlineState.metaListenerRef.off();
-    offlineState.metaListenerRef = db.ref(`assignments/${offlineState.assignCode}/meta`);
+    offlineState.metaListenerRef = db.ref(`rooms/offline_${offlineState.assignCode}/meta`);
     offlineState.metaListenerRef.on('value', snap => {
         if (!snap.exists()) return;
         offlineState.meta = snap.val() || {};
@@ -6334,7 +6345,7 @@ function startOfflineQuizRunner() {
     // Flush elapsedSec to Firebase every 5 seconds while active
     offlineState.flushInterval = setInterval(() => {
         if (offlineState.submitting || document.hidden || !offlineState.assignCode || !offlineState.studentId) return;
-        db.ref(`assignments/${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
             elapsedSec: Number(offlineState.attempt.elapsedSec || 0),
             lastActiveAt: Date.now()
         }).catch(() => {});
@@ -6345,7 +6356,7 @@ function startOfflineQuizRunner() {
 document.addEventListener('visibilitychange', () => {
     if (!screens.offlineQuiz || !screens.offlineQuiz.classList.contains('active')) return;
     if (document.hidden && offlineState.assignCode && offlineState.studentId && !offlineState.submitting) {
-        db.ref(`assignments/${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
             elapsedSec: Number(offlineState.attempt?.elapsedSec || 0),
             lastActiveAt: Date.now()
         }).catch(() => {});
@@ -6564,7 +6575,7 @@ async function saveOfflineAnswer(qIndex, value) {
     offlineState.attempt.answers[qIndex] = payload;
     const statusEl = document.getElementById('offline-autosave-status');
     try {
-        await db.ref(`assignments/${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
+        await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
             [`answers/${qIndex}`]: payload,
             elapsedSec: Number(offlineState.attempt.elapsedSec || 0),
             lastActiveAt: Date.now()
@@ -6763,7 +6774,7 @@ async function submitOfflineAttempt(reason = 'manual') {
         offlineState.attempt.submittedAt = submittedAt;
         offlineState.attempt.submitReason = reason;
 
-        await db.ref(`assignments/${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
+        await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
             grading,
             totalScore,
             status: 'submitted',
@@ -6789,8 +6800,8 @@ async function renderOfflineStudentResultScreen() {
 
     // Fetch latest meta and attempt from Firebase
     const [metaSnap, attSnap] = await Promise.all([
-        db.ref(`assignments/${offlineState.assignCode}/meta`).get(),
-        db.ref(`assignments/${offlineState.assignCode}/attempts/${offlineState.studentId}`).get()
+        db.ref(`rooms/offline_${offlineState.assignCode}/meta`).get(),
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).get()
     ]);
 
     if (metaSnap.exists()) offlineState.meta = metaSnap.val() || {};
@@ -6965,7 +6976,7 @@ async function promptOfflineTeacherLogin(prefillCode = '') {
 async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
     if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
     const code = String(assignCode || '').trim().toUpperCase();
-    const snap = await db.ref(`assignments/${code}`).get();
+    const snap = await db.ref(`rooms/offline_${code}`).get();
     if (!snap.exists()) {
         return Swal.fire('ไม่พบข้อมูล', `ไม่พบรอบควิซออฟไลน์รหัส "${code}"`, 'error');
     }
@@ -7000,7 +7011,7 @@ async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
 
     // Live listener on attempts & meta
     if (offlineState.attemptsListenerRef) offlineState.attemptsListenerRef.off();
-    offlineState.attemptsListenerRef = db.ref(`assignments/${code}`);
+    offlineState.attemptsListenerRef = db.ref(`rooms/offline_${code}`);
     offlineState.attemptsListenerRef.on('value', s => {
         if (!s.exists()) return;
         const val = s.val() || {};
@@ -7121,7 +7132,7 @@ function renderOfflineTeacherStudentsTab(container) {
         btn.onclick = async () => {
             const sid = btn.dataset.sid;
             const cur = Boolean(offlineState.attemptsMap?.[sid]?.released);
-            await db.ref(`assignments/${offlineState.assignCode}/attempts/${sid}`).update({
+            await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${sid}`).update({
                 released: !cur,
                 status: !cur ? 'released' : 'graded'
             });
@@ -7141,7 +7152,7 @@ function renderOfflineTeacherStudentsTab(container) {
                 cancelButtonText: 'ยกเลิก'
             });
             if (res.isConfirmed) {
-                await db.ref(`assignments/${offlineState.assignCode}/attempts/${sid}`).remove();
+                await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${sid}`).remove();
             }
         };
     });
@@ -7235,7 +7246,7 @@ async function openStudentGradingModal(studentId) {
     if (!isConfirmed || !saved) return;
 
     const totalScore = AppServices.computeAttemptTotalScore(saved.newGrading, quiz);
-    await db.ref(`assignments/${offlineState.assignCode}/attempts/${studentId}`).update({
+    await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${studentId}`).update({
         grading: saved.newGrading,
         overallFeedback: saved.overallFeedback,
         totalScore,
@@ -7353,8 +7364,8 @@ function renderOfflineTeacherByQuestionTab(container) {
                 grading[qIdx].comment = cmtMap[sid] || '';
                 grading[qIdx].needsReview = false;
                 const newTotal = AppServices.computeAttemptTotalScore(grading, quiz);
-                updates[`assignments/${offlineState.assignCode}/attempts/${sid}/grading/${qIdx}`] = grading[qIdx];
-                updates[`assignments/${offlineState.assignCode}/attempts/${sid}/totalScore`] = newTotal;
+                updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/grading/${qIdx}`] = grading[qIdx];
+                updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/totalScore`] = newTotal;
             });
 
             await db.ref().update(updates);
@@ -7510,7 +7521,7 @@ async function editOfflineAssignmentWindowModal() {
     });
 
     if (!isConfirmed || !updated) return;
-    await db.ref(`assignments/${offlineState.assignCode}/meta`).update(updated);
+    await db.ref(`rooms/offline_${offlineState.assignCode}/meta`).update(updated);
 }
 
 // Wire up offline mode buttons
@@ -7580,7 +7591,7 @@ document.getElementById('btn-offline-release-all')?.addEventListener('click', as
         cancelButtonText: 'ปิด'
     });
     if (res.isConfirmed) {
-        await db.ref(`assignments/${offlineState.assignCode}/meta`).update({
+        await db.ref(`rooms/offline_${offlineState.assignCode}/meta`).update({
             resultsReleasedAll: !cur
         });
     }
