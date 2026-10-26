@@ -6471,57 +6471,7 @@ async function enterOfflineAssignment() {
         // 2. User entered via "Formative Assignment" mode
         const winState = AppServices.getAssignmentWindowState(meta, Date.now());
 
-        // If attempt was already submitted/graded/released
-        if (existingAttempt && !isAttemptInProgress) {
-            const isWindowOpen = winState.state === 'open' && !meta.closedManually;
-            const hasTimeRemaining = !meta.timeLimitSec || Number(existingAttempt.elapsedSec || 0) < Number(meta.timeLimitSec);
-            const unansweredCount = quiz.filter((q, idx) => q && q.type !== 'slide' && !isOfflineQuestionAnswered(existingAttempt, q, idx)).length;
-
-            if (isWindowOpen && hasTimeRemaining && (!AppServices.isAttemptReleased(meta, existingAttempt) || unansweredCount > 0)) {
-                const res = await Swal.fire({
-                    title: unansweredCount > 0 ? 'Unfinished Quiz Found' : 'Quiz Already Submitted',
-                    text: unansweredCount > 0
-                        ? `You still have ${unansweredCount} unanswered question(s). Would you like to continue the quiz, or view your current result?`
-                        : 'You have already submitted this quiz. Would you like to continue/edit your answers, or view your result?',
-                    icon: 'question',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Continue Quiz',
-                    denyButtonText: 'View Result',
-                    cancelButtonText: 'Cancel'
-                });
-                if (res.isConfirmed) {
-                    existingAttempt.status = 'in_progress';
-                    existingAttempt.released = false;
-                    await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).update({
-                        status: 'in_progress',
-                        released: false
-                    });
-                    offlineState.attempt = existingAttempt;
-                    offlineState.studentName = existingAttempt.name || studentName || studentId;
-                    if (!existingAttempt.answers) existingAttempt.answers = {};
-                    if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
-                    offlineState.currentQIndex = 0;
-                    startOfflineQuizRunner();
-                    return;
-                } else if (res.isDenied) {
-                    offlineState.attempt = existingAttempt;
-                    offlineState.studentName = existingAttempt.name || studentName || studentId;
-                    await renderOfflineStudentResultScreen();
-                    switchScreen('offlineStudentResult');
-                    return;
-                }
-                return;
-            }
-
-            offlineState.attempt = existingAttempt;
-            offlineState.studentName = existingAttempt.name || studentName || studentId;
-            await renderOfflineStudentResultScreen();
-            switchScreen('offlineStudentResult');
-            return;
-        }
-
-        // 3. Check open/close window for new or in-progress attempt
+        // Check open/close window first
         if (winState.state === 'not_open_yet') {
             return Swal.fire(
                 '⏳ ยังไม่ถึงเวลาเปิดทำควิซ',
@@ -6543,7 +6493,33 @@ async function enterOfflineAssignment() {
             );
         }
 
-        // 4. Starting new attempt or resuming in_progress attempt
+        // If attempt exists and was marked submitted/graded/released but user came to Formative Assignment
+        if (existingAttempt && !isAttemptInProgress) {
+            const hasTimeRemaining = !meta.timeLimitSec || Number(existingAttempt.elapsedSec || 0) < Number(meta.timeLimitSec);
+            if (!hasTimeRemaining) {
+                return Swal.fire({
+                    title: 'Time Limit Exceeded',
+                    text: 'You have used all the allotted time for this quiz. Please use Formative Review to view your results.',
+                    icon: 'warning'
+                });
+            }
+            // Automatically resume in_progress so the student continues the quiz directly
+            existingAttempt.status = 'in_progress';
+            existingAttempt.released = false;
+            await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).update({
+                status: 'in_progress',
+                released: false
+            });
+            offlineState.attempt = existingAttempt;
+            offlineState.studentName = existingAttempt.name || studentName || studentId;
+            if (!existingAttempt.answers) existingAttempt.answers = {};
+            if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
+            offlineState.currentQIndex = 0;
+            startOfflineQuizRunner();
+            return;
+        }
+
+        // 3. Starting new attempt or resuming in_progress attempt
         if (!existingAttempt) {
             if (!studentName) {
                 return Swal.fire('กรุณากรอกชื่อ', 'การเข้าทำครั้งแรก กรุณากรอกชื่อ-นามสกุลของคุณด้วยครับ', 'warning');
