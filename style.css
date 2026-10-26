@@ -2277,6 +2277,18 @@ body[data-role="host"] #quiz-screen .quiz-content {
     color: white;
     filter: brightness(0.92);
 }
+.btn-pill-warning {
+    background: rgba(234, 179, 8, 0.18);
+    border: 1.5px solid #eab308;
+    color: #eab308;
+}
+.btn-pill-warning:hover {
+    background: rgba(234, 179, 8, 0.3);
+    color: #facc15;
+}
+.offline-pill-pinned {
+    box-shadow: 0 0 0 2px #eab308 !important;
+}
 
 /* Custom Logo */
 .app-main-logo {

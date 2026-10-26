@@ -6527,7 +6527,8 @@ async function enterOfflineAssignment() {
             lastActiveAt: Date.now(),
             elapsedSec: 0,
             status: 'in_progress',
-            answers: {}
+            answers: {},
+            pinned: []
         };
         await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).set(newAttempt);
         offlineState.attempt = newAttempt;
@@ -6536,6 +6537,7 @@ async function enterOfflineAssignment() {
         offlineState.attempt = existingAttempt;
         offlineState.studentName = existingAttempt.name || studentName || studentId;
         if (!existingAttempt.answers) existingAttempt.answers = {};
+        if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
         // Check if time limit already exhausted
         if (meta.timeLimitSec > 0 && Number(existingAttempt.elapsedSec || 0) >= Number(meta.timeLimitSec)) {
             await submitOfflineAttempt('time_up');
@@ -6545,6 +6547,32 @@ async function enterOfflineAssignment() {
 
     offlineState.currentQIndex = 0;
     startOfflineQuizRunner();
+}
+
+function isOfflineQuestionPinned(idx) {
+    if (!offlineState.attempt) return false;
+    if (!Array.isArray(offlineState.attempt.pinned)) return false;
+    return offlineState.attempt.pinned.includes(idx);
+}
+
+function toggleOfflineQuestionPin(idx) {
+    if (!offlineState.attempt) return;
+    if (!Array.isArray(offlineState.attempt.pinned)) {
+        offlineState.attempt.pinned = [];
+    }
+    const pos = offlineState.attempt.pinned.indexOf(idx);
+    if (pos >= 0) {
+        offlineState.attempt.pinned.splice(pos, 1);
+    } else {
+        offlineState.attempt.pinned.push(idx);
+    }
+    if (offlineState.assignCode && offlineState.studentId) {
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}/pinned`)
+            .set(offlineState.attempt.pinned)
+            .catch(() => {});
+    }
+    renderOfflineQuestionNav();
+    renderOfflineCurrentQuestion();
 }
 
 function startOfflineQuizRunner() {
@@ -6557,10 +6585,10 @@ function startOfflineQuizRunner() {
         AudioController.stopMusic();
     }
 
-    document.getElementById('offline-quiz-title').innerText = offlineState.meta.title || 'Self-Paced Quiz';
+    document.getElementById('offline-quiz-title').innerText = offlineState.meta.title || 'Formative Quiz';
     document.getElementById('offline-student-badge').innerText =
         `👤 ${offlineState.studentName} (${offlineState.studentId})` +
-        (offlineState.meta.closesAt ? ` • ปิดรับ: ${formatDateTimeTh(offlineState.meta.closesAt)}` : '');
+        (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
 
     renderOfflineQuestionNav();
     renderOfflineCurrentQuestion();
@@ -6578,7 +6606,7 @@ function startOfflineQuizRunner() {
         offlineState.meta = snap.val() || {};
         document.getElementById('offline-student-badge').innerText =
             `👤 ${offlineState.studentName} (${offlineState.studentId})` +
-            (offlineState.meta.closesAt ? ` • ปิดรับ: ${formatDateTimeTh(offlineState.meta.closesAt)}` : '');
+            (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
     });
 
     // 1-second active timer (pauses when page is hidden/closed per Spec #4)
@@ -6633,11 +6661,11 @@ function updateOfflineTimerUI() {
     const limit = Number(offlineState.meta?.timeLimitSec || 0);
     if (limit > 0) {
         const rem = Math.max(0, limit - elapsed);
-        badge.innerText = `⏱ เหลือเวลา ${formatDurationClock(rem)}`;
+        badge.innerText = `⏱ Remaining ${formatDurationClock(rem)}`;
         badge.style.borderColor = rem <= 60 ? 'var(--danger)' : 'var(--primary)';
         badge.style.color = rem <= 60 ? 'var(--danger)' : 'var(--text-main)';
     } else {
-        badge.innerText = `⏱ เวลาที่ใช้ ${formatDurationClock(elapsed)}`;
+        badge.innerText = `⏱ Time Spent ${formatDurationClock(elapsed)}`;
         badge.style.borderColor = 'var(--primary)';
         badge.style.color = 'var(--text-main)';
     }
@@ -6654,6 +6682,7 @@ function renderOfflineQuestionNav() {
     quiz.forEach((q, idx) => {
         const isCurrent = idx === offlineState.currentQIndex;
         const answered = isOfflineQuestionAnswered(offlineState.attempt, q, idx);
+        const isPinned = isOfflineQuestionPinned(idx);
         if (q.type !== 'slide') {
             totalGradable++;
             if (answered) answeredCount++;
@@ -6662,12 +6691,25 @@ function renderOfflineQuestionNav() {
         btn.type = 'button';
         btn.className = 'btn-pill ' + (isCurrent ? 'btn-pill-primary' : 'btn-pill-outline');
         btn.style.minWidth = '42px';
-        btn.style.padding = '0.35rem 0.7rem';
-        if (!isCurrent && answered && q.type !== 'slide') {
+        btn.style.padding = '0.35rem 0.65rem';
+
+        if (isPinned) {
+            btn.classList.add('offline-pill-pinned');
+            if (!isCurrent) {
+                btn.style.borderColor = '#eab308';
+                btn.style.color = '#eab308';
+            }
+        } else if (!isCurrent && answered && q.type !== 'slide') {
             btn.style.borderColor = 'var(--success)';
             btn.style.color = 'var(--success)';
         }
-        btn.innerText = q.type === 'slide' ? `📄 ${idx + 1}` : `${idx + 1}${answered ? ' ✓' : ''}`;
+
+        let label = q.type === 'slide' ? `📄 ${idx + 1}` : `${idx + 1}${answered ? ' ✓' : ''}`;
+        if (isPinned) {
+            label += ' 📌';
+        }
+        btn.innerText = label;
+        btn.title = `Question ${idx + 1}${answered ? ' (Answered)' : ''}${isPinned ? ' (Pinned)' : ''}`;
         btn.onclick = () => {
             offlineState.currentQIndex = idx;
             renderOfflineQuestionNav();
@@ -6678,7 +6720,7 @@ function renderOfflineQuestionNav() {
 
     const summaryEl = document.getElementById('offline-answered-summary');
     if (summaryEl) {
-        summaryEl.innerText = `ตอบแล้ว ${answeredCount} / ${totalGradable} ข้อ`;
+        summaryEl.innerText = `Answered ${answeredCount} / ${totalGradable} questions`;
     }
 }
 
@@ -6688,19 +6730,30 @@ function renderOfflineCurrentQuestion() {
     const q = quiz[idx];
     if (!q) return;
 
-    document.getElementById('offline-q-number').innerText =
-        `ข้อที่ ${idx + 1} จาก ${quiz.length}`;
+    document.getElementById('offline-q-number').innerText = `Question ${idx + 1}`;
 
-    const typeLabels = {
-        'multiple-choice': 'ปรนัย (เลือก 1 คำตอบ)',
-        'multiple-answer': 'ปรนัย (เลือกได้หลายคำตอบ)',
-        'true-false': 'ถูก / ผิด (True / False)',
-        'typing': 'พิมพ์ตอบสั้น (Short Answer)',
-        'slide': 'สไลด์เนื้อหา (ไม่ต้องตอบ)'
-    };
     const maxPts = getQuestionMaxScoreOffline(q);
-    document.getElementById('offline-q-type-badge').innerText =
-        `${typeLabels[q.type] || q.type}${maxPts > 0 ? ` • เต็ม ${maxPts} คะแนน` : ''}`;
+    const badgeEl = document.getElementById('offline-q-type-badge');
+    if (badgeEl) {
+        badgeEl.innerText = (q.type === 'slide' || maxPts <= 0) ? '' : `${maxPts} Points`;
+    }
+
+    const pinBtn = document.getElementById('btn-offline-pin');
+    if (pinBtn) {
+        const isPinned = isOfflineQuestionPinned(idx);
+        if (isPinned) {
+            pinBtn.className = 'btn-pill btn-pill-warning';
+            pinBtn.innerHTML = '📌 Pinned';
+            pinBtn.title = 'Question is pinned for review. Click to unpin.';
+        } else {
+            pinBtn.className = 'btn-pill btn-pill-outline';
+            pinBtn.style.borderColor = 'var(--glass-border)';
+            pinBtn.style.color = 'var(--text-muted)';
+            pinBtn.innerHTML = '📌 Pin';
+            pinBtn.title = 'Pin this question to review later.';
+        }
+        pinBtn.onclick = () => toggleOfflineQuestionPin(idx);
+    }
 
     document.getElementById('offline-q-text').innerText = q.text || '';
     const ctxEl = document.getElementById('offline-q-context');
@@ -6736,7 +6789,7 @@ function renderOfflineCurrentQuestion() {
     const savedVal = getOfflineAnswerValue(offlineState.attempt, idx);
 
     if (q.type === 'slide') {
-        area.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-style:italic;">📄 หน้านี้เป็นสไลด์เนื้อหา กด "ข้อถัดไป" เพื่อทำต่อ</div>`;
+        area.innerHTML = `<div style="padding:1rem; text-align:center; color:var(--text-muted); font-style:italic;">📄 This is an informational slide. Click "Next" to continue.</div>`;
     } else if (q.type === 'multiple-choice' || q.type === 'true-false') {
         const grid = document.createElement('div');
         grid.className = 'kahoot-options-grid';
@@ -6793,7 +6846,7 @@ function renderOfflineCurrentQuestion() {
         wrap.className = 'typing-input-container';
         const ta = document.createElement('textarea');
         ta.rows = 5;
-        ta.placeholder = 'พิมพ์คำตอบของคุณที่นี่ (ระบบบันทึกอัตโนมัติขณะพิมพ์)...';
+        ta.placeholder = 'Type your answer here...';
         ta.value = savedVal != null ? String(savedVal) : '';
         let debounceTimer = null;
         ta.addEventListener('input', () => {
@@ -6801,8 +6854,6 @@ function renderOfflineCurrentQuestion() {
             if (!offlineState.attempt.answers) offlineState.attempt.answers = {};
             offlineState.attempt.answers[idx] = { value: val, savedAt: Date.now() };
             renderOfflineQuestionNav();
-            const statusEl = document.getElementById('offline-autosave-status');
-            if (statusEl) statusEl.innerText = '⏳ กำลังบันทึก...';
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 saveOfflineAnswer(idx, val);
@@ -6815,13 +6866,16 @@ function renderOfflineCurrentQuestion() {
     // Prev / Next button states
     const prevBtn = document.getElementById('btn-offline-prev');
     const nextBtn = document.getElementById('btn-offline-next');
-    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (prevBtn) {
+        prevBtn.disabled = idx <= 0;
+        prevBtn.innerText = '⬅ Previous';
+    }
     if (nextBtn) {
         if (idx >= quiz.length - 1) {
-            nextBtn.innerText = '✅ ส่งคำตอบทั้งหมด';
+            nextBtn.innerText = 'Submit All Answers';
             nextBtn.onclick = () => confirmAndSubmitOfflineAttempt();
         } else {
-            nextBtn.innerText = 'ข้อถัดไป ➡';
+            nextBtn.innerText = 'Next ➡';
             nextBtn.onclick = () => {
                 offlineState.currentQIndex = Math.min(quiz.length - 1, offlineState.currentQIndex + 1);
                 renderOfflineQuestionNav();
@@ -6836,16 +6890,14 @@ async function saveOfflineAnswer(qIndex, value) {
     if (!offlineState.attempt.answers) offlineState.attempt.answers = {};
     const payload = { value, savedAt: Date.now() };
     offlineState.attempt.answers[qIndex] = payload;
-    const statusEl = document.getElementById('offline-autosave-status');
     try {
         await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
             [`answers/${qIndex}`]: payload,
             elapsedSec: Number(offlineState.attempt.elapsedSec || 0),
             lastActiveAt: Date.now()
         });
-        if (statusEl) statusEl.innerText = '✅ บันทึกแล้ว';
     } catch (e) {
-        if (statusEl) statusEl.innerText = '⚠️ ออฟไลน์ (รอเชื่อมต่อ)';
+        console.warn('Error saving offline answer:', e);
     }
 }
 
@@ -6860,16 +6912,16 @@ async function confirmAndSubmitOfflineAttempt() {
     });
 
     const warnHtml = unanswered > 0
-        ? `<p style="color:#eab308; font-weight:600;">⚠️ คุณยังไม่ได้ตอบ ${unanswered} ข้อ</p><p>เมื่อส่งแล้วจะไม่สามารถกลับมาแก้ไขได้อีก (ทำได้ 1 ครั้ง)</p>`
-        : `<p>คุณตอบครบทุกข้อแล้ว เมื่อส่งแล้วจะไม่สามารถกลับมาแก้ไขได้อีก</p>`;
+        ? `<p style="color:#eab308; font-weight:600;">⚠️ You have ${unanswered} unanswered question(s).</p><p>Once submitted, answers cannot be edited.</p>`
+        : `<p>You have answered all questions. Once submitted, answers cannot be edited.</p>`;
 
     const res = await Swal.fire({
-        title: 'ยืนยันการส่งคำตอบ?',
+        title: 'Submit Quiz Answers?',
         html: warnHtml,
         icon: unanswered > 0 ? 'warning' : 'question',
         showCancelButton: true,
-        confirmButtonText: '✅ ส่งคำตอบทันที',
-        cancelButtonText: 'กลับไปทบทวน'
+        confirmButtonText: 'Submit Answers',
+        cancelButtonText: 'Review Questions'
     });
     if (res.isConfirmed) {
         await submitOfflineAttempt('manual');
@@ -7018,10 +7070,10 @@ async function submitOfflineAttempt(reason = 'manual') {
     stopOfflineStudentTimers();
 
     Swal.fire({
-        title: reason === 'time_up' ? '⏰ หมดเวลา! กำลังส่งคำตอบอัตโนมัติ...'
-            : reason === 'window_closed' ? '🔒 ถึงเวลาปิดรับ! กำลังส่งคำตอบอัตโนมัติ...'
-            : '🤖 กำลังตรวจและบันทึกคำตอบ...',
-        text: 'กรุณารอสักครู่',
+        title: reason === 'time_up' ? '⏰ Time is up! Submitting answers automatically...'
+            : reason === 'window_closed' ? '🔒 Assignment window closed! Submitting answers automatically...'
+            : 'Submitting and recording answers...',
+        text: 'Please wait a moment...',
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
     });
@@ -7051,7 +7103,7 @@ async function submitOfflineAttempt(reason = 'manual') {
         switchScreen('offlineStudentResult');
     } catch (err) {
         offlineState.submitting = false;
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งคำตอบได้ กรุณาลองอีกครั้ง: ' + err.message, 'error');
+        Swal.fire('Error', 'Unable to submit answers. Please try again: ' + err.message, 'error');
     }
 }
 
