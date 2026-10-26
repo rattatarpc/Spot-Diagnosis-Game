@@ -73,11 +73,12 @@ test('getAssignmentWindowState evaluates open/close timestamps', () => {
     assert.equal(getAssignmentWindowState({}, 500).state, 'open');
 });
 
-test('canStudentSeeAnswerKey requires attempt or assignment to be released', () => {
+test('canStudentSeeAnswerKey requires attempt or assignment to be released and not in_progress', () => {
     const metaOpen = { closesAt: 2000, resultsReleasedAll: false };
     assert.equal(canStudentSeeAnswerKey(metaOpen, { released: false }), false);
     assert.equal(canStudentSeeAnswerKey(metaOpen, { released: true }), true);
     assert.equal(canStudentSeeAnswerKey({ closesAt: 2000, resultsReleasedAll: true }, { released: false }), true);
+    assert.equal(canStudentSeeAnswerKey({ closesAt: 2000, resultsReleasedAll: true }, { status: 'in_progress', released: true }), false);
 });
 
 test('computeAttemptTotalScore prefers teacherPoints over autoPoints and skips slides/freePoint', () => {

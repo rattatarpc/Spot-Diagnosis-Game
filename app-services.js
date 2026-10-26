@@ -137,10 +137,12 @@ const AppServices = (() => {
     // Answer keys & correct options are shown to a student ONLY when their
     // attempt (or the whole assignment) has been released by the instructor.
     function canStudentSeeAnswerKey(meta = {}, attempt = {}) {
+        if (attempt && attempt.status === 'in_progress') return false;
         return Boolean(meta.resultsReleasedAll || attempt.released);
     }
 
     function isAttemptReleased(meta = {}, attempt = {}) {
+        if (attempt && attempt.status === 'in_progress') return false;
         return Boolean(meta.resultsReleasedAll || attempt.released);
     }
 

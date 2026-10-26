@@ -1429,6 +1429,10 @@ function switchScreen(screenName) {
         screenName = 'login';
     }
 
+    if (screenName !== 'offlineQuiz' && typeof stopOfflineStudentTimers === 'function') {
+        stopOfflineStudentTimers();
+    }
+
     Object.values(screens).forEach(screen => { if (screen) screen.classList.remove('active'); });
     if (screens[screenName]) screens[screenName].classList.add('active');
 
@@ -1529,6 +1533,11 @@ document.querySelectorAll('.nav-item').forEach(item => {
             clearInterval(localTimer);
             db.ref(`rooms/${roomCode}`).update({ gameState: 'ended' });
             roomCode = null;
+        }
+        sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+        if (offlineState.attemptsListenerRef) {
+            offlineState.attemptsListenerRef.off();
+            offlineState.attemptsListenerRef = null;
         }
         if (target === 'logout') {
             logoutToLoginScreen();
@@ -6364,204 +6373,213 @@ function isOfflineQuestionAnswered(attempt, q, qIndex) {
 
 async function enterOfflineAssignment() {
     if (!db) return Swal.fire('Error', 'Firebase not configured!', 'error');
+    if (offlineState.entering) return;
+    offlineState.entering = true;
     stopOfflineStudentTimers();
 
-    const codeInput = document.getElementById('offline-assign-code');
-    const idInput = document.getElementById('offline-student-id');
-    const nameInput = document.getElementById('offline-student-name');
+    const enterBtn = document.getElementById('btn-offline-enter');
+    if (enterBtn) enterBtn.disabled = true;
 
-    const rawAssignCode = (codeInput?.value || '').trim().toUpperCase();
-    const rawStudentId = (idInput?.value || '').trim();
-    const studentName = (nameInput?.value || '').trim();
-    const isReviewMode = offlineState.joinEntryMode === 'review';
+    try {
+        const codeInput = document.getElementById('offline-assign-code');
+        const idInput = document.getElementById('offline-student-id');
+        const nameInput = document.getElementById('offline-student-name');
 
-    if (isReviewMode) {
+        const rawAssignCode = (codeInput?.value || '').trim().toUpperCase();
+        const rawStudentId = (idInput?.value || '').trim();
+        const studentName = (nameInput?.value || '').trim();
+        const isReviewMode = offlineState.joinEntryMode === 'review';
+
         if (!rawAssignCode || (!rawStudentId && !studentName)) {
-            return Swal.fire('Incomplete Information', 'Please enter the Assignment Code and your Student ID or Name.', 'warning');
+            return Swal.fire(
+                isReviewMode ? 'Incomplete Information' : 'ข้อมูลไม่ครบ',
+                isReviewMode
+                    ? 'Please enter the Assignment Code and your Student ID or Name.'
+                    : 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว',
+                'warning'
+            );
         }
-    } else {
-        if (!rawAssignCode || (!rawStudentId && !studentName)) {
-            return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว', 'warning');
+
+        const assignCode = rawAssignCode;
+        const assignSnap = await db.ref(`rooms/offline_${assignCode}`).once('value');
+        const assignData = (assignSnap && assignSnap.exists()) ? (assignSnap.val() || {}) : null;
+
+        if (!assignData) {
+            return isReviewMode
+                ? Swal.fire('Quiz Not Found', `Formative assignment code "${assignCode}" was not found.`, 'error')
+                : Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
         }
-    }
 
-    let assignCode = rawAssignCode;
-    let assignSnap = assignCode ? await db.ref(`rooms/offline_${assignCode}`).once('value') : null;
-    let assignData = (assignSnap && assignSnap.exists()) ? (assignSnap.val() || {}) : null;
+        const meta = assignData.meta || {};
+        const quiz = Array.isArray(assignData.quiz) ? assignData.quiz : Object.values(assignData.quiz || {});
+        const matched = AppServices.findMatchingOfflineAttempt(assignData.attempts || {}, rawStudentId, studentName, true);
 
-    let matched = assignData
-        ? AppServices.findMatchingOfflineAttempt(assignData.attempts || {}, rawStudentId, studentName, isReviewMode)
-        : null;
+        let studentId = matched
+            ? matched.studentId
+            : AppServices.sanitizeStudentId(rawStudentId || studentName);
+        let existingAttempt = matched
+            ? matched.attempt
+            : ((assignData.attempts && assignData.attempts[studentId]) || null);
 
-    // In Review Mode, if the room wasn't found (e.g. user entered Student ID in the first box)
-    // or if this room had no matching attempt (e.g. multiple formative sessions created for the same quiz),
-    // search across offline_* rooms so the student can still review their score seamlessly.
-    if (isReviewMode && !matched) {
-        try {
-            const roomsSnap = await db.ref('rooms')
-                .orderByKey()
-                .startAt('offline_')
-                .endAt('offline_\uf8ff')
-                .once('value');
-            if (roomsSnap && roomsSnap.exists()) {
-                const allRooms = roomsSnap.val() || {};
-                const candidates = [];
-                for (const [roomKey, roomVal] of Object.entries(allRooms)) {
-                    if (!roomVal || typeof roomVal !== 'object' || !roomVal.attempts) continue;
-                    const rCode = roomKey.replace(/^offline_/, '');
-                    let m = AppServices.findMatchingOfflineAttempt(roomVal.attempts, rawStudentId, studentName, true);
-                    if (!m && !assignData && rawAssignCode) {
-                        m = AppServices.findMatchingOfflineAttempt(
-                            roomVal.attempts,
-                            rawAssignCode,
-                            rawStudentId || studentName,
-                            true
-                        );
-                    }
-                    if (m) {
-                        const sameTitle = assignData && assignData.meta && roomVal.meta &&
-                            (roomVal.meta.title === assignData.meta.title ||
-                             (roomVal.meta.sourceQuizTitle && roomVal.meta.sourceQuizTitle === assignData.meta.sourceQuizTitle));
-                        const ts = Number(m.attempt.submittedAt || m.attempt.lastActiveAt || m.attempt.startedAt || roomVal.meta?.createdAt || 0);
-                        candidates.push({ rCode, roomVal, matched: m, sameTitle: Boolean(sameTitle), ts });
-                    }
-                }
-                if (candidates.length > 0) {
-                    candidates.sort((a, b) => {
-                        if (a.sameTitle !== b.sameTitle) return a.sameTitle ? -1 : 1;
-                        return b.ts - a.ts;
-                    });
-                    const best = candidates[0];
-                    assignCode = best.rCode;
-                    assignData = best.roomVal;
-                    matched = best.matched;
-                }
+        // Clean up any legacy studentId key that had stray Thai combining vowels (e.g. 'ึ700' -> '700')
+        const cleanSid = AppServices.sanitizeStudentId(studentId);
+        if (cleanSid && cleanSid !== studentId && existingAttempt) {
+            existingAttempt.studentId = cleanSid;
+            try {
+                await db.ref(`rooms/offline_${assignCode}/attempts/${cleanSid}`).set(existingAttempt);
+                await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).remove();
+                studentId = cleanSid;
+            } catch (migErr) {
+                console.warn('Could not migrate legacy studentId key:', migErr);
             }
-        } catch (fallbackErr) {
-            console.warn('Formative review cross-room lookup fallback failed:', fallbackErr);
+        } else if (cleanSid) {
+            studentId = cleanSid;
         }
-    }
 
-    if (!assignData) {
-        return isReviewMode
-            ? Swal.fire('Quiz Not Found', `Formative assignment code "${assignCode}" was not found.`, 'error')
-            : Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
-    }
+        offlineState.assignCode = assignCode;
+        offlineState.studentId = studentId;
+        offlineState.meta = meta;
+        offlineState.quiz = quiz;
+        offlineState.submitting = false;
 
-    const meta = assignData.meta || {};
-    const quiz = Array.isArray(assignData.quiz) ? assignData.quiz : Object.values(assignData.quiz || {});
-    const studentId = matched
-        ? matched.studentId
-        : AppServices.sanitizeStudentId(rawStudentId || studentName);
-    const existingAttempt = matched
-        ? matched.attempt
-        : ((assignData.attempts && assignData.attempts[studentId]) || null);
+        const isAttemptInProgress = existingAttempt && (!existingAttempt.status || existingAttempt.status === 'in_progress');
 
-    offlineState.assignCode = assignCode;
-    offlineState.studentId = studentId;
-    offlineState.meta = meta;
-    offlineState.quiz = quiz;
-    offlineState.submitting = false;
-
-    // 1. If user entered via "Formative Review" mode, look up their submitted result
-    if (isReviewMode) {
-        if (!existingAttempt) {
-            return Swal.fire('No Attempt Found', 'No quiz submission was found for this Student ID or Name. Please complete the quiz via Formative Assignment first.', 'info');
-        }
-        const isAlreadyReleasedOrGraded = AppServices.isAttemptReleased(meta, existingAttempt) ||
-            (existingAttempt.grading && Object.keys(existingAttempt.grading).length > 0);
-        if (existingAttempt.status === 'in_progress' && !isAlreadyReleasedOrGraded) {
-            const res = await Swal.fire({
-                title: 'Quiz Still In Progress',
-                text: 'You have not submitted your final answers yet. Would you like to submit now to view your score, or continue the quiz?',
-                icon: 'question',
-                showDenyButton: true,
-                showCancelButton: true,
-                confirmButtonText: 'View Score',
-                denyButtonText: 'Continue Quiz',
-                cancelButtonText: 'Cancel'
-            });
-            if (res.isConfirmed) {
-                offlineState.attempt = existingAttempt;
-                offlineState.studentName = existingAttempt.name || studentName || studentId;
-                await submitOfflineAttempt('manual');
-                return;
+        // 1. If user entered via "Formative Review" mode
+        if (isReviewMode) {
+            if (!existingAttempt) {
+                return Swal.fire(
+                    'No Attempt Found',
+                    'No quiz submission was found for this Student ID or Name. Please complete the quiz in Formative Assignment first.',
+                    'info'
+                );
             }
-            if (!res.isDenied) return;
-        } else {
+            if (isAttemptInProgress) {
+                return Swal.fire(
+                    'Quiz Not Completed Yet',
+                    'You have not finished and submitted this quiz yet. You cannot review your score until the quiz is completed. Please go to Formative Assignment to continue and submit your quiz first.',
+                    'warning'
+                );
+            }
             offlineState.attempt = existingAttempt;
             offlineState.studentName = existingAttempt.name || studentName || studentId;
             await renderOfflineStudentResultScreen();
             switchScreen('offlineStudentResult');
             return;
         }
-    }
 
-    // 2. If already submitted/graded/released -> go straight to result view (1 attempt rule, Spec #2)
-    if (existingAttempt && ((existingAttempt.status && existingAttempt.status !== 'in_progress') || AppServices.isAttemptReleased(meta, existingAttempt))) {
-        offlineState.attempt = existingAttempt;
-        offlineState.studentName = existingAttempt.name || studentName || studentId;
-        await renderOfflineStudentResultScreen();
-        switchScreen('offlineStudentResult');
-        return;
-    }
+        // 2. User entered via "Formative Assignment" mode
+        const winState = AppServices.getAssignmentWindowState(meta, Date.now());
 
-    // 2. Check open/close window
-    const winState = AppServices.getAssignmentWindowState(meta, Date.now());
-    if (winState.state === 'not_open_yet') {
-        return Swal.fire(
-            '⏳ ยังไม่ถึงเวลาเปิดทำควิซ',
-            `ควิซนี้จะเปิดให้ทำในวันที่ ${formatDateTimeTh(meta.opensAt)}`,
-            'info'
-        );
-    }
-    if (winState.state === 'closed' || meta.closedManually) {
-        // If student had an in_progress attempt when window closed, auto-submit what they had!
-        if (existingAttempt && existingAttempt.status === 'in_progress') {
+        // If attempt was already submitted/graded/released
+        if (existingAttempt && !isAttemptInProgress) {
+            const isWindowOpen = winState.state === 'open' && !meta.closedManually;
+            const hasTimeRemaining = !meta.timeLimitSec || Number(existingAttempt.elapsedSec || 0) < Number(meta.timeLimitSec);
+            const unansweredCount = quiz.filter((q, idx) => q && q.type !== 'slide' && !isOfflineQuestionAnswered(existingAttempt, q, idx)).length;
+
+            if (isWindowOpen && hasTimeRemaining && (!AppServices.isAttemptReleased(meta, existingAttempt) || unansweredCount > 0)) {
+                const res = await Swal.fire({
+                    title: unansweredCount > 0 ? 'Unfinished Quiz Found' : 'Quiz Already Submitted',
+                    text: unansweredCount > 0
+                        ? `You still have ${unansweredCount} unanswered question(s). Would you like to continue the quiz, or view your current result?`
+                        : 'You have already submitted this quiz. Would you like to continue/edit your answers, or view your result?',
+                    icon: 'question',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Continue Quiz',
+                    denyButtonText: 'View Result',
+                    cancelButtonText: 'Cancel'
+                });
+                if (res.isConfirmed) {
+                    existingAttempt.status = 'in_progress';
+                    existingAttempt.released = false;
+                    await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).update({
+                        status: 'in_progress',
+                        released: false
+                    });
+                    offlineState.attempt = existingAttempt;
+                    offlineState.studentName = existingAttempt.name || studentName || studentId;
+                    if (!existingAttempt.answers) existingAttempt.answers = {};
+                    if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
+                    offlineState.currentQIndex = 0;
+                    startOfflineQuizRunner();
+                    return;
+                } else if (res.isDenied) {
+                    offlineState.attempt = existingAttempt;
+                    offlineState.studentName = existingAttempt.name || studentName || studentId;
+                    await renderOfflineStudentResultScreen();
+                    switchScreen('offlineStudentResult');
+                    return;
+                }
+                return;
+            }
+
             offlineState.attempt = existingAttempt;
             offlineState.studentName = existingAttempt.name || studentName || studentId;
-            await submitOfflineAttempt('window_closed');
+            await renderOfflineStudentResultScreen();
+            switchScreen('offlineStudentResult');
             return;
         }
-        return Swal.fire(
-            '🔒 ปิดรับคำตอบแล้ว',
-            `ควิซนี้ปิดรับคำตอบเมื่อ ${formatDateTimeTh(meta.closesAt)}`,
-            'warning'
-        );
-    }
 
-    // 3. Starting new attempt or resuming in_progress attempt
-    if (!existingAttempt) {
-        if (!studentName) {
-            return Swal.fire('กรุณากรอกชื่อ', 'การเข้าทำครั้งแรก กรุณากรอกชื่อ-นามสกุลของคุณด้วยครับ', 'warning');
+        // 3. Check open/close window for new or in-progress attempt
+        if (winState.state === 'not_open_yet') {
+            return Swal.fire(
+                '⏳ ยังไม่ถึงเวลาเปิดทำควิซ',
+                `ควิซนี้จะเปิดให้ทำในวันที่ ${formatDateTimeTh(meta.opensAt)}`,
+                'info'
+            );
         }
-        const newAttempt = {
-            name: studentName,
-            studentId,
-            startedAt: Date.now(),
-            lastActiveAt: Date.now(),
-            elapsedSec: 0,
-            status: 'in_progress',
-            answers: {},
-            pinned: []
-        };
-        await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).set(newAttempt);
-        offlineState.attempt = newAttempt;
-        offlineState.studentName = studentName;
-    } else {
-        offlineState.attempt = existingAttempt;
-        offlineState.studentName = existingAttempt.name || studentName || studentId;
-        if (!existingAttempt.answers) existingAttempt.answers = {};
-        if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
-        // Check if time limit already exhausted
-        if (meta.timeLimitSec > 0 && Number(existingAttempt.elapsedSec || 0) >= Number(meta.timeLimitSec)) {
-            await submitOfflineAttempt('time_up');
-            return;
+        if (winState.state === 'closed' || meta.closedManually) {
+            if (existingAttempt && isAttemptInProgress) {
+                offlineState.attempt = existingAttempt;
+                offlineState.studentName = existingAttempt.name || studentName || studentId;
+                await submitOfflineAttempt('window_closed');
+                return;
+            }
+            return Swal.fire(
+                '🔒 ปิดรับคำตอบแล้ว',
+                `ควิซนี้ปิดรับคำตอบเมื่อ ${formatDateTimeTh(meta.closesAt)}`,
+                'warning'
+            );
         }
-    }
 
-    offlineState.currentQIndex = 0;
-    startOfflineQuizRunner();
+        // 4. Starting new attempt or resuming in_progress attempt
+        if (!existingAttempt) {
+            if (!studentName) {
+                return Swal.fire('กรุณากรอกชื่อ', 'การเข้าทำครั้งแรก กรุณากรอกชื่อ-นามสกุลของคุณด้วยครับ', 'warning');
+            }
+            const newAttempt = {
+                name: studentName,
+                studentId,
+                startedAt: Date.now(),
+                lastActiveAt: Date.now(),
+                elapsedSec: 0,
+                status: 'in_progress',
+                answers: {},
+                pinned: []
+            };
+            await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).set(newAttempt);
+            offlineState.attempt = newAttempt;
+            offlineState.studentName = studentName;
+        } else {
+            offlineState.attempt = existingAttempt;
+            offlineState.studentName = existingAttempt.name || studentName || studentId;
+            if (!existingAttempt.answers) existingAttempt.answers = {};
+            if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
+            if (meta.timeLimitSec > 0 && Number(existingAttempt.elapsedSec || 0) >= Number(meta.timeLimitSec)) {
+                await submitOfflineAttempt('time_up');
+                return;
+            }
+        }
+
+        offlineState.currentQIndex = 0;
+        startOfflineQuizRunner();
+    } catch (err) {
+        console.error('Error in enterOfflineAssignment:', err);
+        Swal.fire('Error', 'Unable to open assignment: ' + (err?.message || err), 'error');
+    } finally {
+        offlineState.entering = false;
+        if (enterBtn) enterBtn.disabled = false;
+    }
 }
 
 function isOfflineQuestionPinned(idx) {
@@ -6954,7 +6972,7 @@ async function confirmAndSubmitOfflineAttempt() {
 }
 
 // Grade a single typing question for one student (used on offline submit)
-async function gradeSingleOfflineTypingQuestion(q, answerText) {
+async function gradeSingleOfflineTypingQuestion(q, answerText, allowAi = true) {
     const ans = String(answerText ?? '').trim();
     const maxPoints = getTypingMaxPoints(q);
     if (!ans) {
@@ -6966,7 +6984,7 @@ async function gradeSingleOfflineTypingQuestion(q, answerText) {
     const allLocalMatched = keyResults.length > 0 && keyResults.every(r => r.matched) && penalty === 0;
 
     // If AI grading not enabled or local grader already matched all keys cleanly, use local score
-    if (!q.aiGrading || allLocalMatched || !HARDCODED_AI_KEY) {
+    if (!allowAi || !q.aiGrading || allLocalMatched || !HARDCODED_AI_KEY) {
         let pts = getTypingAnswerScore(ans, q);
         if (pts === maxPoints && maxPoints > 0) pts += 150;
         const localConcepts = keyResults.map((kr, idx) => ({
@@ -7047,7 +7065,7 @@ async function gradeSingleOfflineTypingQuestion(q, answerText) {
     }
 }
 
-async function gradeEntireOfflineAttempt(quiz, attempt) {
+async function gradeEntireOfflineAttempt(quiz, attempt, allowAi = true) {
     const grading = {};
     for (let i = 0; i < (quiz || []).length; i++) {
         const q = quiz[i];
@@ -7076,7 +7094,7 @@ async function gradeEntireOfflineAttempt(quiz, attempt) {
                 needsReview: false
             };
         } else if (q.type === 'typing') {
-            const tRes = await gradeSingleOfflineTypingQuestion(q, ansVal);
+            const tRes = await gradeSingleOfflineTypingQuestion(q, ansVal, allowAi);
             grading[i] = {
                 autoPoints: tRes.autoPoints,
                 aiConcepts: tRes.aiConcepts || [],
@@ -7104,7 +7122,7 @@ async function submitOfflineAttempt(reason = 'manual') {
     });
 
     try {
-        const grading = await gradeEntireOfflineAttempt(offlineState.quiz, offlineState.attempt);
+        const grading = await gradeEntireOfflineAttempt(offlineState.quiz, offlineState.attempt, true);
         const totalScore = AppServices.computeAttemptTotalScore(grading, offlineState.quiz);
         const submittedAt = Date.now();
 
@@ -7127,8 +7145,9 @@ async function submitOfflineAttempt(reason = 'manual') {
         await renderOfflineStudentResultScreen();
         switchScreen('offlineStudentResult');
     } catch (err) {
-        offlineState.submitting = false;
         Swal.fire('Error', 'Unable to submit answers. Please try again: ' + err.message, 'error');
+    } finally {
+        offlineState.submitting = false;
     }
 }
 
@@ -7162,7 +7181,7 @@ async function renderOfflineStudentResultScreen() {
     const quiz = offlineState.quiz || [];
 
     if (!att.grading || Object.keys(att.grading).length === 0) {
-        att.grading = await gradeEntireOfflineAttempt(quiz, att);
+        att.grading = await gradeEntireOfflineAttempt(quiz, att, false);
     }
 
     const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
@@ -7553,13 +7572,21 @@ function renderOfflineTeacherStudentsTab(container) {
         btn.onclick = async () => {
             const sid = btn.dataset.sid;
             const att = offlineState.attemptsMap?.[sid] || {};
+            if (att.status === 'in_progress') {
+                return Swal.fire({
+                    title: 'Attempt Still in Progress',
+                    text: 'This student has not submitted the quiz yet.',
+                    icon: 'info',
+                    confirmButtonColor: 'var(--primary)'
+                });
+            }
             const cur = AppServices.isAttemptReleased(offlineState.meta || {}, att);
             const nextRel = !cur;
             const updates = {};
             if (!nextRel && offlineState.meta?.resultsReleasedAll) {
                 updates[`rooms/offline_${offlineState.assignCode}/meta/resultsReleasedAll`] = false;
                 Object.entries(offlineState.attemptsMap || {}).forEach(([otherSid, otherAtt]) => {
-                    if (otherSid !== sid && otherAtt) {
+                    if (otherSid !== sid && otherAtt && otherAtt.status !== 'in_progress') {
                         updates[`rooms/offline_${offlineState.assignCode}/attempts/${otherSid}/released`] = true;
                         updates[`rooms/offline_${offlineState.assignCode}/attempts/${otherSid}/status`] = 'released';
                     }
@@ -7958,6 +7985,10 @@ async function editOfflineAssignmentWindowModal() {
 
 // Wire up offline mode buttons
 function openOfflineJoinScreen(mode = 'assignment') {
+    stopOfflineStudentTimers();
+    try { sessionStorage.removeItem('spotDiagnosis_activeOfflineSession'); } catch (_) {}
+    offlineState.entering = false;
+    offlineState.submitting = false;
     role = 'student';
     document.body.setAttribute('data-role', 'student');
     offlineState.joinEntryMode = mode;
@@ -7969,6 +8000,7 @@ function openOfflineJoinScreen(mode = 'assignment') {
     const codeInp = document.getElementById('offline-assign-code');
     const idInp = document.getElementById('offline-student-id');
     const nameInp = document.getElementById('offline-student-name');
+    if (enterBtn) enterBtn.disabled = false;
 
     if (mode === 'review') {
         if (titleEl) titleEl.innerText = 'Formative Review';
@@ -7990,6 +8022,15 @@ function openOfflineJoinScreen(mode = 'assignment') {
 
     switchScreen('offlineJoin');
 }
+
+['offline-assign-code', 'offline-student-id', 'offline-student-name'].forEach(inpId => {
+    document.getElementById(inpId)?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            enterOfflineAssignment();
+        }
+    });
+});
 
 document.getElementById('btn-goto-offline-student')?.addEventListener('click', () => {
     openOfflineJoinScreen('assignment');
@@ -8066,7 +8107,7 @@ document.getElementById('btn-offline-release-all')?.addEventListener('click', as
             [`rooms/offline_${offlineState.assignCode}/meta/resultsReleasedAll`]: nextState
         };
         Object.entries(offlineState.attemptsMap || {}).forEach(([sid, att]) => {
-            if (!att) return;
+            if (!att || att.status === 'in_progress') return;
             updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/released`] = nextState;
             updates[`rooms/offline_${offlineState.assignCode}/attempts/${sid}/status`] = nextState ? 'released' : 'graded';
         });
