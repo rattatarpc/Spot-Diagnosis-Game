@@ -1357,6 +1357,27 @@ function buildTypingFeedbackHTML(playerAns, q) {
 // Current login tier: 'admin' | 'guest' | null
 let authTier = sessionStorage.getItem('spotDiagnosis_authTier') || null;
 
+let offlineState = {
+    assignCode: null,
+    studentId: null,
+    studentName: null,
+    meta: null,
+    quiz: [],
+    attempt: null,
+    currentQIndex: 0,
+    tickInterval: null,
+    flushInterval: null,
+    metaListenerRef: null,
+    attemptsListenerRef: null,
+    reviewerPin: null,
+    activeTeacherTab: 'students',
+    activeQuestionIdxForCrossGrade: 0,
+    submitting: false,
+    entering: false,
+    pageVisible: true,
+    lastTickMs: null
+};
+
 function applyAuthTierUI(tier) {
     authTier = tier;
     if (tier) {
@@ -6037,26 +6058,6 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =====================================================================
    SELF-PACED OFFLINE ASSIGNMENT MODE (Tickets #2, #3, #4, #5)
 ===================================================================== */
-
-let offlineState = {
-    assignCode: null,
-    studentId: null,
-    studentName: null,
-    meta: null,
-    quiz: [],
-    attempt: null,
-    currentQIndex: 0,
-    tickInterval: null,
-    flushInterval: null,
-    metaListenerRef: null,
-    attemptsListenerRef: null,
-    reviewerPin: null,
-    activeTeacherTab: 'students',
-    activeQuestionIdxForCrossGrade: 0,
-    submitting: false,
-    pageVisible: true,
-    lastTickMs: null
-};
 
 async function getSavedTeacherAssignments() {
     return (await localforage.getItem('spotDiagnosis_offlineAssignments')) || [];
