@@ -1403,6 +1403,7 @@ function applyAuthTierUI(tier) {
 }
 
 function logoutToLoginScreen() {
+    sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
     const dropdown = document.getElementById('user-menu-dropdown');
     if (dropdown) dropdown.style.display = 'none';
     const badge = document.getElementById('auth-tier-badge');
@@ -1483,11 +1484,25 @@ function switchScreen(screenName) {
 }
 
 document.querySelectorAll('.back-to-role').forEach(btn => {
-    btn.addEventListener('click', () => switchScreen('role'));
+    btn.addEventListener('click', () => {
+        sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+        if (offlineState.attemptsListenerRef) {
+            offlineState.attemptsListenerRef.off();
+            offlineState.attemptsListenerRef = null;
+        }
+        switchScreen('role');
+    });
 });
 
 document.querySelectorAll('.back-to-dashboard').forEach(btn => {
-    btn.addEventListener('click', () => switchScreen('dashboard'));
+    btn.addEventListener('click', () => {
+        sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+        if (offlineState.attemptsListenerRef) {
+            offlineState.attemptsListenerRef.off();
+            offlineState.attemptsListenerRef = null;
+        }
+        switchScreen('dashboard');
+    });
 });
 
 const navMenu = document.getElementById('nav-dropdown-menu');
@@ -6285,7 +6300,7 @@ async function renderLocalOfflineAssignments() {
                 <div style="font-size:0.88rem; color:var(--text-muted); margin-top:4px;">
                     Code: <strong style="color:var(--text-main);">${escapeHtml(item.assignCode)}</strong>
                     &nbsp;|&nbsp; PIN: <code>${escapeHtml(item.pin || '***')}</code>
-                    &nbsp;|&nbsp; Due: ${formatDateTimeTh(item.closesAt)}
+                    &nbsp;|&nbsp; Due: ${formatDateTimeEn(item.closesAt)}
                 </div>
             </div>
             <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:8px;">
@@ -6587,8 +6602,18 @@ function startOfflineQuizRunner() {
 
     document.getElementById('offline-quiz-title').innerText = offlineState.meta.title || 'Formative Quiz';
     document.getElementById('offline-student-badge').innerText =
-        `👤 ${offlineState.studentName} (${offlineState.studentId})` +
+        `${offlineState.studentName} (${offlineState.studentId})` +
         (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
+
+    // Save active student quiz session so refreshing stays on quiz runner
+    if (offlineState.assignCode && offlineState.studentId) {
+        sessionStorage.setItem('spotDiagnosis_activeOfflineSession', JSON.stringify({
+            type: 'student_quiz',
+            assignCode: offlineState.assignCode,
+            studentId: offlineState.studentId,
+            studentName: offlineState.studentName
+        }));
+    }
 
     renderOfflineQuestionNav();
     renderOfflineCurrentQuestion();
@@ -6605,7 +6630,7 @@ function startOfflineQuizRunner() {
         if (!snap.exists()) return;
         offlineState.meta = snap.val() || {};
         document.getElementById('offline-student-badge').innerText =
-            `👤 ${offlineState.studentName} (${offlineState.studentId})` +
+            `${offlineState.studentName} (${offlineState.studentId})` +
             (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
     });
 
@@ -7122,6 +7147,16 @@ async function renderOfflineStudentResultScreen() {
     if (metaSnap.exists()) offlineState.meta = metaSnap.val() || {};
     if (attSnap.exists()) offlineState.attempt = attSnap.val() || {};
 
+    // Save active student result session so refreshing stays on review/result screen
+    if (offlineState.assignCode && offlineState.studentId) {
+        sessionStorage.setItem('spotDiagnosis_activeOfflineSession', JSON.stringify({
+            type: 'student_result',
+            assignCode: offlineState.assignCode,
+            studentId: offlineState.studentId,
+            studentName: offlineState.studentName || offlineState.attempt?.name || ''
+        }));
+    }
+
     const meta = offlineState.meta || {};
     const att = offlineState.attempt || {};
     const quiz = offlineState.quiz || [];
@@ -7357,6 +7392,7 @@ async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
         return Swal.fire('Invalid PIN', 'The Reviewer PIN is incorrect.', 'error');
     }
 
+    if (authTier !== 'admin') applyAuthTierUI('admin');
     role = 'host';
     document.body.setAttribute('data-role', 'host');
     offlineState.assignCode = code;
@@ -7365,6 +7401,13 @@ async function openOfflineTeacherDashboard(assignCode, reviewerPin) {
     offlineState.quiz = Array.isArray(data.quiz) ? data.quiz : Object.values(data.quiz || {});
     offlineState.attemptsMap = data.attempts || {};
     offlineState.activeTeacherTab = 'students';
+
+    // Save active teacher grading session so refreshing the page restores the dashboard immediately
+    sessionStorage.setItem('spotDiagnosis_activeOfflineSession', JSON.stringify({
+        type: 'teacher',
+        assignCode: code,
+        reviewerPin: reviewerPin
+    }));
 
     // Save to local teacher list for one-click access next time on this device
     await saveTeacherAssignmentLocal({
@@ -8054,6 +8097,47 @@ if (urlParams.has('assign')) {
     if (idInp && sId) idInp.value = sId;
     window.history.replaceState({}, '', window.location.pathname);
     switchScreen('offlineJoin');
+} else if (!urlParams.has('room')) {
+    // Restore active Formative session on page refresh (Teacher grading or Student runner/results)
+    const savedOfflineSessionRaw = sessionStorage.getItem('spotDiagnosis_activeOfflineSession');
+    if (savedOfflineSessionRaw) {
+        try {
+            const sess = JSON.parse(savedOfflineSessionRaw);
+            if (sess && sess.type === 'teacher' && sess.assignCode && sess.reviewerPin) {
+                if (authTier !== 'admin') applyAuthTierUI('admin');
+                openOfflineTeacherDashboard(sess.assignCode, sess.reviewerPin).catch(err => {
+                    console.warn('Auto-restore teacher session failed:', err);
+                    sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+                });
+            } else if (sess && sess.type === 'student_quiz' && sess.assignCode && sess.studentId) {
+                offlineState.joinEntryMode = 'assignment';
+                const codeInp = document.getElementById('offline-assign-code');
+                const idInp = document.getElementById('offline-student-id');
+                const nameInp = document.getElementById('offline-student-name');
+                if (codeInp) codeInp.value = sess.assignCode;
+                if (idInp) idInp.value = sess.studentId;
+                if (nameInp) nameInp.value = sess.studentName || '';
+                enterOfflineAssignment().catch(err => {
+                    console.warn('Auto-restore student quiz session failed:', err);
+                    sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+                });
+            } else if (sess && sess.type === 'student_result' && sess.assignCode && sess.studentId) {
+                offlineState.joinEntryMode = 'review';
+                const codeInp = document.getElementById('offline-assign-code');
+                const idInp = document.getElementById('offline-student-id');
+                const nameInp = document.getElementById('offline-student-name');
+                if (codeInp) codeInp.value = sess.assignCode;
+                if (idInp) idInp.value = sess.studentId;
+                if (nameInp) nameInp.value = sess.studentName || '';
+                enterOfflineAssignment().catch(err => {
+                    console.warn('Auto-restore student result session failed:', err);
+                    sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+                });
+            }
+        } catch (e) {
+            sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+        }
+    }
 }
 
 

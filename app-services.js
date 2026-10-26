@@ -83,9 +83,11 @@ const AppServices = (() => {
     // ── Offline / Self-paced Assignment pure helpers ───────────────────────
 
     // Firebase Realtime DB keys cannot contain . # $ [ ] / or control chars.
+    // Also strips stray/accidental Thai combining vowels/tones (e.g. ึ when pressing '7' on Thai keyboard).
     function sanitizeStudentId(raw) {
         return String(raw ?? '')
             .trim()
+            .replace(/(^|[^\u0E01-\u0E2E])[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]+/g, '$1')
             .replace(/[.#$[\]/\\]/g, '_')
             .replace(/\s+/g, '_');
     }

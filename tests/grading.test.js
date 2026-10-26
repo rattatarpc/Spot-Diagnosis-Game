@@ -53,6 +53,7 @@ test('gradeMultiChoice: empty selection gives 0', () => {
 test('sanitizeStudentId strips Firebase-illegal characters and whitespace', () => {
     assert.equal(sanitizeStudentId(' 6501.02#03$04[05]06/07 '), '6501_02_03_04_05_06_07');
     assert.equal(sanitizeStudentId('STD 123'), 'STD_123');
+    assert.equal(sanitizeStudentId('ึ700'), '700');
 });
 
 test('hashPinSync and verifyPinSync validate reviewer PIN', () => {
