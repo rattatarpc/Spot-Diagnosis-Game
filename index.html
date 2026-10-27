@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spot Diagnosis Game</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -815,8 +815,8 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; gap:0.5rem; flex-wrap:wrap;">
                         <div style="display:flex; align-items:center; gap:0.65rem;">
                             <span id="offline-q-number" style="font-weight:700; color:var(--primary); font-size:1.05rem;"></span>
-                            <button id="btn-offline-pin" type="button" class="btn-pill" style="font-size:0.8rem; padding:0.25rem 0.65rem; display:inline-flex; align-items:center; gap:0.3rem; border-radius:999px; cursor:pointer; background:transparent; border:1px solid var(--glass-border); color:var(--text-muted); transition:all 0.15s ease;" title="Flag/Pin this question for review">
-                                📌 Pin
+                            <button id="btn-offline-pin" type="button" class="btn-pill" style="font-size:0.85rem; padding:0.25rem 0.75rem; display:inline-flex; align-items:center; gap:0.35rem; border-radius:999px; cursor:pointer; background:transparent; border:1px solid var(--glass-border); color:var(--text-muted); transition:all 0.15s ease;" title="Star this question to review later">
+                                ☆ Star
                             </button>
                         </div>
                         <span id="offline-q-type-badge" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);"></span>
@@ -1114,6 +1114,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <script src="app-services.js?v=8"></script>
-    <script src="app.js?v=27"></script>
+    <script src="app.js?v=28"></script>
 </body>
 </html>

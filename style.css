@@ -2289,6 +2289,26 @@ body[data-role="host"] #quiz-screen .quiz-content {
 .offline-pill-pinned {
     box-shadow: 0 0 0 2px #eab308 !important;
 }
+.offline-q-pill {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+.offline-q-pill.has-star {
+    min-width: 68px;
+    padding: 0 0.75rem;
+}
 
 /* Custom Logo */
 .app-main-logo {

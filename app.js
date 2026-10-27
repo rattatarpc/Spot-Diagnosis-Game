@@ -6706,27 +6706,37 @@ function renderOfflineQuestionNav() {
         }
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'btn-pill ' + (isCurrent ? 'btn-pill-primary' : 'btn-pill-outline');
-        btn.style.minWidth = '42px';
-        btn.style.padding = '0.35rem 0.65rem';
+        btn.className = 'offline-q-pill' + (isPinned ? ' has-star' : '');
 
-        if (isPinned) {
-            btn.classList.add('offline-pill-pinned');
-            if (!isCurrent) {
-                btn.style.borderColor = '#eab308';
-                btn.style.color = '#eab308';
-            }
-        } else if (!isCurrent && answered && q.type !== 'slide') {
-            btn.style.borderColor = 'var(--success)';
+        // Styling based on state:
+        // Current question: Filled primary blue
+        // Answered (not current): Green border and green text
+        // Unanswered (not current): Normal black/dark text with neutral subtle border
+        if (isCurrent) {
+            btn.style.background = 'var(--primary)';
+            btn.style.color = '#ffffff';
+            btn.style.border = '2px solid var(--primary)';
+        } else if (answered && q.type !== 'slide') {
+            btn.style.background = 'rgba(16, 185, 129, 0.08)';
             btn.style.color = 'var(--success)';
+            btn.style.border = '2px solid var(--success)';
+        } else {
+            btn.style.background = 'rgba(255, 255, 255, 0.85)';
+            btn.style.color = '#1e293b';
+            btn.style.border = '2px solid #cbd5e1';
         }
 
-        let label = q.type === 'slide' ? `📄 ${idx + 1}` : `${idx + 1}${answered ? ' ✓' : ''}`;
         if (isPinned) {
-            label += ' 📌';
+            btn.style.borderColor = '#eab308';
+            btn.style.boxShadow = '0 0 0 2px rgba(234, 179, 8, 0.35)';
         }
-        btn.innerText = label;
-        btn.title = `Question ${idx + 1}${answered ? ' (Answered)' : ''}${isPinned ? ' (Pinned)' : ''}`;
+
+        let labelHtml = q.type === 'slide' ? `<span>📄 ${idx + 1}</span>` : `<span>${idx + 1}</span>`;
+        if (isPinned) {
+            labelHtml += `<span style="color:#eab308; font-size:1.05rem; line-height:1;">★</span>`;
+        }
+        btn.innerHTML = labelHtml;
+        btn.title = `Question ${idx + 1}${answered ? ' (Answered)' : ' (Unanswered)'}${isPinned ? ' (Starred)' : ''}`;
         btn.onclick = () => {
             offlineState.currentQIndex = idx;
             renderOfflineQuestionNav();
@@ -6760,14 +6770,14 @@ function renderOfflineCurrentQuestion() {
         const isPinned = isOfflineQuestionPinned(idx);
         if (isPinned) {
             pinBtn.className = 'btn-pill btn-pill-warning';
-            pinBtn.innerHTML = '📌 Pinned';
-            pinBtn.title = 'Question is pinned for review. Click to unpin.';
+            pinBtn.innerHTML = '★ Starred';
+            pinBtn.title = 'Question is starred for review. Click to unstar.';
         } else {
             pinBtn.className = 'btn-pill btn-pill-outline';
             pinBtn.style.borderColor = 'var(--glass-border)';
             pinBtn.style.color = 'var(--text-muted)';
-            pinBtn.innerHTML = '📌 Pin';
-            pinBtn.title = 'Pin this question to review later.';
+            pinBtn.innerHTML = '☆ Star';
+            pinBtn.title = 'Star this question to review later.';
         }
         pinBtn.onclick = () => toggleOfflineQuestionPin(idx);
     }
