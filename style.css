@@ -2310,6 +2310,32 @@ body[data-role="host"] #quiz-screen .quiz-content {
     padding: 0 0.75rem;
 }
 
+/* Offline Quiz Options (MC & Multiple Answer) Selection Styling */
+.offline-option-btn {
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease, filter 0.2s ease !important;
+    position: relative;
+}
+.offline-option-btn.selected {
+    transform: translateY(-4px) scale(1.02) !important;
+    outline: 4px solid #ffffff !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.7), 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+    filter: brightness(1.12) saturate(1.15) !important;
+    opacity: 1 !important;
+    z-index: 2;
+}
+.offline-option-btn.faded {
+    opacity: 0.38 !important;
+    filter: grayscale(45%) brightness(0.85) !important;
+    transform: scale(0.98) !important;
+}
+.offline-option-btn.faded:hover {
+    opacity: 0.65 !important;
+    filter: grayscale(20%) brightness(0.95) !important;
+    transform: none !important;
+}
+
 /* Custom Logo */
 .app-main-logo {
     width: 150px;

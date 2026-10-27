@@ -6820,17 +6820,23 @@ function renderOfflineCurrentQuestion() {
     } else if (q.type === 'multiple-choice' || q.type === 'true-false') {
         const grid = document.createElement('div');
         grid.className = 'kahoot-options-grid';
+        const hasSelection = savedVal !== null && savedVal !== undefined && savedVal !== '';
         (q.options || []).forEach((optRaw, optIdx) => {
             const isImg = typeof optRaw === 'object' && optRaw.isImage;
             const text = typeof optRaw === 'string' ? optRaw : optRaw.text;
             const btn = document.createElement('button');
             btn.type = 'button';
             const isSelected = savedVal === text;
-            btn.className = `kahoot-btn kahoot-color-${optIdx % 5}` + (isSelected ? ' mc-selected' : '');
-            btn.style.outline = isSelected ? '3px solid #fff' : 'none';
+            let extraClass = ' offline-option-btn';
+            if (isSelected) {
+                extraClass += ' selected mc-selected';
+            } else if (hasSelection) {
+                extraClass += ' faded';
+            }
+            btn.className = `kahoot-btn kahoot-color-${optIdx % 5}${extraClass}`;
             btn.innerHTML = isImg
                 ? `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px;">`
-                : `<span class="kahoot-btn-text">${escapeHtml(text)}</span>`;
+                : `<span class="kahoot-btn-text">${escapeHtml(text)}${isSelected ? ' ✓' : ''}</span>`;
             btn.onclick = () => {
                 saveOfflineAnswer(idx, text);
                 renderOfflineCurrentQuestion();
@@ -6841,6 +6847,7 @@ function renderOfflineCurrentQuestion() {
         area.appendChild(grid);
     } else if (q.type === 'multiple-answer') {
         const selectedArr = Array.isArray(savedVal) ? [...savedVal] : [];
+        const hasSelection = selectedArr.length > 0;
         const grid = document.createElement('div');
         grid.className = 'kahoot-options-grid';
         (q.options || []).forEach((optRaw, optIdx) => {
@@ -6849,8 +6856,13 @@ function renderOfflineCurrentQuestion() {
             const isSelected = selectedArr.includes(text);
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `kahoot-btn kahoot-color-${optIdx % 5}` + (isSelected ? ' mc-selected' : '');
-            btn.style.outline = isSelected ? '3px solid #fff' : 'none';
+            let extraClass = ' offline-option-btn';
+            if (isSelected) {
+                extraClass += ' selected mc-selected';
+            } else if (hasSelection) {
+                extraClass += ' faded';
+            }
+            btn.className = `kahoot-btn kahoot-color-${optIdx % 5}${extraClass}`;
             btn.innerHTML = isImg
                 ? `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px;">`
                 : `<span class="kahoot-btn-text">${escapeHtml(text)}${isSelected ? ' ✓' : ''}</span>`;
