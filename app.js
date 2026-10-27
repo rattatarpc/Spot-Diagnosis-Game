@@ -6836,7 +6836,7 @@ function renderOfflineCurrentQuestion() {
             btn.className = `kahoot-btn kahoot-color-${optIdx % 5}${extraClass}`;
             btn.innerHTML = isImg
                 ? `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px;">`
-                : `<span class="kahoot-btn-text">${escapeHtml(text)}${isSelected ? ' ✓' : ''}</span>`;
+                : `<span class="kahoot-btn-text">${escapeHtml(text)}</span>`;
             btn.onclick = () => {
                 saveOfflineAnswer(idx, text);
                 renderOfflineCurrentQuestion();
@@ -6865,7 +6865,7 @@ function renderOfflineCurrentQuestion() {
             btn.className = `kahoot-btn kahoot-color-${optIdx % 5}${extraClass}`;
             btn.innerHTML = isImg
                 ? `<img src="${text}" class="option-img-choice" style="max-height:80px; background:white; border-radius:4px;">`
-                : `<span class="kahoot-btn-text">${escapeHtml(text)}${isSelected ? ' ✓' : ''}</span>`;
+                : `<span class="kahoot-btn-text">${escapeHtml(text)}</span>`;
             btn.onclick = () => {
                 const cur = Array.isArray(getOfflineAnswerValue(offlineState.attempt, idx))
                     ? [...getOfflineAnswerValue(offlineState.attempt, idx)]
