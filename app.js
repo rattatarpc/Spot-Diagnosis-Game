@@ -6493,30 +6493,27 @@ async function enterOfflineAssignment() {
             );
         }
 
-        // If attempt exists and was marked submitted/graded/released but user came to Formative Assignment
+        // If attempt exists and was already submitted/finished/graded/released:
+        // Do NOT allow re-taking or editing answers. They can only review in Formative Review.
         if (existingAttempt && !isAttemptInProgress) {
-            const hasTimeRemaining = !meta.timeLimitSec || Number(existingAttempt.elapsedSec || 0) < Number(meta.timeLimitSec);
-            if (!hasTimeRemaining) {
-                return Swal.fire({
-                    title: 'Time Limit Exceeded',
-                    text: 'You have used all the allotted time for this quiz. Please use Formative Review to view your results.',
-                    icon: 'warning'
-                });
-            }
-            // Automatically resume in_progress so the student continues the quiz directly
-            existingAttempt.status = 'in_progress';
-            existingAttempt.released = false;
-            await db.ref(`rooms/offline_${assignCode}/attempts/${studentId}`).update({
-                status: 'in_progress',
-                released: false
+            return Swal.fire({
+                title: 'Quiz Already Submitted',
+                text: 'You have already submitted and finished this quiz. Answers can no longer be edited. Please check your score and feedback in Formative Review.',
+                icon: 'info',
+                confirmButtonText: 'Go to Formative Review',
+                showCancelButton: true,
+                cancelButtonText: 'Close'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    openOfflineJoinScreen('review');
+                    const codeInp = document.getElementById('offline-assign-code');
+                    const idInp = document.getElementById('offline-student-id');
+                    const nameInp = document.getElementById('offline-student-name');
+                    if (codeInp) codeInp.value = assignCode;
+                    if (idInp) idInp.value = studentId;
+                    if (nameInp) nameInp.value = existingAttempt.name || studentName || '';
+                }
             });
-            offlineState.attempt = existingAttempt;
-            offlineState.studentName = existingAttempt.name || studentName || studentId;
-            if (!existingAttempt.answers) existingAttempt.answers = {};
-            if (!Array.isArray(existingAttempt.pinned)) existingAttempt.pinned = [];
-            offlineState.currentQIndex = 0;
-            startOfflineQuizRunner();
-            return;
         }
 
         // 3. Starting new attempt or resuming in_progress attempt
@@ -6888,20 +6885,22 @@ function renderOfflineCurrentQuestion() {
     const nextBtn = document.getElementById('btn-offline-next');
     if (prevBtn) {
         prevBtn.disabled = idx <= 0;
+        prevBtn.style.opacity = idx <= 0 ? '0.5' : '1';
+        prevBtn.style.cursor = idx <= 0 ? 'not-allowed' : 'pointer';
         prevBtn.innerText = '⬅ Previous';
     }
     if (nextBtn) {
-        if (idx >= quiz.length - 1) {
-            nextBtn.innerText = 'Submit All Answers';
-            nextBtn.onclick = () => confirmAndSubmitOfflineAttempt();
-        } else {
-            nextBtn.innerText = 'Next ➡';
-            nextBtn.onclick = () => {
-                offlineState.currentQIndex = Math.min(quiz.length - 1, offlineState.currentQIndex + 1);
+        nextBtn.disabled = idx >= quiz.length - 1;
+        nextBtn.style.opacity = idx >= quiz.length - 1 ? '0.5' : '1';
+        nextBtn.style.cursor = idx >= quiz.length - 1 ? 'not-allowed' : 'pointer';
+        nextBtn.innerText = 'Next ➡';
+        nextBtn.onclick = () => {
+            if (offlineState.currentQIndex < quiz.length - 1) {
+                offlineState.currentQIndex++;
                 renderOfflineQuestionNav();
                 renderOfflineCurrentQuestion();
-            };
-        }
+            }
+        };
     }
 }
 
@@ -6921,8 +6920,56 @@ async function saveOfflineAnswer(qIndex, value) {
     }
 }
 
+async function saveOfflineCurrentQuestionDirectly() {
+    const qIndex = offlineState.currentQIndex;
+    const q = offlineState.quiz?.[qIndex];
+    if (q && q.type === 'typing') {
+        const ta = document.querySelector('#offline-answer-area textarea');
+        if (ta) {
+            const val = ta.value;
+            if (!offlineState.attempt.answers) offlineState.attempt.answers = {};
+            offlineState.attempt.answers[qIndex] = { value: val, savedAt: Date.now() };
+            renderOfflineQuestionNav();
+            await saveOfflineAnswer(qIndex, val);
+        }
+    }
+}
+
+async function manualSaveOfflineAnswerProgress() {
+    if (!offlineState.assignCode || !offlineState.studentId || offlineState.submitting) return;
+    try {
+        await saveOfflineCurrentQuestionDirectly();
+        if (offlineState.attempt) {
+            await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).update({
+                elapsedSec: Number(offlineState.attempt.elapsedSec || 0),
+                lastActiveAt: Date.now(),
+                answers: offlineState.attempt.answers || {},
+                pinned: offlineState.attempt.pinned || []
+            });
+        }
+        Swal.fire({
+            title: 'Answer Saved',
+            text: 'คำตอบของคุณได้รับการบันทึกเรียบร้อยแล้ว สามารถกลับมาทำต่อได้ตลอดเวลาตามรหัสเดิมครับ',
+            icon: 'success',
+            confirmButtonText: 'ทำต่อ (Continue)',
+            showCancelButton: true,
+            cancelButtonText: 'ออกจากหน้านี้ (Exit to Menu)'
+        }).then(res => {
+            if (res.isDismissed && res.dismiss === Swal.DismissReason.cancel) {
+                stopOfflineStudentTimers();
+                sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
+                switchScreen('role');
+            }
+        });
+    } catch (err) {
+        console.error('Failed to manually save offline progress:', err);
+        Swal.fire('Error', 'Unable to save answer progress: ' + (err.message || err), 'error');
+    }
+}
+
 async function confirmAndSubmitOfflineAttempt() {
     if (offlineState.submitting) return;
+    await saveOfflineCurrentQuestionDirectly();
     const quiz = offlineState.quiz || [];
     let unanswered = 0;
     quiz.forEach((q, idx) => {
@@ -6932,15 +6979,16 @@ async function confirmAndSubmitOfflineAttempt() {
     });
 
     const warnHtml = unanswered > 0
-        ? `<p style="color:#eab308; font-weight:600;">⚠️ You have ${unanswered} unanswered question(s).</p><p>Once submitted, answers cannot be edited.</p>`
-        : `<p>You have answered all questions. Once submitted, answers cannot be edited.</p>`;
+        ? `<p style="color:#eab308; font-weight:600;">⚠️ You have ${unanswered} unanswered question(s).</p><p>Once submitted, the quiz will be closed and you cannot re-enter or edit answers.</p>`
+        : `<p>You have answered all questions. Once submitted, the quiz will be closed and you cannot re-enter or edit answers.</p>`;
 
     const res = await Swal.fire({
-        title: 'Submit Quiz Answers?',
+        title: 'Submit All & Finish?',
         html: warnHtml,
         icon: unanswered > 0 ? 'warning' : 'question',
         showCancelButton: true,
-        confirmButtonText: 'Submit Answers',
+        confirmButtonText: 'Submit All & Finish',
+        confirmButtonColor: 'var(--success)',
         cancelButtonText: 'Review Questions'
     });
     if (res.isConfirmed) {
@@ -8039,6 +8087,14 @@ document.getElementById('btn-offline-prev')?.addEventListener('click', () => {
 
 document.getElementById('btn-offline-submit-all')?.addEventListener('click', () => {
     confirmAndSubmitOfflineAttempt();
+});
+
+document.getElementById('btn-offline-submit-finish')?.addEventListener('click', () => {
+    confirmAndSubmitOfflineAttempt();
+});
+
+document.getElementById('btn-offline-save-progress')?.addEventListener('click', () => {
+    manualSaveOfflineAnswerProgress();
 });
 
 document.getElementById('btn-offline-refresh-result')?.addEventListener('click', async () => {

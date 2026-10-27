@@ -793,7 +793,7 @@
         <!-- 10. Offline Self-Paced Quiz Runner Screen -->
         <section id="offline-quiz-screen" class="screen">
             <div class="glass-container" style="max-width: 1050px; width: 96%; margin-top: 3.5rem;">
-                <!-- Header bar: Title, Remaining Time, Window closes, Submit -->
+                <!-- Header bar: Title, Remaining Time, Window closes -->
                 <div id="offline-quiz-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem; padding-bottom:0.85rem; margin-bottom:1rem; border-bottom:1px solid var(--glass-border);">
                     <div>
                         <div id="offline-quiz-title" style="font-size:1.25rem; font-weight:700; color:var(--primary);"></div>
@@ -801,7 +801,6 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
                         <div id="offline-timer-badge" style="background:var(--input-bg); border:1.5px solid var(--primary); padding:0.4rem 0.9rem; border-radius:999px; font-weight:700; font-size:1.05rem; color:var(--text-main);">⏱ --:--</div>
-                        <button id="btn-offline-submit-all" class="btn-primary" style="padding:0.5rem 1.2rem; font-size:0.95rem; background:var(--success); border-color:var(--success);">Submit All Answers</button>
                     </div>
                 </div>
 
@@ -839,8 +838,14 @@
 
                 <!-- Prev / Next Navigation -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; gap:1rem;">
-                    <button id="btn-offline-prev" class="btn-secondary" style="min-width:130px;">⬅ Previous</button>
-                    <button id="btn-offline-next" class="btn-primary" style="min-width:130px;">Next ➡</button>
+                    <button id="btn-offline-prev" class="btn-pill" style="min-width:105px; padding:0.45rem 1rem; font-size:0.9rem; font-weight:600; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-radius:999px; cursor:pointer;">⬅ Previous</button>
+                    <button id="btn-offline-next" class="btn-pill" style="min-width:105px; padding:0.45rem 1rem; font-size:0.9rem; font-weight:600; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-radius:999px; cursor:pointer;">Next ➡</button>
+                </div>
+
+                <!-- Submission & Manual Save Actions (Under Previous / Next) -->
+                <div style="display:flex; justify-content:center; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--glass-border);">
+                    <button id="btn-offline-save-progress" type="button" class="btn-secondary" style="width:auto; min-width:180px; padding:0.55rem 1.4rem; font-size:0.95rem; border-radius:10px;">💾 Submit Answer</button>
+                    <button id="btn-offline-submit-finish" type="button" class="btn-primary" style="width:auto; min-width:210px; padding:0.55rem 1.4rem; font-size:0.95rem; background:var(--success); border-color:var(--success); border-radius:10px;">✓ Submit All & Finish</button>
                 </div>
             </div>
         </section>
@@ -1109,6 +1114,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <script src="app-services.js?v=8"></script>
-    <script src="app.js?v=26"></script>
+    <script src="app.js?v=27"></script>
 </body>
 </html>
