@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spot Diagnosis - UI/UX Design Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090e14;
+            --surface-panel: #111a24;
+            --surface-card: #172330;
+            --surface-hover: #1f2f40;
+            --border-subtle: #243547;
+            --border-focus: #0ea5e9;
+            --teal-action: #0ea5e9;
+            --teal-glow: rgba(14, 165, 233, 0.15);
+            --amber-alert: #f59e0b;
+            --rose-alert: #f43f5e;
+            --emerald-success: #10b981;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        /* Prototype Switcher Navigation */
+        .proto-nav {
+            background: var(--surface-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 9999px;
+            padding: 6px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .proto-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .proto-tab:hover {
+            color: var(--text-main);
+        }
+
+        .proto-tab.active {
+            background: var(--teal-action);
+            color: #ffffff;
+            box-shadow: 0 0 16px var(--teal-glow);
+        }
+
+        /* Mockup Frame (simulating Mobile Device for student) */
+        .device-container {
+            width: 100%;
+            max-width: 410px;
+            min-height: 720px;
+            background: var(--surface-panel);
+            border: 2px solid var(--border-subtle);
+            border-radius: 36px;
+            padding: 20px;
+            box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+        }
+
+        .screen-view.active {
+            display: flex;
+        }
+
+        /* Top Bar Indicator */
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 16px;
+        }
+
+        .q-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--teal-action);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .timer-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--amber-alert);
+            background: rgba(245, 158, 11, 0.12);
+            padding: 3px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* SCREEN 1: QUESTION PLAYING */
+        .case-prompt {
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.5;
+            color: var(--text-main);
+            margin-bottom: 14px;
+        }
+
+        .medical-media-frame {
+            width: 100%;
+            height: 190px;
+            background: #000000;
+            border-radius: 14px;
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .medical-media-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.9;
+        }
+
+        .media-badge {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .choices-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .choice-btn {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 13px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            color: var(--text-main);
+        }
+
+        .choice-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--teal-action);
+        }
+
+        .choice-btn.selected {
+            background: rgba(14, 165, 233, 0.15);
+            border-color: var(--teal-action);
+            box-shadow: 0 0 14px var(--teal-glow);
+        }
+
+        .choice-index {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .choice-btn.selected .choice-index {
+            background: var(--teal-action);
+            color: #ffffff;
+        }
+
+        .choice-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        /* SCREEN 2: COUNTDOWN */
+        .countdown-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .pulse-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid var(--teal-action);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            position: relative;
+            animation: pulse-ring 1.2s infinite ease-out;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+            70% { box-shadow: 0 0 0 25px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+
+        .countdown-digits {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.05em;
+        }
+
+        .countdown-tag {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            color: var(--teal-action);
+            margin-bottom: 8px;
+        }
+
+        .countdown-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* SCREEN 3: FEEDBACK / LAB REPORT */
+        .feedback-banner {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--emerald-success);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .feedback-pts {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--emerald-success);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .feedback-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--emerald-success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .report-section {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .report-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .report-value-correct {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--emerald-success);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .report-rationale {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-top: 8px;
+            border-top: 1px dashed var(--border-subtle);
+            padding-top: 8px;
+        }
+
+        /* Note footer */
+        .proto-note {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            max-width: 410px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Prototype Screen Switcher -->
+    <div class="proto-nav">
+        <button class="proto-tab active" onclick="switchView('view-question')">1. Answering Screen</button>
+        <button class="proto-tab" onclick="switchView('view-countdown')">2. Vital Pulse Countdown</button>
+        <button class="proto-tab" onclick="switchView('view-feedback')">3. Diagnostic Report</button>
+    </div>
+
+    <!-- Mobile Screen Frame -->
+    <div class="device-container">
+
+        <!-- VIEW 1: QUESTION PLAYING -->
+        <div id="view-question" class="screen-view active">
+            <div class="hud-header">
+                <span class="q-badge">Question 04 / 10</span>
+                <span class="timer-display">00:14</span>
+            </div>
+
+            <div class="case-prompt">
+                A 52-year-old male presents with sudden-onset crushing chest pain. What is the primary diagnosis?
+            </div>
+
+            <div class="medical-media-frame">
+                <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80" alt="Diagnostic Scan">
+                <span class="media-badge">EKG Lead II-III-aVF</span>
+            </div>
+
+            <div class="choices-grid">
+                <div class="choice-btn selected" onclick="toggleSelect(this)">
+                    <div class="choice-index">A</div>
+                    <div class="choice-label">Acute Inferior STEMI</div>
+                </div>
+                <div class="choice-btn" onclick="toggleSelect(this)">
+                    <div class="choice-index">B</div>
+                    <div class="choice-label">Acute Pericarditis</div>
+                </div>
+                <div class="choice-btn" onclick="toggleSelect(this)">
+                    <div class="choice-index">C</div>
+                    <div class="choice-label">Aortic Dissection</div>
+                </div>
+                <div class="choice-btn" onclick="toggleSelect(this)">
+                    <div class="choice-index">D</div>
+                    <div class="choice-label">Pulmonary Embolism</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: COUNTDOWN -->
+        <div id="view-countdown" class="screen-view">
+            <div class="countdown-wrap">
+                <div class="countdown-tag">Next Diagnostic Case</div>
+                <div class="pulse-circle">
+                    <span class="countdown-digits" id="countdown-val">3</span>
+                </div>
+                <div class="countdown-subtitle">Prepare your clinical eye...</div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: FEEDBACK / LAB REPORT -->
+        <div id="view-feedback" class="screen-view">
+            <div class="hud-header">
+                <span class="q-badge">Diagnostic Summary</span>
+                <span style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">Rank #2</span>
+            </div>
+
+            <div class="feedback-banner">
+                <div class="feedback-label">Correct Diagnosis</div>
+                <div class="feedback-pts">+142 pts</div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-title">Confirmed Key Findings</div>
+                <div class="report-value-correct">
+                    <span>✓</span> Acute Inferior STEMI
+                </div>
+                <div class="report-rationale">
+                    ST-elevation noted in inferior leads II, III, and aVF with reciprocal depressions in leads I and aVL.
+                </div>
+            </div>
+
+            <div class="report-section">
+                <div class="report-title">Speed Bonus & Confidence</div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; color:var(--text-secondary);">
+                    <span>Response Time:</span>
+                    <strong style="color:var(--text-main); font-family:'JetBrains Mono';">3.8s</strong>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="proto-note">
+        💡 Prototype นี้สร้างขึ้นเพื่อทดสอบทิศทาง UX/UI ตามหลัก <code>frontend-design</code> โดยยังไม่ได้แตะต้องโค้ดหลักของเกม
+    </div>
+
+    <script>
+        function switchView(viewId) {
+            document.querySelectorAll('.screen-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.proto-tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            
+            const tabIdx = viewId === 'view-question' ? 0 : viewId === 'view-countdown' ? 1 : 2;
+            document.querySelectorAll('.proto-tab')[tabIdx].classList.add('active');
+
+            if (viewId === 'view-countdown') {
+                runCountdownAnim();
+            }
+        }
+
+        function toggleSelect(btn) {
+            document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        let cdTimer = null;
+        function runCountdownAnim() {
+            clearInterval(cdTimer);
+            let val = 3;
+            const el = document.getElementById('countdown-val');
+            el.innerText = val;
+            cdTimer = setInterval(() => {
+                val--;
+                if (val > 0) {
+                    el.innerText = val;
+                } else if (val === 0) {
+                    el.innerText = "GO!";
+                } else {
+                    clearInterval(cdTimer);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

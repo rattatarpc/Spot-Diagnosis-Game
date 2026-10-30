@@ -1,7 +1,9 @@
 :root {
-    --bg-color: #0a0e1a;
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
+    --bg-color: #0B1118;
+    --bg-dark: #0B1118;
+    --surface: #141E28;
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
     --secondary: #8b5cf6;
     --secondary-hover: #7c3aed;
     --accent: #8b5cf6;
@@ -9,12 +11,12 @@
     --danger: #ef4444;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    --glass-bg: rgba(23, 30, 50, 0.62);
-    --glass-border: rgba(255, 255, 255, 0.14);
-    --input-bg: rgba(15, 23, 42, 0.55);
-    --panel-bg: rgba(16, 22, 40, 0.78);
-    --arena-glow-1: rgba(59, 130, 246, 0.30);
-    --arena-glow-2: rgba(139, 92, 246, 0.30);
+    --glass-bg: #141E28;
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --input-bg: rgba(11, 17, 24, 0.75);
+    --panel-bg: #141E28;
+    --arena-glow-1: rgba(14, 165, 233, 0.15);
+    --arena-glow-2: rgba(36, 53, 71, 0.25);
     --font-display: 'Anton', 'Outfit', sans-serif;
 }
 
@@ -2677,39 +2679,64 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding: 2.5rem 1.5rem;
 }
 .countdown-label {
-    font-size: 1.6rem;
-    color: var(--text-muted);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 0.25em;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.5rem;
 }
 .countdown-number {
-    font-size: 9rem;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    border: 3.5px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5.5rem;
     line-height: 1;
-    color: var(--primary);
-    margin: 1.5rem 0;
-    animation: countPop 1s infinite;
-    text-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    color: #ffffff;
+    margin: 1.5rem auto;
+    position: relative;
+    animation: countPulse 1s infinite ease-out;
+    text-shadow: 0 0 25px rgba(14, 165, 233, 0.6);
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
 }
 .countdown-number.go {
+    border-color: var(--success);
     color: var(--success);
+    font-size: 3.8rem;
     animation: goPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    box-shadow: 0 0 35px rgba(16, 185, 129, 0.45);
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
 }
 .countdown-sub {
     color: var(--text-muted);
-    letter-spacing: 0.35em;
-    font-size: 0.9rem;
+    letter-spacing: 0.25em;
+    font-size: 0.85rem;
     text-transform: uppercase;
 }
-@keyframes countPop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.12); }
-    100% { transform: scale(1); }
+@keyframes countPulse {
+    0% {
+        transform: scale(0.96);
+        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.55);
+    }
+    60% {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 28px rgba(14, 165, 233, 0);
+    }
+    100% {
+        transform: scale(0.96);
+        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+    }
 }
 @keyframes goPop {
     0% { transform: scale(0.5); opacity: 0; }
-    60% { transform: scale(1.2); opacity: 1; }
+    60% { transform: scale(1.15); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 
@@ -3466,7 +3493,23 @@ body.fx-off #ambient-fx { display: none; }
 @media (max-width: 768px) {
     .hud { padding: 0.55rem 0.7rem; }
     #hud-timer { font-size: 1.7rem; }
-    .countdown-number { font-size: 6.5rem; }
+    .countdown-number { 
+        width: 130px; 
+        height: 130px; 
+        font-size: 4.2rem; 
+    }
+    .countdown-number.go { 
+        font-size: 3rem; 
+    }
+    /* Mobile-first compact fit for student non-kahoot view without affecting full-screen kahoot mode */
+    body[data-role="student"]:not(.layout-kahoot) #ekg-image,
+    body[data-role="student"]:not(.layout-kahoot) #ekg-video {
+        max-height: 25vh;
+        object-fit: contain;
+    }
+    body[data-role="student"]:not(.layout-kahoot) .question-prompt {
+        padding: 0.6rem 0.8rem;
+    }
     #feedback-title { font-size: 3.4rem; }
     #feedback-points { font-size: 1.9rem; }
     .host-presenter-big { font-size: 3.6rem; }
