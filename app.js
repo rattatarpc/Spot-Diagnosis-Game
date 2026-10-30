@@ -6671,8 +6671,23 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
+function closeOfflineDrawer() {
+    const sidebar = document.getElementById('offline-quiz-sidebar');
+    const backdrop = document.getElementById('offline-sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('drawer-open');
+    if (backdrop) backdrop.classList.remove('show');
+}
+
+function openOfflineDrawer() {
+    const sidebar = document.getElementById('offline-quiz-sidebar');
+    const backdrop = document.getElementById('offline-sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('drawer-open');
+    if (backdrop) backdrop.classList.add('show');
+}
+
 function updateOfflineTimerUI() {
     const badge = document.getElementById('offline-timer-badge');
+    const mobTimer = document.getElementById('offline-mobile-timer');
     if (!badge || !offlineState.attempt) return;
     const elapsed = Number(offlineState.attempt.elapsedSec || 0);
     const limit = Number(offlineState.meta?.timeLimitSec || 0);
@@ -6681,10 +6696,18 @@ function updateOfflineTimerUI() {
         badge.innerText = `⏱ Remaining ${formatDurationClock(rem)}`;
         badge.style.borderColor = rem <= 60 ? 'var(--danger)' : 'var(--primary)';
         badge.style.color = rem <= 60 ? 'var(--danger)' : 'var(--text-main)';
+        if (mobTimer) {
+            mobTimer.innerText = `⏱ ${formatDurationClock(rem)}`;
+            mobTimer.style.color = badge.style.color;
+        }
     } else {
         badge.innerText = `⏱ Time Spent ${formatDurationClock(elapsed)}`;
         badge.style.borderColor = 'var(--primary)';
         badge.style.color = 'var(--text-main)';
+        if (mobTimer) {
+            mobTimer.innerText = `⏱ ${formatDurationClock(elapsed)}`;
+            mobTimer.style.color = badge.style.color;
+        }
     }
 }
 
@@ -6741,6 +6764,7 @@ function renderOfflineQuestionNav() {
             offlineState.currentQIndex = idx;
             renderOfflineQuestionNav();
             renderOfflineCurrentQuestion();
+            closeOfflineDrawer();
         };
         nav.appendChild(btn);
     });
@@ -6758,6 +6782,10 @@ function renderOfflineCurrentQuestion() {
     if (!q) return;
 
     document.getElementById('offline-q-number').innerText = `Question ${idx + 1}`;
+    const mobInd = document.getElementById('offline-mobile-q-indicator');
+    if (mobInd) {
+        mobInd.innerText = q.type === 'slide' ? 'Slide' : `Q ${idx + 1} / ${quiz.length}`;
+    }
 
     const maxPts = getQuestionMaxScoreOffline(q);
     const badgeEl = document.getElementById('offline-q-type-badge');
@@ -8118,6 +8146,21 @@ document.getElementById('btn-offline-submit-finish')?.addEventListener('click', 
 document.getElementById('btn-offline-save-progress')?.addEventListener('click', () => {
     manualSaveOfflineAnswerProgress();
 });
+
+// Formative Dashboard Sidebar & Drawer Toggle Listeners
+document.getElementById('btn-offline-sidebar-toggle')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-dashboard-layout');
+    if (layout) layout.classList.add('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-sidebar-expand')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-drawer-open')?.addEventListener('click', openOfflineDrawer);
+document.getElementById('btn-offline-drawer-close')?.addEventListener('click', closeOfflineDrawer);
+document.getElementById('offline-sidebar-backdrop')?.addEventListener('click', closeOfflineDrawer);
 
 document.getElementById('btn-offline-refresh-result')?.addEventListener('click', async () => {
     await renderOfflineStudentResultScreen();

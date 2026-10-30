@@ -1147,7 +1147,8 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
 #quiz-screen {
     justify-content: flex-start !important;
     align-items: stretch !important;
-    padding: 0.25rem 0.5rem 0.75rem;
+    padding: 4.25rem 1rem 0.75rem !important;
+    box-sizing: border-box !important;
 }
 #quiz-screen.active {
     height: 100dvh !important;
@@ -4071,5 +4072,412 @@ body[data-role="host"] .hud-item.timer-info {
     .offline-review-correct-key,
     .offline-review-correct-key * {
         color: #047857 !important;
+    }
+}
+
+/* =====================================================================
+   SURFACE REFINEMENT: FLAT CLINICAL WORKSTATION CARDS
+   (Preserves 3D button shadows & press states)
+   ===================================================================== */
+.question-prompt,
+.question-container,
+.ekg-viewer,
+#quiz-screen .glass-container,
+#offline-quiz-screen .glass-container,
+#offline-question-card,
+.host-presenter-box,
+.hud {
+    box-shadow: none !important;
+}
+
+body.light-theme .question-prompt,
+body.light-theme .question-container,
+body.light-theme .ekg-viewer,
+body.light-theme #quiz-screen .glass-container,
+body.light-theme #offline-quiz-screen .glass-container,
+body.light-theme #offline-question-card,
+body.light-theme .host-presenter-box,
+body.light-theme .hud {
+    box-shadow: none !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+/* =====================================================================
+   FORMATIVE QUIZ CLINICAL DASHBOARD LAYOUT
+   ===================================================================== */
+#offline-quiz-screen {
+    padding: 4.5rem 1.25rem 1.5rem !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+    min-height: 100vh;
+}
+
+.offline-dashboard-layout {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    align-items: flex-start;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* SIDEBAR (Desktop) */
+.offline-quiz-sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+    box-shadow: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 50;
+    box-sizing: border-box;
+}
+
+.offline-dashboard-layout.sidebar-collapsed .offline-quiz-sidebar {
+    display: none !important;
+}
+
+.btn-sidebar-collapse {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.btn-sidebar-collapse:hover {
+    color: var(--text-main);
+    border-color: var(--primary);
+}
+
+.btn-sidebar-expand {
+    display: none;
+    position: fixed;
+    left: 15px;
+    top: 5rem;
+    z-index: 45;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.btn-sidebar-expand:hover {
+    background: var(--primary);
+    color: #ffffff;
+}
+.offline-dashboard-layout.sidebar-collapsed .btn-sidebar-expand {
+    display: inline-flex;
+}
+
+.btn-drawer-close {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.offline-sidebar-brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.offline-sidebar-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.offline-quiz-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.35;
+    word-break: break-word;
+}
+.offline-student-badge {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.offline-timer-badge {
+    margin-top: 10px;
+    background: var(--input-bg);
+    border: 1.5px solid var(--primary);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-main);
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.offline-sidebar-nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.offline-nav-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 6px;
+}
+.offline-question-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+
+.offline-q-pill {
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+/* MAIN STAGE (Center/Right) */
+.offline-quiz-main {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.offline-mobile-topbar {
+    display: none;
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 0.6rem 1rem;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+.btn-drawer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.offline-mobile-q-indicator {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+.offline-mobile-timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.offline-question-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.offline-q-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.offline-q-number {
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 1.15rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.offline-q-type-badge {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.offline-q-text {
+    font-size: 1.45rem;
+    margin: 0 0 0.85rem 0;
+    color: var(--text-main);
+    line-height: 1.4;
+    font-weight: 600;
+}
+.offline-q-context {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+    background: var(--input-bg);
+    border-left: 3px solid var(--primary);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+}
+
+.offline-media-container {
+    width: 100%;
+    background: #000000;
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+    padding: 12px;
+    margin-bottom: 1.25rem;
+    text-align: center;
+    box-sizing: border-box;
+}
+.offline-media-img, .offline-media-video {
+    max-height: 380px;
+    max-width: 100%;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.offline-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 0.85rem 1.25rem;
+}
+
+/* TABLET & MOBILE (<= 1024px) */
+@media (max-width: 1024px) {
+    #offline-quiz-screen {
+        padding: 4.25rem 0.75rem 1.25rem !important;
+    }
+    .offline-dashboard-layout {
+        flex-direction: column;
+    }
+    .offline-mobile-topbar {
+        display: flex;
+    }
+    .offline-quiz-sidebar {
+        position: fixed;
+        left: -340px;
+        top: 0;
+        bottom: 0;
+        width: 300px;
+        min-width: 300px;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0 20px 20px 0;
+        z-index: 1100;
+        box-shadow: 4px 0 25px rgba(0,0,0,0.5);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .offline-quiz-sidebar.drawer-open {
+        left: 0;
+    }
+    .btn-sidebar-collapse {
+        display: none;
+    }
+    .btn-drawer-close {
+        display: block;
+    }
+    .btn-sidebar-expand {
+        display: none !important;
+    }
+
+    .offline-sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1090;
+    }
+    .offline-sidebar-backdrop.show {
+        display: block;
+    }
+
+    .offline-question-card {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+    .offline-q-text {
+        font-size: 1.2rem;
+    }
+    .offline-media-img, .offline-media-video {
+        max-height: 280px;
+    }
+}
+
+@media (max-width: 600px) {
+    #offline-quiz-screen {
+        padding: 4.25rem 0.5rem 1rem !important;
+    }
+    .offline-question-card {
+        padding: 1rem;
+    }
+    .offline-nav-footer {
+        padding: 0.65rem 0.85rem;
+    }
+    .offline-media-img, .offline-media-video {
+        max-height: 220px;
     }
 }

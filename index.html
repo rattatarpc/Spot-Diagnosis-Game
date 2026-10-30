@@ -792,61 +792,92 @@
 
         <!-- 10. Offline Self-Paced Quiz Runner Screen -->
         <section id="offline-quiz-screen" class="screen">
-            <div class="glass-container" style="max-width: 1050px; width: 96%; margin-top: 3.5rem;">
-                <!-- Header bar: Title, Remaining Time, Window closes -->
-                <div id="offline-quiz-header" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem; padding-bottom:0.85rem; margin-bottom:1rem; border-bottom:1px solid var(--glass-border);">
-                    <div>
-                        <div id="offline-quiz-title" style="font-size:1.25rem; font-weight:700; color:var(--primary);"></div>
-                        <div id="offline-student-badge" style="font-size:0.85rem; color:var(--text-muted);"></div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
-                        <div id="offline-timer-badge" style="background:var(--input-bg); border:1.5px solid var(--primary); padding:0.4rem 0.9rem; border-radius:999px; font-weight:700; font-size:1.05rem; color:var(--text-main);">⏱ --:--</div>
-                    </div>
-                </div>
+            <!-- Backdrop for off-canvas drawer on mobile/tablet -->
+            <div id="offline-sidebar-backdrop" class="offline-sidebar-backdrop"></div>
 
-                <!-- Question Navigator Pills & Answered Summary -->
-                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:1.2rem;">
-                    <div id="offline-question-nav" style="display:flex; flex-wrap:wrap; gap:0.45rem;"></div>
-                    <span id="offline-answered-summary" style="font-size:0.88rem; color:var(--text-muted); font-weight:600;"></span>
-                </div>
-
-                <!-- Current Question Body -->
-                <div id="offline-question-card" style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:14px; padding:1.25rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; gap:0.5rem; flex-wrap:wrap;">
-                        <div style="display:flex; align-items:center; gap:0.65rem;">
-                            <span id="offline-q-number" style="font-weight:700; color:var(--primary); font-size:1.05rem;"></span>
-                            <button id="btn-offline-pin" type="button" class="btn-pill" style="font-size:0.85rem; padding:0.25rem 0.75rem; display:inline-flex; align-items:center; gap:0.35rem; border-radius:999px; cursor:pointer; background:transparent; border:1px solid var(--glass-border); color:var(--text-muted); transition:all 0.15s ease;" title="Star this question to review later">
-                                ☆ Star
+            <div class="offline-dashboard-layout" id="offline-dashboard-layout">
+                <!-- LEFT SIDEBAR / DASHBOARD -->
+                <aside id="offline-quiz-sidebar" class="offline-quiz-sidebar">
+                    <div class="offline-sidebar-header">
+                        <div class="offline-sidebar-brand">
+                            <span class="offline-sidebar-badge">Formative Mode</span>
+                            <button id="btn-offline-sidebar-toggle" class="btn-sidebar-collapse" title="Collapse Sidebar" type="button">
+                                <span class="collapse-icon">◀</span>
                             </button>
+                            <button id="btn-offline-drawer-close" class="btn-drawer-close" title="Close Menu" type="button">✕</button>
                         </div>
-                        <span id="offline-q-type-badge" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);"></span>
-                    </div>
-                    <h2 id="offline-q-text" style="font-size:1.45rem; margin:0 0 0.6rem 0; color:var(--text-main);"></h2>
-                    <div id="offline-q-context" style="font-size:1.05rem; color:var(--text-muted); margin-bottom:1rem; white-space:pre-wrap; display:none;"></div>
-
-                    <!-- Media container for offline question -->
-                    <div id="offline-media-container" style="display:none; text-align:center; margin-bottom:1rem;">
-                        <div id="offline-images" class="media-images-grid" style="display:none;"></div>
-                        <img id="offline-image" class="zoomable" style="max-height:340px; max-width:100%; border-radius:10px; display:none;" alt="Question media">
-                        <video id="offline-video" style="max-height:340px; max-width:100%; border-radius:10px; display:none;" controls playsinline webkit-playsinline></video>
-                        <div id="offline-video-fallback" style="display:none; color:var(--danger); padding:0.75rem;">Unable to play video</div>
+                        <div id="offline-quiz-title" class="offline-quiz-title"></div>
+                        <div id="offline-student-badge" class="offline-student-badge"></div>
+                        <div id="offline-timer-badge" class="offline-timer-badge">⏱ --:--</div>
                     </div>
 
-                    <!-- Answer Area -->
-                    <div id="offline-answer-area"></div>
-                </div>
+                    <div class="offline-sidebar-nav-section">
+                        <div class="offline-nav-section-header">
+                            <span class="offline-nav-section-title">Question Dashboard</span>
+                            <span id="offline-answered-summary" class="offline-answered-summary"></span>
+                        </div>
+                        <!-- Question Navigator Pills / Grid -->
+                        <div id="offline-question-nav" class="offline-question-nav-grid"></div>
+                    </div>
 
-                <!-- Prev / Next Navigation -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; gap:1rem;">
-                    <button id="btn-offline-prev" class="btn-pill" style="min-width:105px; padding:0.45rem 1rem; font-size:0.9rem; font-weight:600; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-radius:999px; cursor:pointer;">⬅ Previous</button>
-                    <button id="btn-offline-next" class="btn-pill" style="min-width:105px; padding:0.45rem 1rem; font-size:0.9rem; font-weight:600; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-radius:999px; cursor:pointer;">Next ➡</button>
-                </div>
+                    <div class="offline-sidebar-footer">
+                        <button id="btn-offline-submit-finish" type="button" class="btn-primary btn-submit-all" style="width:100%; justify-content:center; background:var(--success); border-color:var(--success);">
+                            ✓ Submit All & Finish
+                        </button>
+                    </div>
+                </aside>
 
-                <!-- Submission & Manual Save Actions (Under Previous / Next) -->
-                <div style="display:flex; justify-content:center; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--glass-border);">
-                    <button id="btn-offline-save-progress" type="button" class="btn-secondary" style="width:auto; min-width:180px; padding:0.55rem 1.4rem; font-size:0.95rem; border-radius:10px;">💾 Submit Answer</button>
-                    <button id="btn-offline-submit-finish" type="button" class="btn-primary" style="width:auto; min-width:210px; padding:0.55rem 1.4rem; font-size:0.95rem; background:var(--success); border-color:var(--success); border-radius:10px;">✓ Submit All & Finish</button>
-                </div>
+                <!-- EXPAND BUTTON (visible when sidebar is collapsed on desktop) -->
+                <button id="btn-offline-sidebar-expand" class="btn-sidebar-expand" title="Expand Sidebar" type="button">
+                    <span>▶</span>
+                    <span class="expand-text">Dashboard</span>
+                </button>
+
+                <!-- MAIN QUESTION STAGE -->
+                <main id="offline-quiz-main" class="offline-quiz-main">
+                    <!-- Mobile/Tablet Top Compact Bar -->
+                    <div class="offline-mobile-topbar">
+                        <button id="btn-offline-drawer-open" class="btn-drawer-toggle" type="button">
+                            <span class="drawer-burger-icon">☰</span>
+                            <span>Dashboard</span>
+                        </button>
+                        <div id="offline-mobile-q-indicator" class="offline-mobile-q-indicator">Question</div>
+                        <div id="offline-mobile-timer" class="offline-mobile-timer">⏱ --:--</div>
+                    </div>
+
+                    <!-- Current Question Body -->
+                    <div id="offline-question-card" class="offline-question-card">
+                        <div class="offline-q-top-row">
+                            <div style="display:flex; align-items:center; gap:0.65rem;">
+                                <span id="offline-q-number" class="offline-q-number"></span>
+                                <button id="btn-offline-pin" type="button" class="btn-pill btn-star-pin" title="Star this question to review later">
+                                    ☆ Star
+                                </button>
+                            </div>
+                            <span id="offline-q-type-badge" class="offline-q-type-badge"></span>
+                        </div>
+                        <h2 id="offline-q-text" class="offline-q-text"></h2>
+                        <div id="offline-q-context" class="offline-q-context" style="display:none;"></div>
+
+                        <!-- Media container for offline question -->
+                        <div id="offline-media-container" class="offline-media-container" style="display:none;">
+                            <div id="offline-images" class="media-images-grid" style="display:none;"></div>
+                            <img id="offline-image" class="zoomable offline-media-img" style="display:none;" alt="Question media">
+                            <video id="offline-video" class="offline-media-video" style="display:none;" controls playsinline webkit-playsinline></video>
+                            <div id="offline-video-fallback" style="display:none; color:var(--danger); padding:0.75rem;">Unable to play video</div>
+                        </div>
+
+                        <!-- Answer Area -->
+                        <div id="offline-answer-area" class="offline-answer-area"></div>
+                    </div>
+
+                    <!-- Prev / Next Navigation -->
+                    <div class="offline-nav-footer">
+                        <button id="btn-offline-prev" class="btn-pill btn-offline-prev">⬅ Previous</button>
+                        <button id="btn-offline-save-progress" type="button" class="btn-secondary btn-offline-save">💾 Save Answer</button>
+                        <button id="btn-offline-next" class="btn-pill btn-offline-next">Next ➡</button>
+                    </div>
+                </main>
             </div>
         </section>
 
