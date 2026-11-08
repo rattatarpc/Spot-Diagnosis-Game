@@ -734,7 +734,9 @@ const AudioController = (() => {
 
     function playMusicMode(mode) {
         if (isMuted) { musicMode = mode; return; }
-        const themeTrack = localStorage.getItem('spotDiagnosisThemeSong') || 'Them 1 Fun.mp3';
+        let savedTheme = localStorage.getItem('spotDiagnosisThemeSong');
+        if (savedTheme === 'Them 2 Arcade.mp3') savedTheme = 'Them 1 Fun.mp3';
+        const themeTrack = savedTheme || 'Them 1 Fun.mp3';
         const playTrack  = localStorage.getItem('spotDiagnosisPlaySong')  || 'Play 1.mp3';
         musicMode = mode;
         stopBGM();
@@ -1131,7 +1133,12 @@ if (musicToggleEl) {
 // File-based music track selectors
 const themeSongSel = document.getElementById('theme-song-select');
 if (themeSongSel) {
-    themeSongSel.value = localStorage.getItem('spotDiagnosisThemeSong') || 'Them 1 Fun.mp3';
+    let savedTheme = localStorage.getItem('spotDiagnosisThemeSong') || 'Them 1 Fun.mp3';
+    if (savedTheme === 'Them 2 Arcade.mp3') {
+        savedTheme = 'Them 1 Fun.mp3';
+        localStorage.setItem('spotDiagnosisThemeSong', savedTheme);
+    }
+    themeSongSel.value = savedTheme;
     themeSongSel.addEventListener('change', () => AudioController.setTrack('theme', themeSongSel.value));
 }
 const playSongSel = document.getElementById('play-song-select');
@@ -7823,7 +7830,7 @@ function renderOfflineReviewAllQuestions() {
                     <div class="offline-card-answers-col">
                         <div class="answer-box-student">
                             <div class="answer-box-student-label">
-                                <span>👤 Your Answer</span>
+                                <span>Your Answer</span>
                             </div>
                             <div class="answer-box-student-val">
                                 ${ansDisplayHtml}
@@ -7833,7 +7840,7 @@ function renderOfflineReviewAllQuestions() {
                         ${showKey ? `
                         <div class="answer-box-key">
                             <div class="answer-box-key-label">
-                                <span>✓ Correct Answer Key & Explanations</span>
+                                <span>Correct Answer Key & Explanations</span>
                             </div>
                             <div class="answer-box-key-val">
                                 ${keyHtml}
@@ -7852,7 +7859,7 @@ function renderOfflineReviewAllQuestions() {
                         ${commentHtml ? `
                         <div class="feedback-box-compact" style="display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:0.55rem 0.85rem; width:100%; box-sizing:border-box;">
                             <div class="feedback-box-compact-label" style="text-align:left; width:100%; margin-bottom:4px; font-weight:800; font-size:0.78rem; color:#8b3dff;">
-                                💬 Instructor Feedback
+                                Instructor Feedback
                             </div>
                             <div class="feedback-box-compact-val" style="text-align:left; width:100%; font-size:0.95rem; line-height:1.45; color:var(--text-main);">
                                 ${commentHtml}
@@ -7995,12 +8002,6 @@ async function renderOfflineStudentResultScreen() {
                 </div>
             </div>
         `;
-    } else {
-        statusBadgeHtml = `
-            <div class="offline-review-status-box" style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.6rem 0.85rem; font-size:0.85rem; color:var(--text-main);">
-                <strong>Score, Key & Feedback Released</strong>
-            </div>
-        `;
     }
 
     let overallFeedbackHtml = '';
@@ -8019,7 +8020,7 @@ async function renderOfflineStudentResultScreen() {
     }
 
     const qCountEl = document.getElementById('offline-review-questions-count');
-    if (qCountEl) qCountEl.innerText = `${quiz.length} Questions`;
+    if (qCountEl) qCountEl.innerText = '';
 
     // Render Question Navigator Pills
     const navGrid = document.getElementById('offline-review-question-nav');
@@ -8355,7 +8356,7 @@ async function openStudentGradingScreen(studentId) {
     if (overallInput) overallInput.value = att.overallFeedback || '';
 
     const qCountEl = document.getElementById('offline-grade-questions-count');
-    if (qCountEl) qCountEl.innerText = `${quiz.length} Questions`;
+    if (qCountEl) qCountEl.innerText = '';
 
     // Render Question Cards Feed
     const feed = document.getElementById('offline-grade-cards-feed');
@@ -8408,7 +8409,7 @@ async function openStudentGradingScreen(studentId) {
                     <div class="offline-card-answers-col">
                         <div class="answer-box-student">
                             <div class="answer-box-student-label">
-                                <span>👤 Student's Answer</span>
+                                <span>Student's Answer</span>
                             </div>
                             <div class="answer-box-student-val">
                                 ${ansStr ? escapeHtml(String(ansStr)) : '<span style="color:var(--text-muted); font-style:italic;">(No response)</span>'}
@@ -8417,7 +8418,7 @@ async function openStudentGradingScreen(studentId) {
 
                         <div class="answer-box-key">
                             <div class="answer-box-key-label">
-                                <span>✓ Correct Answer Key & Explanations</span>
+                                <span>Correct Answer Key & Explanations</span>
                             </div>
                             <div class="answer-box-key-val">
                                 ${keyHtml}
