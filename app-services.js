@@ -52,30 +52,51 @@ const AppServices = (() => {
     }
 
     // Grade a multiple-choice question that may have multiple correct answers.
-    // Each correct choice is worth 20 pts. Selecting ANY wrong choice gives 0.
-    // Selecting ALL correct choices (and no wrong ones) adds a +50 bonus.
-    // answer may be a single value (legacy) or an array of selected choices.
-    function gradeMultiChoice(answer, q) {
+    // Normalized to 100 points maximum with partial credit:
+    // Net fraction = (selectedCorrect / totalCorrect) - (selectedWrong / totalWrong)
+    // Points = Math.max(0, Math.min(100, Math.round(netFraction * 100)))
+    function gradeMultiChoice(answer, q = {}) {
         const correctSet = new Set((q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c =>
-            typeof c === 'string' ? c : c.text
+            typeof c === 'string' ? c : (c.text || '')
         ));
         const selected = Array.isArray(answer) ? answer : (answer == null ? [] : [answer]);
 
-        if (selected.length === 0) return { points: 0, correct: false };
+        if (selected.length === 0 || correctSet.size === 0) return { points: 0, correct: false };
 
-        let points = 0;
-        let wrong = false;
+        const totalCorrect = correctSet.size;
+
+        // Collect all available options from question
+        const optionsList = Array.isArray(q.options) && q.options.length > 0
+            ? q.options.map(o => typeof o === 'string' ? o : (o.text || '')).filter(t => t.length > 0)
+            : [];
+
+        // Determine wrong options count
+        let totalWrong = 0;
+        if (optionsList.length > 0) {
+            const wrongOptions = optionsList.filter(o => !correctSet.has(o));
+            totalWrong = wrongOptions.length;
+        }
+
+        let selectedCorrect = 0;
+        let selectedWrong = 0;
         for (const sel of selected) {
             if (correctSet.has(sel)) {
-                points += 20;
+                selectedCorrect++;
             } else {
-                wrong = true;
+                selectedWrong++;
             }
         }
-        if (wrong) return { points: 0, correct: false };
 
-        const allCorrectSelected = correctSet.size > 0 && selected.length === correctSet.size;
-        if (allCorrectSelected) points += 50; // bonus
+        let netFraction = 0;
+        if (totalWrong > 0) {
+            netFraction = (selectedCorrect / totalCorrect) - (selectedWrong / totalWrong);
+        } else {
+            // Fallback if options list is not explicitly provided (e.g. minimal unit test)
+            netFraction = (selectedCorrect - selectedWrong) / totalCorrect;
+        }
+
+        const fraction = Math.max(0, Math.min(1, netFraction));
+        const points = Math.round(fraction * 100);
 
         return { points, correct: points > 0 };
     }

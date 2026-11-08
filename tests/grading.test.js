@@ -26,22 +26,31 @@ test('Levenshtein distance handles empty values', () => {
 
 test('gradeMultiChoice: single correct answer legacy', () => {
     const q = { correctAnswers: [{ text: 'A' }], correctAnswer: { text: 'A' } };
-    assert.deepEqual(gradeMultiChoice('A', q), { points: 70, correct: true });
+    assert.deepEqual(gradeMultiChoice('A', q), { points: 100, correct: true });
     assert.deepEqual(gradeMultiChoice('B', q), { points: 0, correct: false });
 });
 
-test('gradeMultiChoice: multiple correct answers scored 20 each', () => {
+test('gradeMultiChoice: multiple correct answers scored with partial credit out of 100', () => {
     const q = { correctAnswers: [{ text: 'A' }, { text: 'B' }] };
-    // Selecting only one correct answer (not all) => 20 pts, no bonus
-    assert.deepEqual(gradeMultiChoice(['A'], q), { points: 20, correct: true });
-    // Selecting all correct answers => 40 + 50 bonus
-    assert.deepEqual(gradeMultiChoice(['A', 'B'], q), { points: 90, correct: true });
+    // Selecting only one correct answer (out of 2) => 50 pts
+    assert.deepEqual(gradeMultiChoice(['A'], q), { points: 50, correct: true });
+    // Selecting all correct answers => 100 pts
+    assert.deepEqual(gradeMultiChoice(['A', 'B'], q), { points: 100, correct: true });
 });
 
-test('gradeMultiChoice: any wrong selection gives 0', () => {
-    const q = { correctAnswers: [{ text: 'A' }, { text: 'B' }] };
+test('gradeMultiChoice: partial credit with wrong options deducting proportionally', () => {
+    const q = {
+        correctAnswers: [{ text: 'A' }, { text: 'B' }],
+        options: [{ text: 'A' }, { text: 'B' }, { text: 'C' }, { text: 'D' }]
+    };
+    // 1 correct (1/2) and 1 wrong (1/2) => net 0 pts
     assert.deepEqual(gradeMultiChoice(['A', 'C'], q), { points: 0, correct: false });
+    // 2 correct (2/2) and 1 wrong (1/2) => net 0.5 (50 pts)
+    assert.deepEqual(gradeMultiChoice(['A', 'B', 'C'], q), { points: 50, correct: true });
+    // selecting only wrong choice => 0 pts
     assert.deepEqual(gradeMultiChoice(['C'], q), { points: 0, correct: false });
+    // selecting all choices (guessing all) => 0 pts
+    assert.deepEqual(gradeMultiChoice(['A', 'B', 'C', 'D'], q), { points: 0, correct: false });
 });
 
 test('gradeMultiChoice: empty selection gives 0', () => {

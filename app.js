@@ -63,7 +63,7 @@ function escapeHtml(value) {
     })[ch]);
 }
 
-const DICEBEAR_STYLES = ['adventurer', 'bottts', 'fun-emoji', 'bottts-neutral', 'pixelbot', 'voxel-bot'];
+const DICEBEAR_STYLES = ['bottts', 'bottts-neutral', 'pixelbot', 'voxel-bot'];
 const DICEBEAR_SEEDS = ['Spot','Maple','Luna','Blaze','Nova','Pixel','Cosmo','Echo','Drift','Storm','Ember','Sage'];
 let playerAvatarStyle = DICEBEAR_STYLES[Math.floor(Math.random() * DICEBEAR_STYLES.length)];
 let playerAvatarSeed  = DICEBEAR_SEEDS[Math.floor(Math.random() * DICEBEAR_SEEDS.length)];
@@ -175,7 +175,8 @@ function burstConfetti() {
 
 function burstConfettiCount(count) {
     const colors = ['#e21b3c', '#1368ce', '#d89e00', '#26890c', '#8b3dff', '#10b981'];
-    const frag = document.createDocumentFragment();
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
     for (let i = 0; i < count; i++) {
         const c = document.createElement('div');
         c.className = 'confetti-piece';
@@ -184,12 +185,12 @@ function burstConfettiCount(count) {
         c.style.height = (size * 1.7) + 'px';
         c.style.left = (Math.random() * 100) + 'vw';
         c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        c.style.animationDelay = (Math.random() * 0.4) + 's';
-        c.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
-        frag.appendChild(c);
+        c.style.animationDelay = (Math.random() * 0.8) + 's';
+        c.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+        container.appendChild(c);
     }
-    document.body.appendChild(frag);
-    setTimeout(() => { frag.remove(); }, 3000);
+    document.body.appendChild(container);
+    setTimeout(() => { container.remove(); }, 3500);
 }
 
 function animateTally(el, target, opts = {}) {
@@ -226,11 +227,21 @@ function setHudTimer(t) {
     }
 
     const fill = document.getElementById('hud-timer-fill');
-    if (!fill) return;
-    if (t > 0 && max > 0) {
-        fill.style.width = Math.max(0, Math.min(100, (t / max) * 100)) + '%';
-    } else {
-        fill.style.width = '100%';
+    if (fill) {
+        if (t > 0 && max > 0) {
+            fill.style.width = Math.max(0, Math.min(100, (t / max) * 100)) + '%';
+        } else {
+            fill.style.width = '100%';
+        }
+    }
+
+    const timerWrapper = document.querySelector('.timer-circle-container') || (kProg ? kProg.parentElement : null);
+    if (timerWrapper) {
+        if (t > 0 && t <= 5) {
+            timerWrapper.classList.add('timer-urgent');
+        } else {
+            timerWrapper.classList.remove('timer-urgent');
+        }
     }
 }
 
@@ -239,6 +250,10 @@ function setQuizProgress(qIndex, total) {
     const label = document.getElementById('quiz-progress-label');
     if (fill) fill.style.width = total > 0 ? (((qIndex + 1) / total) * 100) + '%' : '0%';
     if (label) label.innerText = `Q ${qIndex + 1}/${total}`;
+    const hostQNum = document.getElementById('host-q-num');
+    if (hostQNum) {
+        hostQNum.innerText = (typeof qIndex === 'number') ? `Question ${qIndex + 1}` : '';
+    }
 }
 
 /* =====================================================================
@@ -515,7 +530,8 @@ function fxInit() {
                 if (!result.isConfirmed) return;
                 const keys = [
                     'spotDiagnosisTheme', 'spotDiagnosisVideo', 'spotDiagnosisVideoStyle',
-                    'spotDiagnosisFx', 'spotDiagnosisVolume', 'spotDiagnosisMusicStyle'
+                    'spotDiagnosisFx', 'spotDiagnosisVolume', 'spotDiagnosisMusicStyle',
+                    'spotDiagnosisMusicMuted'
                 ];
                 keys.forEach(k => localStorage.removeItem(k));
                 window.location.reload();
@@ -550,7 +566,8 @@ const screens = {
     offlineJoin: document.getElementById('offline-join-screen'),
     offlineQuiz: document.getElementById('offline-quiz-screen'),
     offlineStudentResult: document.getElementById('offline-student-result-screen'),
-    offlineTeacher: document.getElementById('offline-teacher-screen')
+    offlineTeacher: document.getElementById('offline-teacher-screen'),
+    offlineTeacherGrade: document.getElementById('offline-teacher-grade-screen')
 };
 
 function setConnectionStatus(connected) {
@@ -652,7 +669,7 @@ const AudioController = (() => {
     let masterGain = null;
     let masterVolume = 0.70; // 0..1 slider value (default 70%)
     let bgmGain = null;
-    let isMuted = false;
+    let isMuted = localStorage.getItem('spotDiagnosisMusicMuted') === 'true';
     let audioUnlocked = false;
     let bgmRunning = false;
     let bgmTimeout = null;
@@ -937,20 +954,21 @@ const AudioController = (() => {
 
     function toggleMute() {
         isMuted = !isMuted;
+        localStorage.setItem('spotDiagnosisMusicMuted', isMuted ? 'true' : 'false');
         const btn = document.getElementById('btn-music-toggle');
         if (btn && btn.type === 'checkbox') btn.checked = !isMuted;
         if (isMuted) {
             stopBGM();
             stopFileMusic();
-            if (masterGain) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-            if (btn) { btn.innerText = '🔇'; btn.classList.add('muted'); }
+            if (masterGain && audioCtx) masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+            if (btn && btn.type !== 'checkbox') { btn.innerText = '🔇'; btn.classList.add('muted'); }
         } else {
-            if (masterGain) {
+            if (masterGain && audioCtx) {
                 masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
                 masterGain.gain.linearRampToValueAtTime(0.20 * masterVolume, audioCtx.currentTime + 0.5);
             }
             if (musicMode !== 'none') playMusicMode(musicMode);
-            if (btn) { btn.innerText = '🔊'; btn.classList.remove('muted'); }
+            if (btn && btn.type !== 'checkbox') { btn.innerText = '🔊'; btn.classList.remove('muted'); }
         }
     }
 
@@ -1002,40 +1020,84 @@ const AudioController = (() => {
         if (isMuted) return;
         try {
             const ctx = getCtx();
-            // Tada fanfare: rising triad + sparkle
-            [0, 0.12, 0.24, 0.4].forEach((t, i) => {
+            const now = ctx.currentTime;
+            // Impact boom
+            const boom = ctx.createOscillator();
+            const bg = ctx.createGain();
+            boom.connect(bg); bg.connect(ctx.destination);
+            boom.type = 'sine';
+            boom.frequency.setValueAtTime(150, now);
+            boom.frequency.exponentialRampToValueAtTime(38, now + 0.6);
+            bg.gain.setValueAtTime(0.55, now);
+            bg.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            boom.start(now); boom.stop(now + 0.6);
+
+            // Tada fanfare: rising triumph arpeggio + sparkle
+            [
+                { f: 523.25, t: 0.05, d: 0.28 },
+                { f: 659.25, t: 0.18, d: 0.28 },
+                { f: 783.99, t: 0.32, d: 0.32 },
+                { f: 1046.5, t: 0.48, d: 0.55 }
+            ].forEach(({ f, t, d }) => {
                 const osc = ctx.createOscillator(); const g = ctx.createGain();
                 osc.connect(g); g.connect(ctx.destination);
                 osc.type = 'triangle';
-                osc.frequency.value = [523.25, 659.25, 783.99, 1046.5][i];
-                g.gain.setValueAtTime(0.5, ctx.currentTime + t);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6);
-                osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.6);
+                osc.frequency.value = f;
+                g.gain.setValueAtTime(0.48, now + t);
+                g.gain.exponentialRampToValueAtTime(0.001, now + t + d);
+                osc.start(now + t); osc.stop(now + t + d);
             });
-            // final chord
-            [523.25, 659.25, 783.99, 1046.5].forEach((f) => {
+
+            // Sustained final glorious chord
+            [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f) => {
                 const osc = ctx.createOscillator(); const g = ctx.createGain();
                 osc.connect(g); g.connect(ctx.destination);
                 osc.type = 'triangle'; osc.frequency.value = f;
-                g.gain.setValueAtTime(0.25, ctx.currentTime + 0.55);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4);
-                osc.start(ctx.currentTime + 0.55); osc.stop(ctx.currentTime + 1.4);
+                g.gain.setValueAtTime(0.25, now + 0.65);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+                osc.start(now + 0.65); osc.stop(now + 1.8);
             });
         } catch(e) {}
     }
 
-    function playPodiumRise() {
+    function playSuspenseBuild(duration = 1.6) {
         if (isMuted) return;
         try {
             const ctx = getCtx();
-            [0, 0.1].forEach((t, i) => {
+            const now = ctx.currentTime;
+            const stepCount = 12;
+            for (let i = 0; i < stepCount; i++) {
+                const progress = i / stepCount;
+                const hitTime = now + Math.pow(progress, 1.4) * duration;
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80 + progress * 80, hitTime);
+                osc.frequency.exponentialRampToValueAtTime(45, hitTime + 0.08);
+                const vol = 0.22 + progress * 0.35;
+                g.gain.setValueAtTime(vol, hitTime);
+                g.gain.exponentialRampToValueAtTime(0.001, hitTime + 0.09);
+                osc.start(hitTime);
+                osc.stop(hitTime + 0.1);
+            }
+        } catch(e) {}
+    }
+
+    function playPodiumRise(rank = 3) {
+        if (isMuted) return;
+        try {
+            const ctx = getCtx();
+            const freqs = rank === 2 ? [392, 493.88, 587.33] : (rank === 1 ? [523.25, 659.25, 783.99] : [329.63, 392, 523.25]);
+            freqs.forEach((f, i) => {
                 const osc = ctx.createOscillator(); const g = ctx.createGain();
                 osc.connect(g); g.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = [392, 523.25][i];
+                osc.type = rank === 1 ? 'triangle' : 'sine';
+                osc.frequency.value = f;
+                const t = i * 0.12;
                 g.gain.setValueAtTime(0.35, ctx.currentTime + t);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.5);
-                osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.5);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.55);
+                osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.55);
             });
         } catch(e) {}
     }
@@ -1048,7 +1110,7 @@ const AudioController = (() => {
         if (musicEl) musicEl.volume = masterVolume;
     }
 
-    return { unlock, toggleMute, setStyle, setVolume, playTick, playCorrect, playWrong, playPodiumRise, playChampion, playMusicMode, setTrack };
+    return { unlock, toggleMute, isMuted: () => isMuted, setStyle, setVolume, playTick, playCorrect, playWrong, playPodiumRise, playSuspenseBuild, playChampion, playMusicMode, setTrack };
 })();
 
 // Unlock audio on the first user interaction (crucial for iOS Safari)
@@ -1063,6 +1125,7 @@ document.body.addEventListener('touchstart', unlockAudioOnInteraction);
 // Wire up controls
 const musicToggleEl = document.getElementById('btn-music-toggle');
 if (musicToggleEl) {
+    musicToggleEl.checked = !AudioController.isMuted();
     musicToggleEl.addEventListener('change', () => AudioController.toggleMute());
 }
 // File-based music track selectors
@@ -1104,32 +1167,54 @@ function getTypingPenalty(playerAns, q) {
 function getTypingAnswerScore(playerAns, q) {
     if (!playerAns) return 0;
     
-    let penalty = getTypingPenalty(playerAns, q);
-
+    const penalty = getTypingPenalty(playerAns, q);
     const results = getTypingKeyResults(playerAns, q);
-    let totalEarned = 0;
+    const requiredItems = getQuestionAcceptedKeys(q);
+    const rawMax = requiredItems.reduce((sum, item) => sum + ((typeof item === 'object' && item.points !== undefined) ? Number(item.points) : 10), 0) || 100;
+
+    let rawEarned = 0;
     for (let r of results) {
-        if (r.matched) totalEarned += r.pts;
+        if (r.matched) rawEarned += r.pts;
     }
 
     if (q.partialCredit === false) {
-        totalEarned = totalEarned > 0 ? 100 : 0;
+        return (rawEarned >= rawMax && rawMax > 0) ? Math.max(0, 100 - penalty) : 0;
     }
 
-    totalEarned -= penalty;
-    if (totalEarned < 0) totalEarned = 0;
+    // Normalized to 100 points maximum
+    const scaledScore = Math.round((rawEarned / rawMax) * 100);
+    const finalScore = Math.max(0, Math.min(100, scaledScore - penalty));
 
-    return totalEarned;
+    return finalScore;
+}
+
+function getQuestionAcceptedKeys(q) {
+    if (!q) return [];
+    let raw = [];
+    if (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0) {
+        raw = q.acceptedAnswers;
+    } else if (Array.isArray(q.answerKeys) && q.answerKeys.length > 0) {
+        raw = q.answerKeys;
+    } else if (Array.isArray(q.rubric) && q.rubric.length > 0) {
+        raw = q.rubric;
+    } else if (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0) {
+        raw = q.correctAnswers;
+    } else if (q.correctAnswer) {
+        raw = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+    }
+    return raw.map(k => {
+        if (typeof k === 'string') return { text: k, points: 10, exact: false };
+        return {
+            text: k.text || k.concept || k.label || k.word || '',
+            points: (k.points !== undefined && k.points !== null) ? Number(k.points) : 10,
+            exact: Boolean(k.exact)
+        };
+    }).filter(k => k.text && k.text.trim().length > 0);
 }
 
 function getTypingMaxPoints(q) {
-    if (q.partialCredit === false) return 100;
-    let max = 0;
-    const requiredItems = q.acceptedAnswers || [];
-    for (let itemObj of requiredItems) {
-        max += (typeof itemObj === 'object' && itemObj.points !== undefined) ? itemObj.points : 10;
-    }
-    return max;
+    if (!q || q.freePoint || q.type === 'slide') return 0;
+    return 100;
 }
 
 // Returns per-key match details: [{text, pts, matched, matchedSyn, matchedExact}, ...]
@@ -1142,7 +1227,11 @@ function getTypingKeyResults(playerAns, q) {
 
     let previousKeyEndIndex = -1;
 
-    for (let itemObj of (q.acceptedAnswers || [])) {
+    const keyList = (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0)
+        ? q.acceptedAnswers
+        : getQuestionAcceptedKeys(q);
+
+    for (let itemObj of keyList) {
         const text = typeof itemObj === 'string' ? itemObj : itemObj.text;
         const pts  = (typeof itemObj === 'object' && itemObj.points !== undefined) ? itemObj.points : 10;
         const exactMatch = (typeof itemObj === 'object' && itemObj.exact === true);
@@ -1292,17 +1381,18 @@ function buildTypingFeedbackHTML(playerAns, q) {
     let keysHTML = '';
     keyResults.forEach(kr => {
         const color = kr.matched ? 'var(--success)' : 'var(--danger)';
-        const icon  = kr.matched ? '&#x2705;' : '&#x274C;';
-        const bg = kr.matched ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)';
-        keysHTML += '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.55rem 0.8rem;' +
+        const bg = kr.matched ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)';
+        const badgeText = kr.matched ? 'MATCHED' : 'NOT FOUND';
+        keysHTML += '<div style="display:flex;align-items:center;justify-content:space-between;gap:0.6rem;padding:0.6rem 0.85rem;' +
             'background:' + bg + ';' +
             'border:1.5px solid ' + color + ';border-radius:8px;margin-bottom:0.5rem;">' +
-            '<span style="font-size:1.1rem;">' + icon + '</span>' +
-            '<div style="flex:1;">' +
-            '<div style="font-weight:600;color:var(--text-main);font-size:0.95rem;">' + kr.text + '</div>' +
-            '<div style="color:' + color + ';font-size:0.78rem;">' +
-            (kr.matched ? '+' + kr.pts + ' pts earned' : '+' + kr.pts + ' pts \u2014 not found') +
-            '</div></div></div>';
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:700;color:var(--text-main);font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + kr.text + '</div>' +
+            '<div style="color:' + color + ';font-size:0.8rem;font-weight:600;">' +
+            (kr.matched ? '+' + kr.pts + ' pts earned' : '+' + kr.pts + ' pts') +
+            '</div></div>' +
+            '<span style="font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:4px;background:' + color + ';color:white;white-space:nowrap;">' + badgeText + '</span>' +
+            '</div>';
     });
 
     // Collect matched key words for highlighting player answer
@@ -1339,15 +1429,15 @@ function buildTypingFeedbackHTML(playerAns, q) {
         const hintList = missed.map(kr => '<strong>' + kr.text + '</strong> (+' + kr.pts + ' pts)').join(', ');
         hintHTML = '<div style="margin-top:0.8rem;padding:0.6rem 0.9rem;background:rgba(251,191,36,0.15);' +
             'border:1px solid #fbbf24;border-radius:8px;font-size:0.88rem;color:var(--text-main);">' +
-            '&#x1F4A1; To get more points, add: ' + hintList + '</div>';
+            'Key concepts to include: ' + hintList + '</div>';
     }
 
     return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;text-align:left;">' +
         '<div style="background:var(--input-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;min-width:0;">' +
-        '<h4 style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">&#x1F4CB; Answer Keys</h4>' +
+        '<h4 style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">Answer Keys</h4>' +
         keysHTML + '</div>' +
         '<div style="background:var(--input-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem;">' +
-        '<h4 style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">&#x270D; Your Answer</h4>' +
+        '<h4 style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">Your Answer</h4>' +
         '<p style="font-size:1rem;line-height:1.8;color:var(--text-main);word-break:normal;overflow-wrap:break-word;">' + highlightedAns + '</p>' +
         hintHTML + '</div></div>';
 }
@@ -1365,6 +1455,7 @@ let offlineState = {
     quiz: [],
     attempt: null,
     currentQIndex: 0,
+    reviewQIndex: 0,
     tickInterval: null,
     flushInterval: null,
     metaListenerRef: null,
@@ -1441,8 +1532,15 @@ function logoutToLoginScreen() {
 }
 
 function switchScreen(screenName) {
+    // Sync data-role attribute whenever screen switches
+    if (role === 'host') {
+        document.body.setAttribute('data-role', 'host');
+    } else if (role === 'student') {
+        document.body.setAttribute('data-role', 'student');
+    }
+
     // Guard admin-only screens so Guest or unauthenticated users cannot open them
-    const adminOnlyScreens = ['dashboard', 'maker', 'offlineTeacher'];
+    const adminOnlyScreens = ['dashboard', 'maker', 'offlineTeacher', 'offlineTeacherGrade'];
     if (adminOnlyScreens.includes(screenName) && authTier !== 'admin') {
         screenName = authTier ? 'role' : 'login';
     }
@@ -1452,6 +1550,9 @@ function switchScreen(screenName) {
 
     if (screenName !== 'offlineQuiz' && typeof stopOfflineStudentTimers === 'function') {
         stopOfflineStudentTimers();
+    }
+    if (screenName !== 'quiz') {
+        document.body.classList.remove('student-minimal-view');
     }
 
     Object.values(screens).forEach(screen => { if (screen) screen.classList.remove('active'); });
@@ -1519,6 +1620,36 @@ document.querySelectorAll('.back-to-role').forEach(btn => {
     });
 });
 
+document.getElementById('btn-lobby-back')?.addEventListener('click', async () => {
+    clearInterval(localTimer);
+    if (role === 'host') {
+        if (roomCode && db) {
+            try {
+                db.ref(`rooms/${roomCode}/players`).off();
+                await db.ref(`rooms/${roomCode}`).remove();
+            } catch (e) {}
+        }
+        roomCode = null;
+        switchScreen('maker');
+    } else {
+        if (roomCode) {
+            sessionStorage.removeItem('playerName_' + roomCode);
+            if (db) {
+                try {
+                    db.ref(`rooms/${roomCode}/gameState`).off();
+                    db.ref(`rooms/${roomCode}/players`).off();
+                    if (playerName) {
+                        await db.ref(`rooms/${roomCode}/players/${playerName}`).remove();
+                    }
+                } catch (e) {}
+            }
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+        roomCode = null;
+        switchScreen('join');
+    }
+});
+
 document.querySelectorAll('.back-to-dashboard').forEach(btn => {
     btn.addEventListener('click', () => {
         sessionStorage.removeItem('spotDiagnosis_activeOfflineSession');
@@ -1584,7 +1715,7 @@ function handleAdminLoginSubmit() {
         switchScreen('role');
     } else {
         if (errEl) {
-            errEl.innerText = '❌ Username หรือ Password ไม่ถูกต้อง';
+            errEl.innerText = '❌ Username or Password is incorrect';
             errEl.style.display = 'block';
         }
     }
@@ -1766,10 +1897,12 @@ async function renderDashboard() {
     migrateOldCloudQuizzes();
     const list = document.getElementById('local-quizzes-list');
     const library = await getLocalQuizzes();
+    const savedAssignments = (typeof getSavedTeacherAssignments === 'function')
+        ? (await getSavedTeacherAssignments())
+        : [];
 
     if (library.length === 0) {
         list.innerHTML = `<div style="text-align: center; color: #777; padding: 2rem;">No saved quizzes found in this browser.</div>`;
-        if (typeof renderLocalOfflineAssignments === 'function') renderLocalOfflineAssignments();
         return;
     }
 
@@ -1777,6 +1910,11 @@ async function renderDashboard() {
     library.forEach((quiz, index) => {
         const div = document.createElement('div');
         div.className = 'quiz-glass-card';
+
+        const matchedAssign = savedAssignments.find(a =>
+            (a.sourceQuizTitle && a.sourceQuizTitle === quiz.title) ||
+            (a.title && a.title === quiz.title)
+        );
 
         let firstQ = quiz.questions && quiz.questions.length > 0 ? quiz.questions[0] : null;
         let thumbHtml = '<div style="width: 80px; height: 80px; background: #eee; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#ccc; margin-right:15px;">❓</div>';
@@ -1789,23 +1927,41 @@ async function renderDashboard() {
             }
         }
 
+        const formativeBadgeHtml = matchedAssign ? `
+            <div style="margin-top: 6px;">
+                <span class="badge-formative-note" style="display:inline-flex; align-items:center; gap:5px; font-size:0.82rem; padding:3px 10px; border-radius:6px; background:rgba(139, 61, 255, 0.12); color:#8b3dff; border:1px solid rgba(139, 61, 255, 0.35); font-weight:600;">
+                    📝 Formative Active: <strong>${escapeHtml(matchedAssign.assignCode)}</strong>
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Due: ${formatDateTimeEn(matchedAssign.closesAt)})</span>
+                </span>
+            </div>
+        ` : '';
+
         div.innerHTML = `
             <div style="display:flex; align-items:center;">
                 ${thumbHtml}
                 <div>
                     <strong style="font-size: 1.3rem; color: var(--primary);">${quiz.title || 'Untitled Quiz'}</strong>
                     <div style="font-size: 0.95rem; font-weight: bold; color: var(--text-muted); margin-top: 6px;">${quiz.questions ? quiz.questions.length : 0} questions</div>
+                    ${formativeBadgeHtml}
                 </div>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px;">
                 <button class="btn-pill btn-pill-outline btn-host-now" data-index="${index}">Host Live</button>
-                <button class="btn-pill btn-pill-outline btn-create-offline" data-index="${index}" style="border-color:#8b3dff; color:#c4b5fd;">Set as Formative</button>
+                ${matchedAssign ? `<button class="btn-pill btn-pill-primary btn-open-matched-assign" data-code="${escapeHtml(matchedAssign.assignCode)}" data-pin="${escapeHtml(matchedAssign.pin || '')}" style="background:#8b3dff; border-color:#8b3dff;">Open Formative</button>` : `<button class="btn-pill btn-pill-outline btn-create-offline" data-index="${index}" style="border-color:#8b3dff; color:#8b3dff;">Set as Formative</button>`}
                 <button class="btn-pill btn-pill-outline btn-share-cloud" data-index="${index}">Share / Get Code</button>
                 <button class="btn-pill btn-pill-primary btn-edit-quiz" data-index="${index}">Edit</button>
                 <button class="btn-pill btn-pill-danger-outline btn-delete-quiz" data-index="${index}" title="Delete quiz" aria-label="Delete quiz">🗑️</button>
             </div>
         `;
         list.appendChild(div);
+    });
+
+    document.querySelectorAll('.btn-open-matched-assign').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const code = e.currentTarget.getAttribute('data-code');
+            const pin = e.currentTarget.getAttribute('data-pin');
+            openOfflineTeacherDashboard(code, pin);
+        });
     });
     document.querySelectorAll('.btn-host-now').forEach(btn => {
         btn.addEventListener('click', async (e) => {
@@ -1915,10 +2071,6 @@ async function renderDashboard() {
             }
         });
     });
-
-    if (typeof renderLocalOfflineAssignments === 'function') {
-        renderLocalOfflineAssignments();
-    }
 }
 
 document.getElementById('btn-create-new-quiz').addEventListener('click', () => {
@@ -2275,39 +2427,30 @@ if (mediaDropzone && makerImgFileEl) {
    THEME & MUSIC TOGGLES
 ===================================================================== */
 /* =====================================================================
-   THEME SELECTOR
+   THEME SELECTOR (2 Clean Clinical Themes: Light & Dark)
 ===================================================================== */
 const themeSelect = document.getElementById('theme-select');
-const themes = ['dark', 'light', 'pastel', 'earth', 'warm', 'cool'];
-const THEME_CLASSES = ['light-theme', 'pastel-theme', 'earth-theme', 'warm-theme', 'cool-theme'];
+const themes = ['light', 'dark'];
+const THEME_CLASSES = ['light-theme'];
 
-themeSelect.addEventListener('change', () => {
-    const chosen = themeSelect.value;
-    // Remove all theme classes first
-    document.body.classList.remove(...THEME_CLASSES);
-    if (chosen !== 'dark') {
-        document.body.classList.add(`${chosen}-theme`);
-    }
-    localStorage.setItem('spotDiagnosisTheme', chosen);
-    if (typeof fxDestroy === 'function' && typeof fxSpawn === 'function') {
-        fxDestroy();
-        if (document.body.classList.contains('fx-active') && !document.body.classList.contains('fx-off')) {
-            fxSpawn(1);
+if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+        const chosen = themeSelect.value;
+        document.body.classList.remove('light-theme');
+        if (chosen === 'light') {
+            document.body.classList.add('light-theme');
         }
-    }
-    if (typeof fxVideoSync === 'function') fxVideoSync();
-});
+        localStorage.setItem('spotDiagnosisTheme', chosen);
+    });
 
-// Restore saved theme on load (default to light; unknown values fall back to light)
-const savedTheme = localStorage.getItem('spotDiagnosisTheme');
-let initialTheme = 'light';
-if (themes.includes(savedTheme)) {
-    initialTheme = savedTheme;
+    const savedTheme = localStorage.getItem('spotDiagnosisTheme');
+    let initialTheme = (savedTheme === 'dark') ? 'dark' : 'light';
+    document.body.classList.remove('light-theme');
+    if (initialTheme === 'light') {
+        document.body.classList.add('light-theme');
+    }
+    themeSelect.value = initialTheme;
 }
-if (initialTheme !== 'dark') {
-    document.body.classList.add(`${initialTheme}-theme`);
-}
-themeSelect.value = initialTheme;
 
 /* =====================================================================
    SETTINGS MODAL (Appearance & Sound)
@@ -3422,7 +3565,11 @@ window.forceSaveActiveQuestion = () => {
 };
 
 window.renderPlayerScreen = (q, isPreview = false) => {
-    document.getElementById('clinical-context').innerText = q.context || "";
+    const ctxEl = document.getElementById('clinical-context');
+    if (ctxEl) {
+        ctxEl.innerText = q.context || "";
+        ctxEl.style.display = q.context ? 'block' : 'none';
+    }
     document.getElementById('question-text').innerText = q.text || "No question text";
     document.getElementById('question-text').style.wordBreak = 'normal';
     document.getElementById('question-text').style.overflowWrap = 'break-word';
@@ -3702,11 +3849,15 @@ document.getElementById('btn-host-quiz').addEventListener('click', async () => {
         ).join('');
     });
 
+    role = 'host';
+    document.body.setAttribute('data-role', 'host');
     switchScreen('lobby');
 });
 
 document.getElementById('btn-join-room').addEventListener('click', async () => {
     if (!db) return alert("Firebase not configured!");
+    role = 'student';
+    document.body.setAttribute('data-role', 'student');
     roomCode = document.getElementById('join-room-code').value.trim();
     playerName = document.getElementById('join-player-name').value.trim();
 
@@ -3717,6 +3868,9 @@ document.getElementById('btn-join-room').addEventListener('click', async () => {
     const snap = await db.ref(`rooms/${roomCode}`).get();
     if (!snap.exists()) return alert("Room not found!");
     const roomData = snap.val();
+    if (roomData.roomClosed || roomData.gameState === 'ended' || (roomData.players && roomData.players[playerName] && roomData.players[playerName].finished)) {
+        return alert("Room is closed!");
+    }
 
     document.getElementById('display-room-code').innerText = roomCode;
     document.getElementById('lobby-quiz-title').innerText = roomData.quizTitle || 'Spot Diagnosis Game';
@@ -3820,6 +3974,12 @@ if (urlParams.has('room')) {
             }
             roomCode = rm;
             const roomData = snap.val();
+            if (roomData.roomClosed || roomData.gameState === 'ended' || (roomData.players && roomData.players[savedName] && roomData.players[savedName].finished)) {
+                sessionStorage.removeItem('playerName_' + rm);
+                window.history.replaceState({}, '', window.location.pathname);
+                switchScreen('join');
+                return;
+            }
             document.getElementById('lobby-quiz-title').innerText = roomData.quizTitle || 'Spot Diagnosis Game';
 
             // Re-register player in case they got dropped
@@ -4036,8 +4196,23 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
     if (!container) return;
     container.innerHTML = '';
 
+    // If player is interacting live, strictly ensure no host controls or next slide buttons show
+    if (isInteractive) {
+        const hostControls = document.querySelector('#quiz-screen .host-controls');
+        if (hostControls) hostControls.style.display = 'none';
+        const slideControls = document.querySelector('#quiz-screen .slide-bottom-controls');
+        if (slideControls) slideControls.style.display = 'none';
+        const btnSlideNext = document.getElementById('btn-slide-next');
+        if (btnSlideNext) btnSlideNext.style.display = 'none';
+        const btnHostNext = document.getElementById('btn-host-next');
+        if (btnHostNext) btnHostNext.style.display = 'none';
+    }
+
     if (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false') {
         container.className = 'kahoot-options-grid';
+        if (q.type === 'true-false') {
+            container.classList.add('tf-mode');
+        }
         
         const shapesSVG = [
             '<svg viewBox="0 0 100 100"><path d="M50,15 L85,85 L15,85 Z" /></svg>',
@@ -4134,16 +4309,7 @@ function renderOptions(containerId, q, isInteractive, qIndex, isFeedback = false
             wrap.appendChild(input);
             container.appendChild(wrap);
         } else if (isFeedback) {
-            const div = document.createElement('div');
-            div.style.padding = '20px';
-            div.style.fontSize = '1.5rem';
-            div.style.color = 'var(--text-main)';
-            if (q.freePoint) {
-                div.innerHTML = `<em>Responses recorded (Unscored)</em>`;
-            } else {
-                div.innerHTML = `Accepted Answers:<br><strong>${q.acceptedAnswers.map(a => typeof a === 'string'?a:a.text).join('<br>')}</strong>`;
-            }
-            container.appendChild(div);
+            // Intentionally omitted accepted answers box per user request ("เอา acept answer ออกครับ เพราะซ้ำกับ Key")
         } else if (!isInteractive) {
             const div = document.createElement('div');
             div.style.padding = '20px';
@@ -4212,35 +4378,43 @@ function renderSlide(q) {
         }
     }
 
+    slideView.classList.remove('hidden');
     slideView.style.display = 'flex';
     const promptCont = document.querySelector('#quiz-screen .question-prompt');
     const mediaCont = document.getElementById('media-container');
     const questionCont = document.querySelector('#quiz-screen .question-container');
     const optionsCont = document.getElementById('options-container');
     const hostControls = document.querySelector('#quiz-screen .host-controls');
-    const timerItem = document.querySelector('#quiz-screen .timer-info');
+    const slideBottomControls = document.querySelector('#quiz-screen .slide-bottom-controls');
     if (promptCont) promptCont.style.display = 'none';
     if (mediaCont) mediaCont.style.display = 'none';
     if (questionCont) questionCont.style.display = 'none';
     if (optionsCont) optionsCont.style.display = 'none';
     if (hostControls) hostControls.style.display = 'none';
-
+    if (slideBottomControls) {
+        slideBottomControls.style.display = (role === 'host') ? 'flex' : 'none';
+    }
 }
 
 // Hide the slide view and restore the normal quiz layout.
 function hideSlide() {
     const slideView = document.getElementById('slide-view');
-    if (slideView) slideView.style.display = 'none';
+    if (slideView) {
+        slideView.style.display = 'none';
+        slideView.classList.add('hidden');
+    }
+    const slideBottomControls = document.querySelector('#quiz-screen .slide-bottom-controls');
+    if (slideBottomControls) slideBottomControls.style.display = 'none';
     const promptCont = document.querySelector('#quiz-screen .question-prompt');
-    const mediaCont = document.getElementById('media-container');
     const questionCont = document.querySelector('#quiz-screen .question-container');
     const optionsCont = document.getElementById('options-container');
-    const timerItem = document.querySelector('#quiz-screen .timer-info');
+    const hostControls = document.querySelector('#quiz-screen .host-controls');
+    const qTextEl = document.getElementById('question-text');
     if (promptCont) promptCont.style.display = '';
-    if (mediaCont) mediaCont.style.display = '';
     if (questionCont) questionCont.style.display = '';
     if (optionsCont) optionsCont.style.display = '';
-
+    if (hostControls) hostControls.style.display = '';
+    if (qTextEl) qTextEl.style.display = '';
 }
 
 function startQuestionFlow() {
@@ -4335,22 +4509,34 @@ async function startNextQuestion() {
         }
 
         const q = customQuizData[currentQuestionIndex];
-        document.getElementById('clinical-context').innerText = q.context || "";
-    document.getElementById('question-text').innerText = q.text;
-    document.getElementById('question-text').style.wordBreak = 'normal';
-    document.getElementById('question-text').style.overflowWrap = 'break-word';
-
-    // Render Media (Img, Video, Youtube, or None)
-    renderMediaCommon(q, 'ekg', false);
-    const hasMedia = (Array.isArray(q.imageUrls) && q.imageUrls.length > 0) || !!q.imageUrl;
-    document.getElementById('quiz-screen').classList.toggle('no-media', !hasMedia);
+        const ctxEl = document.getElementById('clinical-context');
+        const qTextEl = document.getElementById('question-text');
+        if (q.type === 'info') {
+            if (ctxEl) ctxEl.style.display = 'none';
+            if (qTextEl) qTextEl.style.display = 'none';
+        } else {
+            if (ctxEl) {
+                ctxEl.innerText = q.context || "";
+                ctxEl.style.display = q.context ? 'block' : 'none';
+            }
+            if (qTextEl) {
+                qTextEl.style.display = '';
+                qTextEl.innerText = q.text;
+                qTextEl.style.wordBreak = 'normal';
+                qTextEl.style.overflowWrap = 'break-word';
+            }
+        }
 
     if (q.type !== 'info') {
         hideSlide();
+        renderMediaCommon(q, 'ekg', false);
+        const hasMedia = (Array.isArray(q.imageUrls) && q.imageUrls.length > 0) || !!q.imageUrl;
+        document.getElementById('quiz-screen').classList.toggle('no-media', !hasMedia);
         renderOptions('options-container', q, false, currentQuestionIndex, false);
         const kbc = document.getElementById('kahoot-answers-count'); if(kbc) kbc.parentElement.parentElement.style.display = 'flex'; const hhc = document.getElementById('hud-host-answers'); if(hhc) hhc.style.display = 'flex';
         updateAnswerCounters(0);
     } else {
+        renderMediaCommon(q, 'ekg', false);
         document.getElementById('options-container').innerHTML = ''; // Clear options
         renderSlide(q);
         if (currentQuestionIndex === customQuizData.length - 1) {
@@ -4535,7 +4721,6 @@ async function runAIGrading(q, qIndex) {
         console.warn("No API key found. Falling back to local grading.");
         for (let i = 0; i < answersToGrade.length; i++) {
             let pts = getTypingAnswerScore(answersToGrade[i].answer, q);
-            if (pts === maxPoints && maxPoints > 0) pts += 150; // Bonus
             updates[`rooms/${roomCode}/players/${answersToGrade[i].playerName}/lastPointsEarned`] = pts;
         }
         await db.ref().update(updates);
@@ -4568,9 +4753,19 @@ async function runAIGrading(q, qIndex) {
         if (exact.length > 0) {
             for (const entry of exact) {
                 let pts = getTypingAnswerScore(entry.answer, q);
-                if (pts === maxPoints && maxPoints > 0) pts += 150;
+                const localConcepts = getTypingKeyResults(entry.answer, q).map((r, i) => ({
+                    conceptId: i + 1,
+                    tier: r.matched ? 'full' : 'none',
+                    points: r.matched ? r.points : 0,
+                    reason: ''
+                }));
                 updates[`rooms/${roomCode}/players/${entry.playerName}/lastPointsEarned`] = pts;
                 updates[`rooms/${roomCode}/players/${entry.playerName}/awardedPoints/${qIndex}`] = pts;
+                updates[`rooms/${roomCode}/players/${entry.playerName}/aiGrading`] = {
+                    score: pts,
+                    concepts: localConcepts,
+                    penalty: 0
+                };
             }
         }
 
@@ -4714,22 +4909,20 @@ async function runAIGrading(q, qIndex) {
                 }
             });
 
+            let pts = 0;
             if (q.partialCredit === false) {
-                earnedPts = earnedPts >= rubricTotal ? maxPoints : 0;
+                pts = earnedPts >= rubricTotal ? 100 : 0;
+            } else {
+                pts = Math.round((earnedPts / (rubricTotal || 100)) * 100);
             }
 
             const penalty = getTypingPenalty(source.answer, q);
-            earnedPts -= penalty;
-            if (earnedPts < 0) earnedPts = 0;
-            
-            let pts = earnedPts;
-
-            if (pts === maxPoints && maxPoints > 0) pts += 150; // Preserve existing bonus
+            pts = Math.max(0, Math.min(100, pts - penalty));
             
             updates[`rooms/${roomCode}/players/${source.playerName}/lastPointsEarned`] = pts;
             updates[`rooms/${roomCode}/players/${source.playerName}/awardedPoints/${qIndex}`] = pts;
             updates[`rooms/${roomCode}/players/${source.playerName}/aiGrading`] = {
-                score: pts > 150 ? pts - 150 : pts,
+                score: pts,
                 concepts: conceptsArr,
                 penalty: penalty
             };
@@ -4740,7 +4933,6 @@ async function runAIGrading(q, qIndex) {
             const scorePath = `rooms/${roomCode}/players/${ans.playerName}/lastPointsEarned`;
             if (updates[scorePath] === undefined) {
                 let pts = getTypingAnswerScore(ans.answer, q);
-                if (pts === maxPoints && maxPoints > 0) pts += 150;
                 updates[scorePath] = pts;
             }
         });
@@ -4760,7 +4952,6 @@ async function runAIGrading(q, qIndex) {
         // Fallback on error — use local grader and write both score fields
         for (let i = 0; i < answersToGrade.length; i++) {
             let pts = getTypingAnswerScore(answersToGrade[i].answer, q);
-            if (pts === maxPoints && maxPoints > 0) pts += 150; // Bonus
             const pName = answersToGrade[i].playerName;
             updates[`rooms/${roomCode}/players/${pName}/lastPointsEarned`] = pts;
             updates[`rooms/${roomCode}/players/${pName}/awardedPoints/${qIndex}`] = pts;
@@ -4813,10 +5004,20 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
     const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
 
     if (true) {
-        let chartHTML = `<h4 style="color:var(--text-main); margin-bottom: 0.5rem; text-align:center;">Responses:</h4>`;
+        let chartHTML = ``;
         
         if (isKahootMode) {
-            chartHTML += `<div style="display:flex; justify-content:center; align-items:flex-end; gap:10px; height:200px; padding:10px; border-bottom:2px solid rgba(255,255,255,0.2); margin-bottom:20px;">`;
+            const isStudent = (typeof role !== 'undefined' && role === 'student') || (document.body.getAttribute('data-role') === 'student');
+            const barsWrapHeight = isStudent ? 120 : 160;
+            const maxBarPx = isStudent ? 75 : 105;
+            const minBarPx = isStudent ? 8 : 12;
+            const colWidth = isStudent ? 42 : 75;
+            const countFontSize = isStudent ? '0.95rem' : '1.4rem';
+            const shapePadding = isStudent ? '2px 8px' : '4px 18px';
+            const shapeFontSize = isStudent ? '0.85rem' : '1.25rem';
+            const barsGap = isStudent ? 14 : 28;
+
+            chartHTML += `<div class="feedback-chart-bars-wrap" style="display:flex; justify-content:center; align-items:flex-end; gap:${barsGap}px; height:${barsWrapHeight}px; min-height:${barsWrapHeight}px; padding-bottom:${isStudent ? 6 : 10}px; border-bottom:2px solid var(--glass-border); margin:${isStudent ? '0.5rem 0 0.85rem' : '0.5rem 0 1rem'};">`;
             
             // For Kahoot mode, iterate over q.options so they are in consistent order
             const optionLabels = [];
@@ -4836,17 +5037,15 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
 
             optionLabels.forEach((ans, idx) => {
                 const count = answersCount[ans] || 0;
-                // Min height 5% so it's visible even if 0
-                const heightPct = maxCount > 0 ? Math.max(5, (count / maxCount) * 100) : 5;
+                const barHeightPx = maxCount > 0 ? Math.max(minBarPx, Math.round((count / maxCount) * maxBarPx)) : minBarPx;
                 const isCorrectAnswer = correctSet.has(ans);
                 
                 chartHTML += `
-                    <div style="display:flex; flex-direction:column; align-items:center; width:60px;">
-                        <div style="color:white; font-weight:bold; margin-bottom:5px;">${count}</div>
-                        <div style="width:100%; height:${heightPct}%; background-color:${colors[idx % colors.length]}; border-radius:4px 4px 0 0; transition:height 0.5s ease-out; opacity:${isCorrectAnswer ? 1 : 0.5}; display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px;">
-                            ${isCorrectAnswer ? '✅' : ''}
+                    <div class="feedback-chart-col" style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end; width:${colWidth}px; height:100%; flex-shrink:0;">
+                        <div class="feedback-chart-count" style="color:var(--text-main); font-weight:800; font-size:${countFontSize}; margin-bottom:${isStudent ? 2 : 6}px; line-height:1;">${count}</div>
+                        <div class="feedback-chart-bar" style="width:100%; height:${barHeightPx}px; background-color:${colors[idx % colors.length]}; border-radius:${isStudent ? 4 : 8}px ${isStudent ? 4 : 8}px 0 0; transition:height 0.4s ease-out; opacity:${isCorrectAnswer ? 1 : 0.35}; ${isCorrectAnswer ? 'box-shadow: 0 0 14px rgba(0,0,0,0.22); border-top: 3px solid rgba(255,255,255,0.85);' : ''}">
                         </div>
-                        <div style="margin-top:8px; font-size:1.2rem; background:${colors[idx % colors.length]}; padding:4px 8px; border-radius:4px; display:inline-block; color:white;">
+                        <div class="feedback-chart-shape" style="margin-top:${isStudent ? 4 : 10}px; font-size:${shapeFontSize}; background:${colors[idx % colors.length]}; padding:${shapePadding}; border-radius:${isStudent ? 4 : 8}px; display:inline-block; color:white; font-weight:800; line-height:1.2;">
                             ${shapes[idx % shapes.length]}
                         </div>
                     </div>
@@ -4854,46 +5053,45 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
             });
             chartHTML += `</div>`;
         } else {
-            for (let ans in answersCount) {
-                const count = answersCount[ans];
-                const pct = totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0;
-
-                let isCorrectAnswer = false;
-                let barColor = 'var(--danger)';
-                let earned = 0;
-                if (q.aiGrading) {
-                    // Find a player who gave this answer to get their AI score
-                    let samplePlayer = Object.keys(players).find(p => players[p].answers && players[p].answers[currentQuestionIndex] === ans);
-                    if (samplePlayer && players[samplePlayer].lastPointsEarned !== undefined) {
-                        earned = players[samplePlayer].lastPointsEarned;
-                        // Remove bonus if present to just check max Points
-                        const maxP = getTypingMaxPoints(q);
-                        if (earned >= maxP + 150) earned -= 150;
-                    }
-                } else {
-                    earned = getTypingAnswerScore(ans, q);
-                }
-                const max = getTypingMaxPoints(q);
-                isCorrectAnswer = (earned === max && max > 0);
-                barColor = (earned > 0 && earned < max) ? '#eab308' : (isCorrectAnswer ? 'var(--success)' : 'var(--danger)');
-
-                let labelHtml = ans;
-                if (ans.startsWith('http://') || ans.startsWith('https://')) {
-                    labelHtml = `<img src="${ans}" style="max-height:30px; vertical-align:middle;">`;
-                }
-
-                chartHTML += `
-                    <div style="margin-bottom: 12px;">
-                        <div style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 4px; display:flex; justify-content:space-between;">
-                            <span>${labelHtml}</span>
-                            <span>${count} (${pct}%)</span>
-                        </div>
-                        <div style="width: 100%; background: rgba(0,0,0,0.3); height: 24px; border-radius: 6px; overflow: hidden; border: 1px solid var(--glass-border);">
-                            <div style="width: ${pct}%; background: ${barColor}; height: 100%; transition: width 0.5s ease-out;"></div>
-                        </div>
+            // SAQ / Typing Question: Render prominent Answer Key & Evaluation Rubric (เฉลย)
+            const keys = getQuestionAcceptedKeys(q);
+            const maxPts = getTypingMaxPoints(q);
+            let keysHtml = '';
+            if (keys.length > 0) {
+                const rawTotal = keys.reduce((s, k) => s + ((k.points !== undefined && k.points !== null) ? Number(k.points) : 10), 0) || 100;
+                keysHtml = keys.map(k => {
+                    const normPts = Math.round(((k.points || 10) / rawTotal) * 100);
+                    return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--glass-bg, #ffffff); border:1.5px solid var(--glass-border); border-radius:10px; padding:0.85rem 1.25rem; white-space:nowrap; gap:1rem;">
+                        <span style="font-weight:700; color:var(--text-main); font-size:1.02rem;">${escapeHtml(k.text)}</span>
+                        <span style="font-weight:800; color:var(--success); font-size:0.92rem; background:rgba(16,185,129,0.12); padding:3px 12px; border-radius:6px; flex-shrink:0;">+${normPts} pts</span>
                     </div>
                 `;
+                }).join('');
+            } else {
+                keysHtml = `<div style="color:var(--text-muted); font-size:0.95rem; font-style:italic; padding:0.5rem 0;">No answer key recorded.</div>`;
             }
+
+            const explanationHtml = q.explanation ? `
+                <div style="margin-top:1rem; padding:0.75rem 1rem; background:rgba(30,58,138,0.06); border-left:4px solid var(--primary); border-radius:0 8px 8px 0; text-align:left;">
+                    <strong style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em;">Clinical Explanation:</strong>
+                    <div style="color:var(--text-main); font-size:0.95rem; margin-top:0.25rem; line-height:1.5;">${escapeHtml(q.explanation)}</div>
+                </div>
+            ` : '';
+
+            chartHTML += `
+                <div class="saq-answer-key-card" style="background:var(--input-bg); border:1.5px solid var(--glass-border); border-radius:14px; padding:1.25rem 1.5rem; max-width:850px; width:100%; box-sizing:border-box; margin:0.5rem auto 1.25rem; text-align:left; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem; border-bottom:1.5px solid var(--glass-border); padding-bottom:0.55rem;">
+                        <h3 style="font-size:1.05rem; color:var(--primary); margin:0; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;">
+                            Answer key
+                        </h3>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                        ${keysHtml}
+                    </div>
+                    ${explanationHtml}
+                </div>
+            `;
         }
         chartContainer.innerHTML = chartHTML;
 
@@ -4901,15 +5099,18 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
         const detailsContainer = document.getElementById('host-student-details-container');
         const toggleBtn = document.getElementById('btn-toggle-student-details');
         
+        if (toggleBtn && detailsContainer) {
+            toggleBtn.innerText = detailsContainer.style.display === 'none' ? 'Show Student Details' : 'Hide Student Details';
+        }
         if (toggleBtn && !toggleBtn.hasAttribute('data-listener-attached')) {
             toggleBtn.setAttribute('data-listener-attached', 'true');
             toggleBtn.addEventListener('click', () => {
                 if (detailsContainer.style.display === 'none') {
                     detailsContainer.style.display = 'block';
-                    toggleBtn.innerText = '👁 Hide Student Details';
+                    toggleBtn.innerText = 'Hide Student Details';
                 } else {
                     detailsContainer.style.display = 'none';
-                    toggleBtn.innerText = '👁 Show Student Details';
+                    toggleBtn.innerText = 'Show Student Details';
                 }
             });
         }
@@ -4939,8 +5140,6 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
                 }
                 
                 // Determine if it was manually overridden
-                // We'll add a flag 'isManualOverride' in Firebase when overriding, but for now we can just assume 
-                // if it's there we can show a badge if we have it. Let's add that logic later in the override function.
                 let isManual = pData.manualOverride && pData.manualOverride[currentQuestionIndex];
 
                 studentList.push({
@@ -4964,31 +5163,31 @@ async function renderFeedbackChart(containerId, q, currentQuestionIndex) {
             if (studentList.length > 0) {
                 // Only allow manual score edits for Short Answer (typing) questions.
                 const canEdit = q.type === 'typing';
-                let listHTML = `<h4 style="color:var(--text-main); margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Student Details</h4>`;
+                let listHTML = `<h4 style="color:var(--text-main); margin: 0 0 0.75rem 0; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Student Details</h4>`;
                 studentList.forEach(s => {
                     const maxP = getTypingMaxPoints(q);
                     let ptsColor = s.pts > 0 ? (s.pts >= maxP ? 'var(--success)' : '#eab308') : 'var(--danger)';
                     listHTML += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding: 12px 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding: 12px 0;">
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display:flex; align-items:center; gap: 8px; flex-wrap:wrap;">
-                                    <strong style="color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name}</strong>
+                                    <strong style="color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(s.name)}</strong>
                                     ${s.isFlagged ? '<span style="color:var(--warning); cursor:help;" title="Low AI Confidence (<0.7)">⚠️</span>' : ''}
                                     ${s.isManual ? '<span style="background:var(--secondary); color:#fff; font-size:0.7em; padding:2px 6px; border-radius:4px;">✏️ Manual</span>' : ''}
                                 </div>
-                                <div style="font-size:0.9em; color:var(--text-main); opacity:0.8; margin-top:4px; word-break: break-word;">Ans: ${s.ans}</div>
+                                <div style="font-size:0.95em; color:var(--text-main); opacity:0.85; margin-top:4px; word-break: break-word;">Ans: ${escapeHtml(String(s.ans))}</div>
                             </div>
                             <div style="display:flex; align-items:center; gap: 8px; margin-left: 12px;">
                                 <span style="font-weight:bold; color:${ptsColor}; white-space:nowrap;">${s.pts} pts</span>
-                                ${canEdit ? `<button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="Override Score" onclick="overrideScore('${s.name}', ${s.pts})">✏️</button>` : ''}
-                                ${s.aiGrading && q.type === 'typing' ? `<button class="btn-secondary" style="padding:6px; font-size:0.9em; min-width:32px;" title="View AI Concept Breakdown" onclick="viewConceptBreakdown('${s.name}')">🔍</button>` : ''}
+                                ${canEdit ? `<button type="button" class="btn-secondary" style="padding:6px 10px; font-size:0.9em; min-width:34px;" title="Override Score" onclick="overrideScore(${JSON.stringify(s.name).replace(/"/g, '&quot;')}, ${s.pts})">✏️</button>` : ''}
+                                ${q.type === 'typing' ? `<button type="button" class="btn-secondary" style="padding:6px 10px; font-size:0.9em; min-width:34px;" title="View Concept Breakdown" onclick="viewConceptBreakdown(${JSON.stringify(s.name).replace(/"/g, '&quot;')})">🔍</button>` : ''}
                             </div>
                         </div>
                     `;
                 });
                 detailsContainer.innerHTML = listHTML;
             } else {
-                detailsContainer.innerHTML = `<p style="color:var(--text-muted);">No student answers to display.</p>`;
+                detailsContainer.innerHTML = `<p style="color:var(--text-muted); margin: 0;">No student answers to display.</p>`;
             }
         }
     }
@@ -5031,40 +5230,51 @@ async function overrideScore(playerName, currentPts) {
     }
 }
 
-async function viewConceptBreakdown(playerName) {
-    const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}`).get();
-    const pData = pSnap.val();
-    if (!pData || !pData.aiGrading) {
-        Swal.fire('No AI Grading Data', 'Could not find AI grading data for this student.', 'info');
+async function viewConceptBreakdown(targetPlayerName) {
+    const pName = targetPlayerName || playerName;
+    if (!roomCode || !pName) return;
+
+    const rSnap = await db.ref(`rooms/${roomCode}`).get();
+    const room = rSnap.val() || {};
+    const pData = (room.players && room.players[pName]) ? room.players[pName] : null;
+    if (!pData) {
+        Swal.fire('No Grading Data', 'Could not find answer data for this student.', 'info');
         return;
     }
-    
-    const q = customQuizData[currentQuestionIndex] || {};
-    // Students may not have customQuizData loaded — fetch from the room
-    if (!Array.isArray(q.acceptedAnswers) && roomCode) {
-        try {
-            const rSnap = await db.ref(`rooms/${roomCode}/quizData`).get();
-            if (rSnap.exists()) {
-                const roomQuiz = rSnap.val() || [];
-                const roomQ = roomQuiz[currentQuestionIndex];
-                if (roomQ) Object.assign(q, roomQ);
-            }
-        } catch (e) {}
-    }
+
+    const qIdx = (role === 'student' && typeof room.currentQuestionIndex === 'number')
+        ? room.currentQuestionIndex
+        : currentQuestionIndex;
+    const roomQuiz = Array.isArray(room.quizData) ? room.quizData : [];
+    const q = Object.assign({}, customQuizData[qIdx] || {}, roomQuiz[qIdx] || {});
+
     const accepted = Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : [];
-    let html = `<div style="text-align:left; font-size: 0.9em; max-height: 400px; overflow-y: auto;">`;
-    
-    // Original answer
-    const ans = pData.answers && pData.answers[currentQuestionIndex] ? pData.answers[currentQuestionIndex] : '';
-    html += `<div style="margin-bottom:1rem; padding: 0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;"><strong>Answer:</strong> ${escapeHtml(String(ans))}</div>`;
-    
-    // Penalty
-    if (pData.aiGrading.penalty > 0) {
-        html += `<div style="margin-bottom:1rem;"><strong style="color:var(--danger)">Penalty:</strong> -${pData.aiGrading.penalty} pts (Rejected Words)</div>`;
+    const ans = (pData.answers && pData.answers[qIdx] !== undefined) ? pData.answers[qIdx] : '';
+
+    let concepts = [];
+    let penalty = 0;
+
+    if (pData.aiGrading && Array.isArray(pData.aiGrading.concepts) && pData.aiGrading.concepts.length > 0) {
+        concepts = pData.aiGrading.concepts;
+        penalty = pData.aiGrading.penalty || 0;
+    } else if (q.type === 'typing') {
+        const keyResults = getTypingKeyResults(String(ans || ''), q);
+        penalty = getTypingPenalty(String(ans || ''), q);
+        concepts = keyResults.map((r, i) => ({
+            conceptId: i + 1,
+            tier: r.matched ? 'full' : 'none',
+            points: r.matched ? r.points : 0,
+            reason: ''
+        }));
     }
 
-    // Concepts
-    const concepts = Array.isArray(pData.aiGrading.concepts) ? pData.aiGrading.concepts : [];
+    let html = `<div style="text-align:left; font-size: 0.95em; max-height: 400px; overflow-y: auto; color: var(--text-main);">`;
+    html += `<div style="margin-bottom:1rem; padding: 0.65rem 0.85rem; background:var(--input-bg); border: 1px solid var(--glass-border); border-radius:8px;"><strong>Answer:</strong> ${escapeHtml(String(ans || 'None'))}</div>`;
+
+    if (penalty > 0) {
+        html += `<div style="margin-bottom:1rem;"><strong style="color:var(--danger)">Penalty:</strong> -${penalty} pts (Rejected Words)</div>`;
+    }
+
     if (concepts.length === 0) {
         html += `<p style="color:var(--text-muted);">No concept breakdown available.</p>`;
     }
@@ -5076,17 +5286,17 @@ async function viewConceptBreakdown(playerName) {
 
         let reasonHtml = '';
         if (c.reason) {
-            reasonHtml = `<div style="color:#cbd5e1; margin-top: 0.5rem;"><em>Reason:</em> ${escapeHtml(c.reason)}</div>`;
+            reasonHtml = `<div style="color:var(--text-muted); margin-top: 0.5rem;"><em>Reason:</em> ${escapeHtml(c.reason)}</div>`;
         } else if (c.tier === 'none') {
-            reasonHtml = `<div style="color:#64748b; font-style:italic; font-size: 0.9em; margin-top: 0.5rem;">Absent from answer</div>`;
+            reasonHtml = `<div style="color:var(--text-muted); font-style:italic; font-size: 0.9em; margin-top: 0.5rem;">Absent from answer</div>`;
         }
 
         html += `
-            <div style="border: 1px solid var(--glass-border); padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 6px;">
-                <div style="font-weight:bold; margin-bottom:0.25rem;">${escapeHtml(conceptText)}</div>
+            <div style="border: 1px solid var(--glass-border); background: var(--input-bg); padding: 0.75rem 1rem; margin-bottom: 0.75rem; border-radius: 8px;">
+                <div style="font-weight:bold; margin-bottom:0.35rem; color: var(--text-main);">${escapeHtml(conceptText)}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="background:${badgeColor}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.8em; text-transform:uppercase;">${c.tier || (c.matched ? 'Full' : 'None')}</span>
-                    <span style="font-weight:bold;">${c.points || 0} pts</span>
+                    <span style="background:${badgeColor}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.8em; text-transform:uppercase; font-weight:700;">${c.tier || (c.matched ? 'Full' : 'None')}</span>
+                    <span style="font-weight:bold; color: var(--text-main);">${c.points || 0} pts</span>
                 </div>
                 ${reasonHtml}
             </div>
@@ -5096,7 +5306,7 @@ async function viewConceptBreakdown(playerName) {
     html += `</div>`;
     
     Swal.fire({
-        title: `AI Concept Breakdown`,
+        title: `Scoring Concept Breakdown`,
         html: html,
         width: 600,
         confirmButtonText: 'Close'
@@ -5105,18 +5315,43 @@ async function viewConceptBreakdown(playerName) {
 
 async function showHostFeedback() {
     switchScreen('feedback');
+    const btnContinue = document.getElementById('btn-host-continue');
+    const btnBack = document.getElementById('btn-back-to-review');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const contextEl = document.getElementById('feedback-review-context');
+    if (btnContinue) btnContinue.style.display = 'inline-block';
+    if (btnBack) btnBack.style.display = 'none';
+    if (feedbackTitle) feedbackTitle.style.display = 'block';
+    if (contextEl) contextEl.style.display = 'none';
+    const detailsContainer = document.getElementById('host-student-details-container');
+    const toggleBtn = document.getElementById('btn-toggle-student-details');
+    if (detailsContainer) detailsContainer.style.display = 'none';
+    if (toggleBtn) toggleBtn.innerText = 'Show Student Details';
     // Clear stale feedback content immediately
+    const q = customQuizData[currentQuestionIndex];
     const optsCont = document.getElementById('feedback-options-container');
-    if (optsCont) optsCont.innerHTML = '';
+    if (optsCont) {
+        optsCont.innerHTML = '';
+        optsCont.style.display = (q && q.type === 'typing') ? 'none' : 'flex';
+    }
     const chartCont = document.getElementById('feedback-chart');
-    if (chartCont) chartCont.innerHTML = '';
+    if (chartCont) {
+        chartCont.innerHTML = '';
+        chartCont.style.display = 'block';
+    }
+    const correctEl = document.getElementById('feedback-correct-answer');
+    if (correctEl) {
+        correctEl.style.display = 'none';
+        correctEl.innerHTML = '';
+    }
     const typingPanel = document.getElementById('feedback-typing-panel');
     if (typingPanel) { typingPanel.style.display = 'none'; typingPanel.innerHTML = ''; }
     const myAnsEl = document.getElementById('feedback-your-answer');
     if (myAnsEl) { myAnsEl.style.display = 'none'; myAnsEl.innerText = ''; }
+    const rankPill = document.getElementById('feedback-rank-pill');
+    if (rankPill) { rankPill.style.display = 'none'; rankPill.innerHTML = ''; }
 
-    const q = customQuizData[currentQuestionIndex];
-    document.getElementById('feedback-title').innerText = "Time's Up!";
+    document.getElementById('feedback-title').innerText = "Time's Up! Let Reveal";
     document.getElementById('feedback-title').className = "";
 
     // Render the choices, highlighting the correct one
@@ -5149,8 +5384,20 @@ async function showHostFeedback() {
 let studentCurrentPointsEarned = 0;
 
 async function loadStudentQuestion() {
+    role = 'student';
+    document.body.setAttribute('data-role', 'student');
     hasAnswered = false;
     studentCurrentPointsEarned = 0;
+
+    // Ensure student NEVER sees host controls or next slide buttons
+    const hostControls = document.querySelector('#quiz-screen .host-controls');
+    if (hostControls) hostControls.style.display = 'none';
+    const slideBottomControls = document.querySelector('#quiz-screen .slide-bottom-controls');
+    if (slideBottomControls) slideBottomControls.style.display = 'none';
+    const btnSlideNext = document.getElementById('btn-slide-next');
+    if (btnSlideNext) btnSlideNext.style.display = 'none';
+    const btnHostNext = document.getElementById('btn-host-next');
+    if (btnHostNext) btnHostNext.style.display = 'none';
 
     // Clear previous question content immediately while we await fresh data
     const qTextEl = document.getElementById('question-text');
@@ -5173,17 +5420,34 @@ async function loadStudentQuestion() {
         qNumEl.style.display = 'block';
     }
 
-    document.getElementById('clinical-context').innerText = q.context || "";
-    document.getElementById('question-text').innerText = q.text;
-    document.getElementById('question-text').style.wordBreak = 'normal';
-    document.getElementById('question-text').style.overflowWrap = 'break-word';
+    if (q.type === 'info') {
+        if (ctxEl) ctxEl.style.display = 'none';
+        const qTextEl = document.getElementById('question-text');
+        if (qTextEl) qTextEl.style.display = 'none';
+    } else {
+        if (ctxEl) {
+            ctxEl.innerText = q.context || "";
+            ctxEl.style.display = q.context ? 'block' : 'none';
+        }
+        const qTextEl = document.getElementById('question-text');
+        if (qTextEl) {
+            qTextEl.style.display = '';
+            qTextEl.innerText = q.text;
+            qTextEl.style.wordBreak = 'normal';
+            qTextEl.style.overflowWrap = 'break-word';
+        }
+    }
 
     renderMediaCommon(q, 'ekg', true);
 
     const promptCont = document.querySelector('#quiz-screen .question-prompt');
     const mediaCont = document.getElementById('media-container');
 
-    if (room.minimalStudentView) {
+    if (q.type === 'info') {
+        document.body.classList.remove('student-minimal-view');
+        if (promptCont) promptCont.style.display = 'none';
+        if (mediaCont) mediaCont.style.display = 'none';
+    } else if (room.minimalStudentView) {
         document.body.classList.add('student-minimal-view');
         if (promptCont) promptCont.style.display = 'none';
         if (mediaCont) mediaCont.style.display = 'none';
@@ -5192,6 +5456,12 @@ async function loadStudentQuestion() {
         if (promptCont) promptCont.style.display = '';
         if (mediaCont) mediaCont.style.display = '';
     }
+
+    const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
+    document.body.classList.toggle('layout-kahoot', isKahootMode);
+    document.body.classList.toggle('layout-typing', q.type === 'typing');
+    document.body.classList.toggle('layout-info', q.type === 'info');
+    document.body.classList.toggle('layout-tf', q.type === 'true-false');
 
     if (q.type !== 'info') {
         hideSlide();
@@ -5214,12 +5484,6 @@ async function loadStudentQuestion() {
         }, 1000);
     }
 
-    const isKahootMode = (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false');
-    if (isKahootMode) {
-        document.body.classList.add('layout-kahoot');
-    } else {
-        document.body.classList.remove('layout-kahoot');
-    }
     switchScreen('quiz');
 }
 
@@ -5228,10 +5492,7 @@ function renderAnswerSubmitted() {
     if (!container) return;
     container.innerHTML = `
         <div class="answer-submitted" role="status">
-            <div class="answer-submitted-icon">✅</div>
             <h3 class="answer-submitted-title">Answer Submitted</h3>
-            <p class="answer-submitted-sub">Waiting for other players...</p>
-            <div class="loader answer-submitted-loader"></div>
         </div>`;
 }
 
@@ -5282,10 +5543,6 @@ async function submitAnswer(answer, q, qIndex) {
     } else if (isCorrect && !q.freePoint) {
         if (q.type === 'typing') {
             studentCurrentPointsEarned = typingRawEarned;
-            const max = getTypingMaxPoints(q);
-            if (typingRawEarned === max && max > 0) {
-                studentCurrentPointsEarned += 150; // Bonus for max points
-            }
         } else if (isMultiMc) {
             studentCurrentPointsEarned = mcPoints;
         } else {
@@ -5328,15 +5585,28 @@ async function showStudentFeedback() {
     const optsCont = document.getElementById('feedback-options-container');
     if (optsCont) optsCont.innerHTML = '';
     const chartCont = document.getElementById('feedback-chart');
-    if (chartCont) chartCont.innerHTML = '';
+    if (chartCont) {
+        chartCont.innerHTML = '';
+        chartCont.style.display = 'none';
+    }
+    const correctEl = document.getElementById('feedback-correct-answer');
+    if (correctEl) {
+        correctEl.style.display = 'none';
+        correctEl.innerHTML = '';
+    }
     const typingPanel = document.getElementById('feedback-typing-panel');
     if (typingPanel) { typingPanel.style.display = 'none'; typingPanel.innerHTML = ''; }
     const myAnsEl = document.getElementById('feedback-your-answer');
     if (myAnsEl) { myAnsEl.style.display = 'none'; myAnsEl.innerText = ''; }
+    const stampEl = document.getElementById('feedback-stamp');
+    if (stampEl) { stampEl.className = 'feedback-stamp'; stampEl.innerHTML = ''; }
+    const rankPill = document.getElementById('feedback-rank-pill');
+    if (rankPill) { rankPill.style.display = 'none'; rankPill.className = 'feedback-rank-pill student-only'; rankPill.innerHTML = ''; }
 
     // Fetch state first to avoid flashing old question data
     const snap = await db.ref(`rooms/${roomCode}`).get();
     const room = snap.val();
+    currentQuestionIndex = room.currentQuestionIndex;
     const q = room.quizData[room.currentQuestionIndex];
 
     const title = document.getElementById('feedback-title');
@@ -5346,34 +5616,62 @@ async function showStudentFeedback() {
     const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/answers/${room.currentQuestionIndex}`).get();
     const myAns = pSnap.exists() ? pSnap.val() : null;
 
-    // Render the choices, highlighting the correct one (non-interactive)
-    renderOptions('feedback-options-container', q, false, room.currentQuestionIndex, true, myAns);
+    // For student feedback, do NOT render the giant choice options box or chart
+    if (optsCont) {
+        optsCont.innerHTML = '';
+        optsCont.style.display = 'none';
+    }
 
-    // For typing questions: show the rich two-panel highlight feedback
-    if (q.type === 'typing') {
-        myAnsEl.style.display = 'none'; // hide the plain text line
-        if (typingPanel) {
-            typingPanel.style.display = 'block';
-            typingPanel.innerHTML = buildTypingFeedbackHTML(myAns, q);
-        }
-    } else {
-        if (typingPanel) typingPanel.style.display = 'none';
-        // For MC / T-F: show simple "Your Answer" line (arrays join with ", ")
-        const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
+    if (typingPanel) {
+        typingPanel.style.display = 'none';
+        typingPanel.innerHTML = '';
+    }
+    const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
+    if (myAnsEl) {
         myAnsEl.style.display = 'block';
         myAnsEl.innerText = ansLabel ? `Your Answer: ${ansLabel}` : 'Your Answer: None';
     }
 
-    // Render the bar chart
-    await renderFeedbackChart('feedback-chart', q, room.currentQuestionIndex);
+    // For typing/SAQ, render the Answer Key card (one item per line with points, matching Host).
+    // For MC / Multi-Answer / True-False, show the Correct Answer box instead of the bar chart.
+    if (q && q.type === 'typing') {
+        if (correctEl) {
+            correctEl.style.display = 'none';
+            correctEl.innerHTML = '';
+        }
+        if (chartCont) {
+            chartCont.style.display = 'block';
+        }
+        await renderFeedbackChart('feedback-chart', q, room.currentQuestionIndex);
+    } else if (correctEl && q) {
+        if (chartCont) {
+            chartCont.style.display = 'none';
+            chartCont.innerHTML = '';
+        }
+        let correctValHtml = '';
+        if (q.type === 'multiple-choice' || q.type === 'multiple-answer' || q.type === 'true-false') {
+            const correctList = q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : []);
+            const cHtmlList = correctList.map(c => {
+                if (c && typeof c !== 'string' && c.isImage) {
+                    return `<img src="${escapeHtml(c.text)}" style="max-height:70px; border-radius:6px; margin-top:4px;" alt="">`;
+                }
+                const txt = typeof c === 'string' ? c : (c && c.text ? c.text : '');
+                return escapeHtml(txt);
+            }).filter(Boolean);
+            correctValHtml = cHtmlList.join(', ');
+        }
+        if (correctValHtml) {
+            correctEl.innerHTML = `<div class="student-correct-answer-box"><div class="student-correct-answer-label">Correct Answer</div><div class="student-correct-answer-value">${correctValHtml}</div></div>`;
+            correctEl.style.display = 'block';
+        }
+    }
 
     // Switch screen only after all DOM updates are complete
     switchScreen('feedback');
 
-    // If AI grading was used, fetch the result computed by the host
+    // If AI grading or typing question was used, wire up View Scoring Concept button
     const aiReasonBtn = document.getElementById('btn-student-ai-reason');
     const aiReasonContainer = document.getElementById('student-ai-reason-container');
-    if (aiReasonContainer) aiReasonContainer.style.display = 'none';
 
     if (studentCurrentPointsEarned === 'pending_ai' || (q.type === 'typing' && q.aiGrading)) {
         // lastPointsEarned is stored on the PLAYER node, not the answer node
@@ -5381,30 +5679,56 @@ async function showStudentFeedback() {
         const pData = playerSnap.val() || {};
         const aiPoints = pData.lastPointsEarned;
         studentCurrentPointsEarned = (typeof aiPoints === 'number') ? aiPoints : 0;
-        
-        if (pData.aiGrading && aiReasonContainer) {
+    }
+
+    if (aiReasonContainer) {
+        if (q.type === 'typing' && !q.freePoint) {
+            aiReasonContainer.classList.remove('hidden-important');
             aiReasonContainer.style.display = 'block';
-            aiReasonBtn.onclick = () => viewConceptBreakdown(playerName);
+            if (aiReasonBtn) {
+                aiReasonBtn.innerText = 'View Scoring Concept';
+                aiReasonBtn.onclick = () => viewConceptBreakdown(playerName);
+            }
+        } else {
+            aiReasonContainer.classList.add('hidden-important');
+            aiReasonContainer.style.display = 'none';
         }
     }
 
+    let updatedPlayersMap = Object.assign({}, room.players || {});
+
     if (q.freePoint) {
-        title.innerText = "Answer Recorded!";
-        title.className = "correct";
+        title.innerText = "Answer recorded";
+        title.className = "";
+        void title.offsetWidth;
+        title.className = "correct feedback-title-animate-correct";
         pts.innerText = "0 Points (Unscored)";
         pts.className = "";
+        if (stampEl) {
+            stampEl.style.display = 'none';
+            stampEl.innerHTML = '';
+        }
         AudioController.playCorrect();
     } else if (studentCurrentPointsEarned > 0) {
-        title.innerText = "Correct!";
-        title.className = "correct";
+        title.innerText = "Great job! Correct answer";
+        title.className = "";
+        void title.offsetWidth;
+        title.className = "correct feedback-title-animate-correct";
         pts.className = "correct";
+        pts.innerText = `+${studentCurrentPointsEarned} Points`;
+        if (stampEl) {
+            stampEl.style.display = 'none';
+            stampEl.innerHTML = '';
+        }
         AudioController.playCorrect();
-        animateTally(pts, studentCurrentPointsEarned, { prefix: '+', suffix: ' Points', duration: 900 });
-        burstConfetti();
 
         const playerScoreSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/score`).get();
         const currentScore = (playerScoreSnap.exists() ? playerScoreSnap.val() : 0) || 0;
         const newScore = currentScore + studentCurrentPointsEarned;
+
+        if (updatedPlayersMap[playerName]) {
+            updatedPlayersMap[playerName] = Object.assign({}, updatedPlayersMap[playerName], { score: newScore });
+        }
 
         await db.ref(`rooms/${roomCode}/players/${playerName}`).update({
             score: newScore,
@@ -5412,23 +5736,28 @@ async function showStudentFeedback() {
         });
 
         const scoreUI = document.getElementById('hud-score');
-        scoreUI.innerText = newScore;
-        scoreUI.classList.remove('score-bump');
-        void scoreUI.offsetWidth;
-        scoreUI.classList.add('score-bump');
+        if (scoreUI) {
+            scoreUI.innerText = newScore;
+            scoreUI.classList.remove('score-bump');
+            void scoreUI.offsetWidth;
+            scoreUI.classList.add('score-bump');
+        }
     } else {
-        title.innerText = "Incorrect";
-        title.className = "incorrect";
+        title.innerText = "Almost there! Try again next time";
+        title.className = "";
+        void title.offsetWidth;
+        title.className = "incorrect feedback-title-animate-wrong";
         pts.innerText = "+0 Points";
         pts.className = "incorrect";
+        if (stampEl) {
+            stampEl.style.display = 'none';
+            stampEl.innerHTML = '';
+        }
         AudioController.playWrong();
     }
 
-    // Wait briefly for all clients to update scores, then update rank
-    setTimeout(async () => {
-        const snap = await db.ref(`rooms/${roomCode}/players`).get();
-        const players = snap.val() || {};
-        const sorted = Object.entries(players).sort((a,b) => b[1].score - a[1].score);
+    const applyRankUI = (playersObj, animateRank = false) => {
+        const sorted = Object.entries(playersObj || {}).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
         const myRankIndex = sorted.findIndex(p => p[0] === playerName);
         if (myRankIndex !== -1) {
             const rankNum = myRankIndex + 1;
@@ -5437,160 +5766,180 @@ async function showStudentFeedback() {
             else if (rankNum % 10 === 2 && rankNum % 100 !== 12) suffix = "nd";
             else if (rankNum % 10 === 3 && rankNum % 100 !== 13) suffix = "rd";
 
-            document.getElementById('hud-rank').innerText = `${rankNum}${suffix}`;
+            const hudRank = document.getElementById('hud-rank');
+            if (hudRank) hudRank.innerText = `${rankNum}${suffix}`;
 
-            // Re-bump score just to trigger animation on rank change if desired
-            const scoreUI = document.getElementById('hud-score');
-            scoreUI.classList.remove('score-bump');
-            void scoreUI.offsetWidth;
-            scoreUI.classList.add('score-bump');
+            if (rankPill) {
+                const prevText = rankPill.innerText;
+                const nextText = `Rank ${rankNum}`;
+                rankPill.innerHTML = nextText;
+                rankPill.style.display = 'inline-flex';
+                if (animateRank || prevText !== nextText) {
+                    rankPill.classList.remove('rank-pill-animate');
+                    void rankPill.offsetWidth;
+                    rankPill.classList.add('rank-pill-animate');
+                }
+            }
         }
-    }, 1000);
+    };
+
+    // Show Rank immediately with entrance animation, then refresh once peers settle
+    applyRankUI(updatedPlayersMap, true);
+
+    setTimeout(async () => {
+        const snap = await db.ref(`rooms/${roomCode}/players`).get();
+        const players = snap.val() || {};
+        applyRankUI(players, false);
+    }, 900);
+}
+
+function aimCircularSpotlight(targetEl, options = {}) {
+    const overlay = document.getElementById('results-spotlight-circular');
+    const ring = document.getElementById('spotlight-beam-ring');
+    if (!overlay || !targetEl) return;
+
+    const rect = targetEl.getBoundingClientRect();
+    const x = Math.round(rect.left + rect.width / 2);
+    const y = Math.round(rect.top + rect.height / 2);
+    const radius = options.radius || 95;
+
+    overlay.style.setProperty('--spot-x', `${x}px`);
+    overlay.style.setProperty('--spot-y', `${y}px`);
+    overlay.style.setProperty('--spot-radius', `${radius}px`);
+    overlay.classList.add('active');
+
+    if (ring) {
+        ring.style.setProperty('--spot-x', `${x}px`);
+        ring.style.setProperty('--spot-y', `${y}px`);
+        ring.style.setProperty('--spot-radius', `${radius}px`);
+        ring.className = 'spotlight-beam-ring active' + (options.mode ? ` ${options.mode}` : '');
+    }
+}
+
+function hideCircularSpotlight() {
+    const overlay = document.getElementById('results-spotlight-circular');
+    const ring = document.getElementById('spotlight-beam-ring');
+    if (overlay) overlay.classList.remove('active');
+    if (ring) ring.className = 'spotlight-beam-ring';
 }
 
 async function showResults() {
     switchScreen('results');
     clearInterval(localTimer);
+    hideCircularSpotlight();
+
+    const podiumView = document.getElementById('results-podium-view');
+    const scoreView = document.getElementById('results-scoreboard-view');
+    if (podiumView) podiumView.style.display = 'block';
+    if (scoreView) scoreView.style.display = 'none';
 
     const snap = await db.ref(`rooms/${roomCode}/players`).get();
     const players = snap.val() || {};
 
-    const sorted = Object.entries(players).sort((a,b) => b[1].score - a[1].score);
+    const sorted = Object.entries(players).sort((a, b) => (b[1].score || 0) - (a[1].score || 0));
 
     if (role === 'student') {
-        document.getElementById('final-score-value').innerText = players[playerName]?.score || 0;
+        const finalScoreEl = document.getElementById('final-score-value');
+        if (finalScoreEl) finalScoreEl.innerText = players[playerName]?.score || 0;
     }
 
-    // Setup and animate podium for EVERYONE
-    for(let i=1; i<=3; i++) {
-        const spot = document.getElementById(`podium-${i}`);
-        if(spot) spot.classList.remove('revealed');
-        const nameEl = document.getElementById(`podium-name-${i}`);
-        const scoreEl = document.getElementById(`podium-score-${i}`);
-        if(nameEl) nameEl.innerText = '';
-        if(scoreEl) scoreEl.innerText = '';
-    }
-
-    const titleEl = document.getElementById('podium-title');
-    if(titleEl) titleEl.style.opacity = '0';
-
-    const othersTitle = document.getElementById('others-title');
-    if(othersTitle) othersTitle.style.display = 'none';
-
-    const othersList = document.getElementById('full-leaderboard-list');
-    const toggleBtn = document.getElementById('btn-toggle-leaderboard');
-    if (othersList) {
-        if (sorted.length > 3) {
-            othersList.innerHTML = sorted.slice(3).map((p, i) => {
+    // Populate Full Scoreboard for Host "View Score"
+    const fullScoreList = document.getElementById('results-full-score-list');
+    if (fullScoreList) {
+        if (sorted.length > 0) {
+            fullScoreList.innerHTML = sorted.map((p, i) => {
                 const url = avatarFor(p[0], p[1].avatarUrl);
-                return `<li style="background: rgba(255,255,255,0.1); padding: 1rem; margin-bottom: 0.5rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span style="display:flex; align-items:center; gap:8px;">#${i+4} <img src="${url}" class="lb-avatar" alt=""> ${escapeHtml(p[0])}</span> <span>${p[1].score} pts</span>
+                const rank = i + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                return `<li class="scoreboard-row-item">
+                    <span style="display:flex; align-items:center; gap:10px; font-weight:700; color:var(--text-main);">
+                        <span style="min-width: 2.2rem; text-align:center; font-weight:800; color:var(--primary);">${medal}</span>
+                        <img src="${url}" class="lb-avatar" alt="">
+                        <span>${escapeHtml(p[0])}</span>
+                    </span>
+                    <span style="font-weight:800; color:var(--primary);">${p[1].score || 0} pts</span>
                 </li>`;
             }).join('');
-            if(othersTitle) othersTitle.style.display = 'block';
-            if(toggleBtn) {
-                toggleBtn.style.display = 'block';
-                othersList.style.display = 'none';
-                toggleBtn.innerText = 'View Full Scoreboard';
-                toggleBtn.onclick = () => {
-                    if(othersList.style.display === 'none') {
-                        othersList.style.display = 'block';
-                        toggleBtn.innerText = 'Hide Scoreboard';
-                    } else {
-                        othersList.style.display = 'none';
-                        toggleBtn.innerText = 'View Full Scoreboard';
-                    }
-                };
-            }
         } else {
-            othersList.innerHTML = '';
-            if(toggleBtn) toggleBtn.style.display = 'none';
+            fullScoreList.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding: 1.5rem;">No players in this session.</li>`;
         }
     }
 
-    const reviewBtn = document.getElementById('btn-review-questions');
-    if(reviewBtn) reviewBtn.style.display = 'none';
-    const exportResultsBtn = document.getElementById('btn-export-results-csv');
-    if (exportResultsBtn) {
-        exportResultsBtn.style.display = role === 'host' ? 'inline-block' : 'none';
-        exportResultsBtn.onclick = () => downloadResultsCSV(sorted);
+    // Setup and animate podium rising from base one position at a time
+    for (let i = 1; i <= 3; i++) {
+        const spot = document.getElementById(`podium-${i}`);
+        if (spot) spot.classList.remove('revealed', 'suspense-anticipation', 'champion-burst');
+        const nameEl = document.getElementById(`podium-name-${i}`);
+        const scoreEl = document.getElementById(`podium-score-${i}`);
+        if (nameEl) nameEl.innerText = '';
+        if (scoreEl) scoreEl.innerText = '';
     }
+
+    const titleEl = document.getElementById('podium-title');
+    if (titleEl) titleEl.style.opacity = '0';
 
     // Populate podium data (scores start at 0 and tally up on reveal)
     if (sorted[0]) {
         const url = avatarFor(sorted[0][0], sorted[0][1].avatarUrl);
-        document.getElementById('podium-name-1').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[0][0])}`;
+        document.getElementById('podium-name-1').innerHTML = `<img src="${url}" class="podium-avatar" alt=""><span class="podium-name-text">${escapeHtml(sorted[0][0])}</span>`;
         const s = document.getElementById('podium-score-1');
-        s.dataset.target = sorted[0][1].score;
+        s.dataset.target = sorted[0][1].score || 0;
         s.innerText = '0 pts';
     }
     if (sorted[1]) {
         const url = avatarFor(sorted[1][0], sorted[1][1].avatarUrl);
-        document.getElementById('podium-name-2').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[1][0])}`;
+        document.getElementById('podium-name-2').innerHTML = `<img src="${url}" class="podium-avatar" alt=""><span class="podium-name-text">${escapeHtml(sorted[1][0])}</span>`;
         const s = document.getElementById('podium-score-2');
-        s.dataset.target = sorted[1][1].score;
+        s.dataset.target = sorted[1][1].score || 0;
         s.innerText = '0 pts';
     }
     if (sorted[2]) {
         const url = avatarFor(sorted[2][0], sorted[2][1].avatarUrl);
-        document.getElementById('podium-name-3').innerHTML = `<img src="${url}" class="podium-avatar" alt=""> ${escapeHtml(sorted[2][0])}`;
+        document.getElementById('podium-name-3').innerHTML = `<img src="${url}" class="podium-avatar" alt=""><span class="podium-name-text">${escapeHtml(sorted[2][0])}</span>`;
         const s = document.getElementById('podium-score-3');
-        s.dataset.target = sorted[2][1].score;
+        s.dataset.target = sorted[2][1].score || 0;
         s.innerText = '0 pts';
     }
 
-    // Animate sequence
-    const spotlight = document.getElementById('results-spotlight');
-    const championOverlay = document.getElementById('champion-overlay');
-    const championName = document.getElementById('champion-name');
-    if (spotlight) spotlight.classList.remove('active');
-
     setTimeout(() => {
-        if(titleEl) titleEl.style.opacity = '1';
-    }, 500);
+        if (titleEl) titleEl.style.opacity = '1';
+    }, 300);
 
+    // 1) Rise 3rd place (Bronze) from base
     setTimeout(() => {
-        if(sorted[2]) {
-            document.getElementById('podium-3').classList.add('revealed');
-            AudioController.playPodiumRise();
-            if (spotlight) { spotlight.style.left = '0%'; spotlight.classList.add('active'); }
+        if (sorted[2]) {
+            const p3 = document.getElementById('podium-3');
+            if (p3) p3.classList.add('revealed');
+            AudioController.playPodiumRise(3);
             const s3 = document.getElementById('podium-score-3');
             if (s3) animateTally(s3, parseInt(s3.dataset.target || 0, 10), { suffix: ' pts', duration: 800 });
         }
-    }, 1500);
+    }, 700);
 
+    // 2) Rise 2nd place (Silver) from base
     setTimeout(() => {
-        if(sorted[1]) {
-            document.getElementById('podium-2').classList.add('revealed');
-            AudioController.playPodiumRise();
-            if (spotlight) { spotlight.style.left = '25%'; spotlight.classList.add('active'); }
+        if (sorted[1]) {
+            const p2 = document.getElementById('podium-2');
+            if (p2) p2.classList.add('revealed');
+            AudioController.playPodiumRise(2);
             const s2 = document.getElementById('podium-score-2');
             if (s2) animateTally(s2, parseInt(s2.dataset.target || 0, 10), { suffix: ' pts', duration: 800 });
         }
-    }, 2500);
+    }, 1800);
 
+    // 3) Rise 1st place (Gold) from base, then shower confetti
     setTimeout(() => {
-        if(sorted[0]) {
-            document.getElementById('podium-1').classList.add('revealed');
+        if (sorted[0]) {
+            const p1 = document.getElementById('podium-1');
+            if (p1) p1.classList.add('revealed');
             AudioController.playChampion();
-            burstConfettiCount(600);
-            // Spotlight slam on the champion
-            if (spotlight) { spotlight.style.left = '50%'; spotlight.classList.add('active', 'slam'); }
-            // Champion name overlay
-            if (championOverlay && championName && sorted[0]) {
-                const url = avatarFor(sorted[0][0], sorted[0][1].avatarUrl);
-                championName.innerHTML = `<img src="${url}" class="champion-avatar" alt=""> ${escapeHtml(sorted[0][0])}`;
-                championOverlay.style.display = 'flex';
-                setTimeout(() => { championOverlay.classList.add('show'); }, 30);
-                setTimeout(() => { championOverlay.classList.remove('show'); championOverlay.style.display = 'none'; }, 4500);
-            }
-            // Tally the champion score
             const cScore = document.getElementById('podium-score-1');
-            if (cScore) animateTally(cScore, parseInt(cScore.dataset.target || 0, 10), { suffix: ' pts', duration: 1000 });
+            if (cScore) animateTally(cScore, parseInt(cScore.dataset.target || 0, 10), { suffix: ' pts', duration: 950 });
+            setTimeout(() => {
+                burstConfettiCount(500);
+            }, 650);
         }
-        if(role === 'host' && reviewBtn) reviewBtn.style.display = 'inline-block';
-        if(sorted.length > 3 && othersTitle) othersTitle.style.display = 'block';
-    }, 4000);
+    }, 2900);
 }
 
 function downloadResultsCSV(sortedPlayers) {
@@ -5628,24 +5977,68 @@ zoomModal.addEventListener("click", function(e) {
 });
 
 /* =====================================================================
-   REVIEW SCREEN LOGIC
+   REVIEW & PODIUM ACTION LOGIC
 ===================================================================== */
-document.getElementById('btn-review-questions').addEventListener('click', () => {
+document.getElementById('btn-results-review')?.addEventListener('click', () => {
+    switchScreen('review');
+    renderReviewList();
+});
+
+document.getElementById('btn-results-view-score')?.addEventListener('click', () => {
+    const podiumView = document.getElementById('results-podium-view');
+    const scoreView = document.getElementById('results-scoreboard-view');
+    if (podiumView) podiumView.style.display = 'none';
+    if (scoreView) scoreView.style.display = 'block';
+});
+
+document.getElementById('btn-scoreboard-back')?.addEventListener('click', () => {
+    const podiumView = document.getElementById('results-podium-view');
+    const scoreView = document.getElementById('results-scoreboard-view');
+    if (scoreView) scoreView.style.display = 'none';
+    if (podiumView) podiumView.style.display = 'block';
+});
+
+document.getElementById('btn-review-back-to-podium')?.addEventListener('click', () => {
+    const podiumView = document.getElementById('results-podium-view');
+    const scoreView = document.getElementById('results-scoreboard-view');
+    if (scoreView) scoreView.style.display = 'none';
+    if (podiumView) podiumView.style.display = 'block';
+    switchScreen('results');
+});
+
+document.getElementById('btn-results-finish')?.addEventListener('click', async () => {
+    clearInterval(localTimer);
     if (role === 'host') {
-        db.ref(`rooms/${roomCode}`).update({ gameState: 'review' });
-        // Local update for host
-        switchScreen('review');
-        renderReviewList();
+        if (roomCode && db) {
+            try {
+                await db.ref(`rooms/${roomCode}`).update({ roomClosed: true });
+                db.ref(`rooms/${roomCode}/players`).off();
+            } catch (e) {}
+        }
+        roomCode = null;
+        switchScreen('role');
+    } else {
+        if (roomCode) {
+            sessionStorage.removeItem('playerName_' + roomCode);
+            if (db) {
+                try {
+                    if (playerName) {
+                        await db.ref(`rooms/${roomCode}/players/${playerName}`).update({ finished: true, online: false });
+                    }
+                    db.ref(`rooms/${roomCode}/gameState`).off();
+                    db.ref(`rooms/${roomCode}/players`).off();
+                } catch (e) {}
+            }
+        }
+        window.history.replaceState({}, '', window.location.pathname);
+        roomCode = null;
+        switchScreen('role');
     }
 });
 
-document.getElementById('btn-back-to-review').addEventListener('click', () => {
-    if (role === 'host') {
-        db.ref(`rooms/${roomCode}`).update({ gameState: 'review' });
-        // Local update for host
-        switchScreen('review');
-        renderReviewList();
-    }
+document.getElementById('btn-back-to-review')?.addEventListener('click', () => {
+    switchScreen('review');
+    renderReviewList();
 });
 
 async function renderReviewList() {
@@ -5653,7 +6046,7 @@ async function renderReviewList() {
     listEl.innerHTML = '';
 
     // Make sure we have the latest quiz data for students
-    if (customQuizData.length === 0) {
+    if (customQuizData.length === 0 && roomCode && db) {
         const snap = await db.ref(`rooms/${roomCode}/quizData`).get();
         if (snap.exists()) {
             customQuizData = snap.val();
@@ -5661,7 +6054,7 @@ async function renderReviewList() {
     }
 
     let studentAnswers = {};
-    if (role === 'student') {
+    if (role === 'student' && roomCode && playerName && db) {
         const pSnap = await db.ref(`rooms/${roomCode}/players/${playerName}/answers`).get();
         if (pSnap.exists()) {
             studentAnswers = pSnap.val();
@@ -5669,11 +6062,11 @@ async function renderReviewList() {
     }
 
     customQuizData.forEach((q, idx) => {
+        if (!q || q.type === 'info') return;
         const item = document.createElement('div');
         item.className = 'review-item';
         item.onclick = () => {
             if (role === 'host') {
-                db.ref(`rooms/${roomCode}`).update({ gameState: `review_detail_${idx}` });
                 showReviewDetail(idx);
             }
         };
@@ -5702,7 +6095,7 @@ async function renderReviewList() {
                 }
             }
         } else {
-            const accepted = q.acceptedAnswers.map(a => {
+            const accepted = (q.acceptedAnswers || []).map(a => {
                 const t = typeof a === 'string' ? a : a.text;
                 const p = (typeof a === 'object' && a.points !== undefined) ? a.points : 10;
                 return `${t} (${p} pts)`;
@@ -5775,26 +6168,22 @@ function populateReviewDetail(idx) {
     }
 
     // Populate standard feedback data directly to ensure Host and Student see exactly the same layout
+    const optsCont = document.getElementById('feedback-options-container');
+    if (optsCont) optsCont.style.display = (qData && qData.type === 'typing') ? 'none' : 'flex';
     renderOptions('feedback-options-container', qData, false, currentQuestionIndex, true);
     renderFeedbackChart('feedback-chart', qData, currentQuestionIndex);
 
     if (role === 'student') {
         db.ref(`rooms/${roomCode}/players/${playerName}/answers/${currentQuestionIndex}`).get().then(pSnap => {
             const myAns = pSnap.exists() ? pSnap.val() : null;
-            if (qData.type === 'typing') {
-                // Show the rich two-panel highlight feedback for SAQ questions
-                if (myAnsEl) myAnsEl.style.display = 'none';
-                if (typingPanel) {
-                    typingPanel.style.display = 'block';
-                    typingPanel.innerHTML = buildTypingFeedbackHTML(myAns, qData);
-                }
-            } else {
-                if (typingPanel) typingPanel.style.display = 'none';
-                if (myAnsEl) {
-                    const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
-                    myAnsEl.style.display = 'block';
-                    myAnsEl.innerText = ansLabel ? `Your Answer: ${ansLabel}` : 'Your Answer: None';
-                }
+            if (typingPanel) {
+                typingPanel.style.display = 'none';
+                typingPanel.innerHTML = '';
+            }
+            if (myAnsEl) {
+                const ansLabel = Array.isArray(myAns) ? myAns.join(', ') : myAns;
+                myAnsEl.style.display = 'block';
+                myAnsEl.innerText = ansLabel ? `Your Answer: ${ansLabel}` : 'Your Answer: None';
             }
         });
     } else {
@@ -6115,14 +6504,6 @@ function formatDurationClock(sec) {
 
 function getQuestionMaxScoreOffline(q) {
     if (!q || q.type === 'slide' || q.freePoint) return 0;
-    if (q.type === 'typing') {
-        const raw = getTypingMaxPoints(q);
-        return raw > 0 ? raw + 150 : 100;
-    }
-    if (q.type === 'multiple-answer') {
-        const cLen = (q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).length;
-        return cLen > 0 ? (cLen * 20) + 50 : 100;
-    }
     return 100;
 }
 
@@ -6231,12 +6612,13 @@ async function openCreateOfflineAssignmentModal(quiz) {
         await saveTeacherAssignmentLocal({
             assignCode,
             title: meta.title,
+            sourceQuizTitle: quiz.title || meta.title,
             pin: formValues.pin,
             createdAt: meta.createdAt,
             closesAt: meta.closesAt
         });
 
-        renderLocalOfflineAssignments();
+        if (typeof renderDashboard === 'function') renderDashboard();
         showOfflineShareModal(assignCode, formValues.pin, meta);
     } catch (err) {
         console.error('Failed to create formative assignment:', err);
@@ -6393,10 +6775,10 @@ async function enterOfflineAssignment() {
 
         if (!rawAssignCode || (!rawStudentId && !studentName)) {
             return Swal.fire(
-                isReviewMode ? 'Incomplete Information' : 'ข้อมูลไม่ครบ',
+                'Incomplete Information',
                 isReviewMode
                     ? 'Please enter the Assignment Code and your Student ID or Name.'
-                    : 'กรุณากรอก รหัสควิซ และ รหัสนักศึกษา/เลขประจำตัว',
+                    : 'Please enter the Assignment Code and your Student ID / Identifier.',
                 'warning'
             );
         }
@@ -6406,9 +6788,7 @@ async function enterOfflineAssignment() {
         const assignData = (assignSnap && assignSnap.exists()) ? (assignSnap.val() || {}) : null;
 
         if (!assignData) {
-            return isReviewMode
-                ? Swal.fire('Quiz Not Found', `Formative assignment code "${assignCode}" was not found.`, 'error')
-                : Swal.fire('ไม่พบควิซนี้', `ไม่พบรอบควิซออฟไลน์รหัส "${assignCode}"`, 'error');
+            return Swal.fire('Quiz Not Found', `Formative assignment code "${assignCode}" was not found.`, 'error');
         }
 
         const meta = assignData.meta || {};
@@ -6474,8 +6854,8 @@ async function enterOfflineAssignment() {
         // Check open/close window first
         if (winState.state === 'not_open_yet') {
             return Swal.fire(
-                '⏳ ยังไม่ถึงเวลาเปิดทำควิซ',
-                `ควิซนี้จะเปิดให้ทำในวันที่ ${formatDateTimeTh(meta.opensAt)}`,
+                '⏳ Assignment Not Open Yet',
+                `This assignment will open on ${formatDateTimeTh(meta.opensAt)}`,
                 'info'
             );
         }
@@ -6487,8 +6867,8 @@ async function enterOfflineAssignment() {
                 return;
             }
             return Swal.fire(
-                '🔒 ปิดรับคำตอบแล้ว',
-                `ควิซนี้ปิดรับคำตอบเมื่อ ${formatDateTimeTh(meta.closesAt)}`,
+                '🔒 Submissions Closed',
+                `This assignment closed on ${formatDateTimeTh(meta.closesAt)}`,
                 'warning'
             );
         }
@@ -6519,7 +6899,7 @@ async function enterOfflineAssignment() {
         // 3. Starting new attempt or resuming in_progress attempt
         if (!existingAttempt) {
             if (!studentName) {
-                return Swal.fire('กรุณากรอกชื่อ', 'การเข้าทำครั้งแรก กรุณากรอกชื่อ-นามสกุลของคุณด้วยครับ', 'warning');
+                return Swal.fire('Name Required', 'For your first attempt, please enter your full name.', 'warning');
             }
             const newAttempt = {
                 name: studentName,
@@ -6582,6 +6962,21 @@ function toggleOfflineQuestionPin(idx) {
     renderOfflineCurrentQuestion();
 }
 
+function renderOfflineStudentBadge() {
+    const el = document.getElementById('offline-student-badge');
+    if (!el) return;
+    const name = offlineState.studentName || 'Student';
+    const id = offlineState.studentId || '-';
+    const dueStr = offlineState.meta.closesAt
+        ? `⏱ Due: ${formatDateTimeEn(offlineState.meta.closesAt)}`
+        : '⏱ Open assignment';
+    el.innerHTML = `
+        <div class="offline-meta-row offline-meta-name"><strong>${name}</strong></div>
+        <div class="offline-meta-row offline-meta-id"><span class="offline-meta-label">ID:</span> ${id}</div>
+        <div class="offline-meta-row offline-meta-due">${dueStr}</div>
+    `;
+}
+
 function startOfflineQuizRunner() {
     role = 'student';
     document.body.setAttribute('data-role', 'student');
@@ -6593,9 +6988,7 @@ function startOfflineQuizRunner() {
     }
 
     document.getElementById('offline-quiz-title').innerText = offlineState.meta.title || 'Formative Quiz';
-    document.getElementById('offline-student-badge').innerText =
-        `${offlineState.studentName} (${offlineState.studentId})` +
-        (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
+    renderOfflineStudentBadge();
 
     // Save active student quiz session so refreshing stays on quiz runner
     if (offlineState.assignCode && offlineState.studentId) {
@@ -6621,9 +7014,7 @@ function startOfflineQuizRunner() {
     offlineState.metaListenerRef.on('value', snap => {
         if (!snap.exists()) return;
         offlineState.meta = snap.val() || {};
-        document.getElementById('offline-student-badge').innerText =
-            `${offlineState.studentName} (${offlineState.studentId})` +
-            (offlineState.meta.closesAt ? ` • Due: ${formatDateTimeEn(offlineState.meta.closesAt)}` : '');
+        renderOfflineStudentBadge();
     });
 
     // 1-second active timer (pauses when page is hidden/closed per Spec #4)
@@ -6676,39 +7067,47 @@ function closeOfflineDrawer() {
     const backdrop = document.getElementById('offline-sidebar-backdrop');
     if (sidebar) sidebar.classList.remove('drawer-open');
     if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('offline-drawer-active');
 }
 
 function openOfflineDrawer() {
+    const layout = document.getElementById('offline-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
     const sidebar = document.getElementById('offline-quiz-sidebar');
     const backdrop = document.getElementById('offline-sidebar-backdrop');
     if (sidebar) sidebar.classList.add('drawer-open');
     if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('offline-drawer-active');
 }
 
 function updateOfflineTimerUI() {
-    const badge = document.getElementById('offline-timer-badge');
+    const badges = document.querySelectorAll('.offline-timer-badge');
     const mobTimer = document.getElementById('offline-mobile-timer');
-    if (!badge || !offlineState.attempt) return;
+    if (!offlineState.attempt) return;
     const elapsed = Number(offlineState.attempt.elapsedSec || 0);
     const limit = Number(offlineState.meta?.timeLimitSec || 0);
+    let text = '';
+    let isUrgent = false;
     if (limit > 0) {
         const rem = Math.max(0, limit - elapsed);
-        badge.innerText = `⏱ Remaining ${formatDurationClock(rem)}`;
-        badge.style.borderColor = rem <= 60 ? 'var(--danger)' : 'var(--primary)';
-        badge.style.color = rem <= 60 ? 'var(--danger)' : 'var(--text-main)';
+        text = `⏱ Remaining ${formatDurationClock(rem)}`;
+        isUrgent = rem <= 60;
         if (mobTimer) {
             mobTimer.innerText = `⏱ ${formatDurationClock(rem)}`;
-            mobTimer.style.color = badge.style.color;
+            mobTimer.style.color = isUrgent ? 'var(--danger)' : 'var(--text-main)';
         }
     } else {
-        badge.innerText = `⏱ Time Spent ${formatDurationClock(elapsed)}`;
-        badge.style.borderColor = 'var(--primary)';
-        badge.style.color = 'var(--text-main)';
+        text = `⏱ Time Spent ${formatDurationClock(elapsed)}`;
         if (mobTimer) {
             mobTimer.innerText = `⏱ ${formatDurationClock(elapsed)}`;
-            mobTimer.style.color = badge.style.color;
+            mobTimer.style.color = 'var(--text-main)';
         }
     }
+    badges.forEach(b => {
+        b.innerText = text;
+        b.style.borderColor = isUrgent ? 'var(--danger)' : 'var(--glass-border)';
+        b.style.color = isUrgent ? 'var(--danger)' : 'var(--text-main)';
+    });
 }
 
 function renderOfflineQuestionNav() {
@@ -6732,31 +7131,35 @@ function renderOfflineQuestionNav() {
         btn.className = 'offline-q-pill' + (isPinned ? ' has-star' : '');
 
         // Styling based on state:
-        // Current question: Filled primary blue
-        // Answered (not current): Green border and green text
-        // Unanswered (not current): Normal black/dark text with neutral subtle border
+        // Current: Primary blue (with gold star if starred)
+        // Starred (not current): Light gold tint with gold border
+        // Answered: Light green tint with green border (without checkmark)
+        // Unanswered: Standard dark/neutral text with subtle border
         if (isCurrent) {
             btn.style.background = 'var(--primary)';
             btn.style.color = '#ffffff';
             btn.style.border = '2px solid var(--primary)';
+            btn.style.boxShadow = isPinned ? '0 0 0 2px rgba(234, 179, 8, 0.6)' : 'none';
+        } else if (isPinned) {
+            btn.style.background = 'rgba(234, 179, 8, 0.12)';
+            btn.style.color = '#ca8a04';
+            btn.style.border = '2px solid #eab308';
+            btn.style.boxShadow = 'none';
         } else if (answered && q.type !== 'slide') {
             btn.style.background = 'rgba(16, 185, 129, 0.08)';
             btn.style.color = 'var(--success)';
             btn.style.border = '2px solid var(--success)';
+            btn.style.boxShadow = 'none';
         } else {
-            btn.style.background = 'rgba(255, 255, 255, 0.85)';
-            btn.style.color = '#1e293b';
-            btn.style.border = '2px solid #cbd5e1';
-        }
-
-        if (isPinned) {
-            btn.style.borderColor = '#eab308';
-            btn.style.boxShadow = '0 0 0 2px rgba(234, 179, 8, 0.35)';
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-main)';
+            btn.style.border = '2px solid var(--glass-border)';
+            btn.style.boxShadow = 'none';
         }
 
         let labelHtml = q.type === 'slide' ? `<span>📄 ${idx + 1}</span>` : `<span>${idx + 1}</span>`;
         if (isPinned) {
-            labelHtml += `<span style="color:#eab308; font-size:1.05rem; line-height:1;">★</span>`;
+            labelHtml += `<span class="pill-star" style="color:#eab308; font-size:1.05rem; line-height:1; margin-left:3px;">★</span>`;
         }
         btn.innerHTML = labelHtml;
         btn.title = `Question ${idx + 1}${answered ? ' (Answered)' : ' (Unanswered)'}${isPinned ? ' (Starred)' : ''}`;
@@ -6811,6 +7214,7 @@ function renderOfflineCurrentQuestion() {
     }
 
     document.getElementById('offline-q-text').innerText = q.text || '';
+    document.body.classList.remove('student-minimal-view');
     const ctxEl = document.getElementById('offline-q-context');
     if (ctxEl) {
         if (q.context && q.context.trim()) {
@@ -6829,6 +7233,12 @@ function renderOfflineCurrentQuestion() {
         mediaCont.dataset.currentType = '';
     }
     renderMediaCommon(q, 'offline', false);
+    const hasMedia = Boolean(mediaCont && mediaCont.style.display !== 'none');
+    const splitWrap = document.getElementById('offline-q-body-split');
+    if (splitWrap) {
+        splitWrap.classList.toggle('has-media', hasMedia);
+        splitWrap.classList.toggle('no-media', !hasMedia);
+    }
     // Attach zoom handlers on images
     document.querySelectorAll('#offline-media-container .zoomable').forEach(el => {
         el.onclick = function () {
@@ -6912,7 +7322,7 @@ function renderOfflineCurrentQuestion() {
         const wrap = document.createElement('div');
         wrap.className = 'typing-input-container';
         const ta = document.createElement('textarea');
-        ta.rows = 5;
+        ta.rows = 3;
         ta.placeholder = 'Type your answer here...';
         ta.value = savedVal != null ? String(savedVal) : '';
         let debounceTimer = null;
@@ -6998,12 +7408,12 @@ async function manualSaveOfflineAnswerProgress() {
             });
         }
         Swal.fire({
-            title: 'Answer Saved',
-            text: 'คำตอบของคุณได้รับการบันทึกเรียบร้อยแล้ว สามารถกลับมาทำต่อได้ตลอดเวลาตามรหัสเดิมครับ',
+            title: 'Progress Saved',
+            text: 'Your answers have been saved. You can resume at any time using your assignment code and student ID.',
             icon: 'success',
-            confirmButtonText: 'ทำต่อ (Continue)',
+            confirmButtonText: 'Continue Quiz',
             showCancelButton: true,
-            cancelButtonText: 'ออกจากหน้านี้ (Exit to Menu)'
+            cancelButtonText: 'Exit to Menu'
         }).then(res => {
             if (res.isDismissed && res.dismiss === Swal.DismissReason.cancel) {
                 stopOfflineStudentTimers();
@@ -7061,7 +7471,6 @@ async function gradeSingleOfflineTypingQuestion(q, answerText, allowAi = true) {
     // If AI grading not enabled or local grader already matched all keys cleanly, use local score
     if (!allowAi || !q.aiGrading || allLocalMatched || !HARDCODED_AI_KEY) {
         let pts = getTypingAnswerScore(ans, q);
-        if (pts === maxPoints && maxPoints > 0) pts += 150;
         const localConcepts = keyResults.map((kr, idx) => ({
             conceptId: idx + 1,
             tier: kr.matched ? 'full' : 'none',
@@ -7118,18 +7527,20 @@ async function gradeSingleOfflineTypingQuestion(q, answerText, allowAi = true) {
             };
         });
 
-        if (q.partialCredit === false) {
-            earnedPts = earnedPts >= rubricTotal ? maxPoints : 0;
+        let pts = 0;
+        if (rubricTotal > 0) {
+            if (q.partialCredit === false) {
+                pts = (earnedPts >= rubricTotal) ? 100 : 0;
+            } else {
+                pts = Math.round((earnedPts / rubricTotal) * 100);
+            }
         }
-        earnedPts = Math.max(0, earnedPts - penalty);
-        let pts = earnedPts;
-        if (pts === maxPoints && maxPoints > 0) pts += 150;
+        pts = Math.max(0, Math.min(100, pts - penalty));
 
         return { autoPoints: pts, aiConcepts: conceptsArr, penalty, needsReview: false };
     } catch (err) {
         console.warn('Offline AI grading fallback to local:', err);
         let pts = getTypingAnswerScore(ans, q);
-        if (pts === maxPoints && maxPoints > 0) pts += 150;
         const fallbackConcepts = keyResults.map((kr, idx) => ({
             conceptId: idx + 1,
             tier: kr.matched ? 'full' : 'none',
@@ -7226,71 +7637,106 @@ async function submitOfflineAttempt(reason = 'manual') {
     }
 }
 
-// ── Ticket #5: Student Result / Feedback / Answer-Key Screen ─────────────────
+// ── Ticket #5: Student Result / Feedback / Answer-Key Screen with Question Dashboard ──
 
-async function renderOfflineStudentResultScreen() {
-    const cont = document.getElementById('offline-student-result-content');
-    if (!cont || !offlineState.assignCode || !offlineState.studentId) return;
+function openOfflineReviewDrawer() {
+    const layout = document.getElementById('offline-review-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
+    const sidebar = document.getElementById('offline-review-sidebar');
+    const backdrop = document.getElementById('offline-review-sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('drawer-open');
+    if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('offline-drawer-active');
+}
 
-    // Fetch latest meta and attempt from Firebase
-    const [metaSnap, attSnap] = await Promise.all([
-        db.ref(`rooms/offline_${offlineState.assignCode}/meta`).once('value'),
-        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).once('value')
-    ]);
+function closeOfflineReviewDrawer() {
+    const sidebar = document.getElementById('offline-review-sidebar');
+    const backdrop = document.getElementById('offline-review-sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('drawer-open');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('offline-drawer-active');
+}
 
-    if (metaSnap.exists()) offlineState.meta = metaSnap.val() || {};
-    if (attSnap.exists()) offlineState.attempt = attSnap.val() || {};
-
-    // Save active student result session so refreshing stays on review/result screen
-    if (offlineState.assignCode && offlineState.studentId) {
-        sessionStorage.setItem('spotDiagnosis_activeOfflineSession', JSON.stringify({
-            type: 'student_result',
-            assignCode: offlineState.assignCode,
-            studentId: offlineState.studentId,
-            studentName: offlineState.studentName || offlineState.attempt?.name || ''
-        }));
-    }
-
-    const meta = offlineState.meta || {};
-    const att = offlineState.attempt || {};
+function setOfflineReviewQuestion(idx) {
     const quiz = offlineState.quiz || [];
-
-    if (!att.grading || Object.keys(att.grading).length === 0) {
-        att.grading = await gradeEntireOfflineAttempt(quiz, att, false);
+    if (idx < 0 || idx >= quiz.length) return;
+    offlineState.reviewQIndex = idx;
+    const pills = document.querySelectorAll('#offline-review-question-nav .offline-q-pill');
+    pills.forEach((p, i) => {
+        p.classList.toggle('active', i === idx);
+    });
+    const targetEl = document.getElementById('offline-review-q-' + idx);
+    if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (window.innerWidth <= 1024) {
+        closeOfflineReviewDrawer();
+    }
+}
 
-    const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
-    const maxPossible = quiz.reduce((sum, q) => sum + getQuestionMaxScoreOffline(q), 0);
+function navigateOfflineReviewQuestion(delta) {
+    setOfflineReviewQuestion((offlineState.reviewQIndex || 0) + delta);
+}
+
+function formatCorrectAnswerKeyHtml(q, renderAnswerPart) {
+    if (!q) return '-';
+    if (q.type === 'typing') {
+        const rawKeys = (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0)
+            ? q.acceptedAnswers
+            : (q.correctAnswer ? [q.correctAnswer] : []);
+        if (rawKeys.length === 0) return '<span style="color:var(--text-muted); font-style:italic;">-</span>';
+
+        return `<div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">` +
+            rawKeys.map((a, i) => {
+                let text = '';
+                let pts = null;
+                if (typeof a === 'string') {
+                    text = a;
+                } else if (a && typeof a === 'object') {
+                    text = a.text || '';
+                    if (a.points !== undefined && a.points !== null) pts = a.points;
+                }
+                if (!text) return '';
+                const isNotLast = i < rawKeys.length - 1;
+                return `<div style="display:flex; align-items:center; justify-content:space-between; padding:5px 0; ${isNotLast ? 'border-bottom:1px dashed rgba(16,185,129,0.3);' : ''} font-size:0.98rem;">
+                    <span style="font-weight:600; color:#047857;">${escapeHtml(text)}</span>
+                    ${pts !== null ? `<span style="background:#10b981; color:#ffffff; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:8px; white-space:nowrap; flex-shrink:0;">+${pts} pts</span>` : ''}
+                </div>`;
+            }).filter(Boolean).join('') +
+        `</div>`;
+    } else {
+        const rawCorr = (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0)
+            ? q.correctAnswers
+            : (q.correctAnswer ? [q.correctAnswer] : (Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : []));
+        const parts = rawCorr.map(c => {
+            if (renderAnswerPart) return renderAnswerPart(c);
+            if (typeof c === 'string') return escapeHtml(c);
+            if (c && typeof c === 'object') return escapeHtml(c.text || c.label || '');
+            return '';
+        }).filter(Boolean);
+        if (parts.length === 0) return '<span style="color:var(--text-muted); font-style:italic;">-</span>';
+        if (parts.length === 1) {
+            return `<div style="font-size:1.02rem; font-weight:600; color:#047857; padding:4px 0;">${parts[0]}</div>`;
+        }
+        return `<div style="display:flex; flex-direction:column; gap:4px; margin-top:2px;">` +
+            parts.map((p, i) => `
+                <div style="font-size:0.98rem; font-weight:600; color:#047857; padding:5px 0; ${i < parts.length - 1 ? 'border-bottom:1px dashed rgba(16,185,129,0.3);' : ''}">
+                    ${p}
+                </div>
+            `).join('') +
+        `</div>`;
+    }
+}
+
+function renderOfflineReviewAllQuestions() {
+    const container = document.getElementById('offline-review-feed-container');
+    const quiz = offlineState.quiz || [];
+    const att = offlineState.attempt || {};
+    const meta = offlineState.meta || {};
+    if (!container) return;
+
     const released = AppServices.isAttemptReleased(meta, att);
     const showKey = AppServices.canStudentSeeAnswerKey(meta, att);
-
-    let statusBadgeHtml = '';
-    if (!released) {
-        statusBadgeHtml = `
-            <div class="offline-review-status-box" style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
-                <strong>Submitted — Pending Instructor Review & Feedback</strong>
-                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
-                    The score shown below is a preliminary auto-graded score. The answer key and instructor feedback will be available after the instructor releases the results.
-                </div>
-            </div>
-        `;
-    } else {
-        statusBadgeHtml = `
-            <div class="offline-review-status-box" style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.75rem 1rem; margin:1rem 0; color:var(--text-main);">
-                <strong>Score, Answer Key & Feedback Released</strong>
-            </div>
-        `;
-    }
-
-    let overallFeedbackHtml = '';
-    if (released && att.overallFeedback && String(att.overallFeedback).trim()) {
-        overallFeedbackHtml = `
-            <div class="offline-review-feedback-box" style="background:rgba(139,61,255,0.14); border:1.5px solid #8b3dff; border-radius:12px; padding:1rem 1.25rem; margin:1rem 0; text-align:left;">
-                <div style="font-weight:700; color:#c4b5fd; margin-bottom:0.35rem;">Overall Feedback from Instructor</div>
-                <div style="white-space:pre-wrap; color:var(--text-main); line-height:1.6;">${escapeHtml(att.overallFeedback)}</div>
-            </div>
-        `;
-    }
 
     const renderAnswerPart = (item) => {
         const text = typeof item === 'string' ? item : (item?.text || '');
@@ -7302,8 +7748,146 @@ async function renderOfflineStudentResultScreen() {
         return escapeHtml(text);
     };
 
-    // Per-question breakdown list
-    let questionsHtml = '';
+    let cardsHtml = '';
+    quiz.forEach((q, idx) => {
+        if (!q || q.type === 'slide') return;
+        const g = (att.grading && att.grading[idx]) || {};
+        const hasTeacherPts = g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '';
+        const finalPts = hasTeacherPts ? Number(g.teacherPoints) : Number(g.autoPoints || 0);
+        const qMax = getQuestionMaxScoreOffline(q);
+
+        const ansVal = getOfflineAnswerValue(att, idx);
+        let ansDisplayHtml = '';
+        if (Array.isArray(ansVal)) {
+            const parts = ansVal.map(renderAnswerPart).filter(Boolean);
+            ansDisplayHtml = parts.length > 0 ? parts.join(', ') : '<span style="color:var(--text-muted); font-style:italic;">(No answer submitted)</span>';
+        } else if (ansVal != null && String(ansVal).trim() !== '') {
+            ansDisplayHtml = renderAnswerPart(String(ansVal));
+        } else {
+            ansDisplayHtml = '<span style="color:var(--text-muted); font-style:italic;">(No answer submitted)</span>';
+        }
+
+        const imgUrls = Array.isArray(q.imageUrls) && q.imageUrls.length > 0
+            ? q.imageUrls
+            : (q.imageUrl && q.mediaType !== 'video' ? [q.imageUrl] : []);
+        let mediaHtml = '';
+        if (q.imageUrl && q.mediaType === 'video') {
+            mediaHtml = `<div class="offline-media-container" style="margin-bottom:0.85rem;"><video class="offline-media-video" src="${escapeHtml(q.imageUrl)}" autoplay loop muted playsinline></video></div>`;
+        } else if (imgUrls.length > 0) {
+            mediaHtml = `<div class="offline-media-container" style="margin-bottom:0.85rem;">` +
+                imgUrls.map((u, i) =>
+                    `<img src="${escapeHtml(u)}" alt="Question media ${i + 1}" class="offline-media-img" onclick="zoomOfflineImage('${escapeHtml(u)}')">`
+                ).join('') + `</div>`;
+        }
+
+        let keyHtml = '';
+        if (showKey) {
+            keyHtml = formatCorrectAnswerKeyHtml(q, renderAnswerPart);
+        }
+
+        let aiHtml = '';
+        if (showKey && Array.isArray(g.aiConcepts) && g.aiConcepts.length > 0) {
+            const accepted = Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : [];
+            aiHtml = `<div style="margin-top:0.35rem; display:flex; flex-direction:column; gap:4px; font-size:0.85rem;">` +
+                g.aiConcepts.map(c => {
+                    const rub = accepted[c.conceptId - 1];
+                    const cLabel = rub ? (typeof rub === 'string' ? rub : rub.text) : `Concept #${c.conceptId}`;
+                    const reasonText = c.reason && c.reason.includes('ตรวจด้วยระบบสำรอง')
+                        ? 'Graded by fallback matcher'
+                        : (c.reason || '');
+                    return `<div>• <strong>${escapeHtml(cLabel)}</strong>: <span style="text-transform:uppercase; font-weight:700;">${escapeHtml(c.tier)}</span> (${c.points || 0} pts)${reasonText ? ` — <em>${escapeHtml(reasonText)}</em>` : ''}</div>`;
+                }).join('') +
+                `</div>`;
+        }
+
+        let commentHtml = '';
+        if (released && g.comment && String(g.comment).trim()) {
+            commentHtml = escapeHtml(g.comment);
+        }
+
+        const hasMedia = Boolean(mediaHtml);
+        cardsHtml += `
+            <div class="offline-grade-card" id="offline-review-q-${idx}" style="background: var(--panel-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.4rem 1.6rem; box-shadow: 0 4px 16px rgba(0,0,0,0.04); width: 100%; box-sizing: border-box;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.6rem;">
+                    <span style="font-size:1.1rem; font-weight:800; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em;">Question ${idx + 1}</span>
+                    <span style="font-size:1.05rem; font-weight:800; color:${finalPts > 0 ? 'var(--success)' : 'var(--text-muted)'};">
+                        ${finalPts} / ${qMax} pts
+                    </span>
+                </div>
+                <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-main); margin:0 0 0.5rem 0; line-height:1.4;">${escapeHtml(q.text || '')}</h3>
+                ${q.context && String(q.context).trim() ? `<div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:0.85rem; line-height:1.45;">${escapeHtml(q.context)}</div>` : ''}
+
+                <!-- Two-column grid: Media beside Answers, or 2-column answers if no media -->
+                <div class="offline-card-body-grid ${hasMedia ? 'has-media' : 'no-media'}">
+                    ${hasMedia ? `<div class="offline-card-media-col">${mediaHtml}</div>` : ''}
+                    <div class="offline-card-answers-col">
+                        <div class="answer-box-student">
+                            <div class="answer-box-student-label">
+                                <span>👤 Your Answer</span>
+                            </div>
+                            <div class="answer-box-student-val">
+                                ${ansDisplayHtml}
+                            </div>
+                        </div>
+
+                        ${showKey ? `
+                        <div class="answer-box-key">
+                            <div class="answer-box-key-label">
+                                <span>✓ Correct Answer Key & Explanations</span>
+                            </div>
+                            <div class="answer-box-key-val">
+                                ${keyHtml}
+                            </div>
+                            ${q.explanation ? `<div style="margin-top:6px; font-size:0.88rem; color:var(--text-muted); font-weight:normal; border-top:1px dashed rgba(16,185,129,0.3); padding-top:4px;">${escapeHtml(q.explanation)}</div>` : ''}
+                        </div>
+                        ` : ''}
+
+                        ${aiHtml ? `
+                        <div style="padding:0.65rem 0.85rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); font-size:0.85rem;">
+                            <div style="font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:4px;">Rubric & Concept Breakdown</div>
+                            ${aiHtml}
+                        </div>
+                        ` : ''}
+
+                        ${commentHtml ? `
+                        <div class="feedback-box-compact" style="display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:0.55rem 0.85rem; width:100%; box-sizing:border-box;">
+                            <div class="feedback-box-compact-label" style="text-align:left; width:100%; margin-bottom:4px; font-weight:800; font-size:0.78rem; color:#8b3dff;">
+                                💬 Instructor Feedback
+                            </div>
+                            <div class="feedback-box-compact-val" style="text-align:left; width:100%; font-size:0.95rem; line-height:1.45; color:var(--text-main);">
+                                ${commentHtml}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = cardsHtml;
+}
+
+function renderOfflineReviewCurrentQuestion() {
+    renderOfflineReviewAllQuestions();
+}
+
+function renderOfflineReviewPrintAll(meta, att, quiz, totalScore, maxPossible, released) {
+    const printCont = document.getElementById('offline-review-print-container');
+    if (!printCont) return;
+
+    const showKey = AppServices.canStudentSeeAnswerKey(meta, att);
+    const renderAnswerPart = (item) => {
+        const text = typeof item === 'string' ? item : (item?.text || '');
+        if (!text) return '';
+        const isImg = (typeof item === 'object' && item?.isImage) || text.startsWith('data:image/');
+        if (isImg) {
+            return `<img src="${escapeHtml(text)}" alt="Option image" style="max-height:70px; border-radius:6px; vertical-align:middle; background:#fff; border:1px solid #ddd;">`;
+        }
+        return escapeHtml(text);
+    };
+
+    let qHtml = '';
     quiz.forEach((q, idx) => {
         if (!q || q.type === 'slide') return;
         const ansVal = getOfflineAnswerValue(att, idx);
@@ -7322,117 +7906,148 @@ async function renderOfflineStudentResultScreen() {
         const finalPts = hasTeacherPts ? Number(g.teacherPoints) : Number(g.autoPoints || 0);
         const qMax = getQuestionMaxScoreOffline(q);
 
-        // Question context & image(s)
-        let qContextHtml = '';
-        if (q.context && String(q.context).trim()) {
-            qContextHtml = `<div style="margin-top:0.35rem; font-size:0.88rem; color:var(--text-muted); white-space:pre-wrap;">${escapeHtml(q.context)}</div>`;
-        }
-        let qMediaHtml = '';
-        const imgUrls = Array.isArray(q.imageUrls) && q.imageUrls.length > 0
-            ? q.imageUrls
-            : (q.imageUrl && q.mediaType !== 'video' ? [q.imageUrl] : []);
-        if (imgUrls.length > 0) {
-            qMediaHtml = `<div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.55rem;">` +
-                imgUrls.map(u => `<img src="${escapeHtml(u)}" alt="Question media" style="max-height:140px; max-width:100%; border-radius:8px; border:1px solid var(--glass-border); object-fit:contain; background:#000;">`).join('') +
-                `</div>`;
-        }
-
-        // Answer key section
-        let keyHtml = '';
-        if (showKey) {
-            if (q.type === 'typing') {
-                const rawKeys = (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0)
-                    ? q.acceptedAnswers
-                    : (q.correctAnswer ? [q.correctAnswer] : []);
-                const keys = rawKeys
-                    .map(a => {
-                        if (typeof a === 'string') return a;
-                        if (a && typeof a === 'object' && a.text) {
-                            return a.points !== undefined ? `${a.text} (${a.points} pts)` : a.text;
-                        }
-                        return '';
-                    })
-                    .filter(Boolean)
-                    .join(' • ');
-                keyHtml = `<div class="offline-review-correct-key" style="margin-top:0.5rem; font-size:0.9rem; color:var(--success);"><strong>Correct Answer (Accepted Keys):</strong> ${escapeHtml(keys || '-')}</div>`;
-            } else {
-                const rawCorr = (Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0)
-                    ? q.correctAnswers
-                    : (q.correctAnswer ? [q.correctAnswer] : (Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : []));
-                const corrParts = rawCorr.map(renderAnswerPart).filter(Boolean);
-                keyHtml = `<div class="offline-review-correct-key" style="margin-top:0.5rem; font-size:0.9rem; color:var(--success);"><strong>Correct Answer:</strong> ${corrParts.length > 0 ? corrParts.join(', ') : '-'}</div>`;
-            }
-        }
-
-        // AI concept breakdown
-        let aiHtml = '';
-        if (showKey && Array.isArray(g.aiConcepts) && g.aiConcepts.length > 0) {
-            const accepted = Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers : [];
-            aiHtml = `<div style="margin-top:0.5rem; padding:0.5rem 0.75rem; background:rgba(255,255,255,0.04); border-radius:8px; font-size:0.82rem;">` +
-                g.aiConcepts.map(c => {
-                    const rub = accepted[c.conceptId - 1];
-                    const cLabel = rub ? (typeof rub === 'string' ? rub : rub.text) : `Concept #${c.conceptId}`;
-                    const reasonText = c.reason && c.reason.includes('ตรวจด้วยระบบสำรอง')
-                        ? 'Graded by fallback matcher (pending instructor review)'
-                        : (c.reason || '');
-                    return `<div>• <strong>${escapeHtml(cLabel)}</strong>: <span style="text-transform:uppercase;">${escapeHtml(c.tier)}</span> (${c.points || 0} pts)${reasonText ? ` — <em>${escapeHtml(reasonText)}</em>` : ''}</div>`;
-                }).join('') +
-                `</div>`;
-        }
-
-        let commentHtml = '';
-        if (released && g.comment && String(g.comment).trim()) {
-            commentHtml = `
-                <div style="margin-top:0.55rem; padding:0.55rem 0.8rem; background:rgba(139,61,255,0.14); border-left:3px solid #8b3dff; border-radius:6px; font-size:0.9rem;">
-                    <strong>Instructor Feedback:</strong> <span style="white-space:pre-wrap;">${escapeHtml(g.comment)}</span>
+        qHtml += `
+            <div style="border-bottom:1px solid #e2e8f0; padding:1rem 0; page-break-inside:avoid;">
+                <div style="font-weight:700; font-size:1.1rem; margin-bottom:0.35rem;">
+                    Question ${idx + 1}: ${escapeHtml(q.text || '')} (${finalPts} / ${qMax} pts)
                 </div>
-            `;
-        }
-
-        questionsHtml += `
-            <div class="offline-review-q-card" style="background:var(--input-bg); border:1px solid var(--glass-border); border-radius:12px; padding:1rem; margin-bottom:0.85rem; text-align:left;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem;">
-                    <div style="font-weight:700; color:var(--text-main);">Question ${idx + 1}: ${escapeHtml(q.text || '')}</div>
-                    <div style="white-space:nowrap; font-weight:700; color:${finalPts > 0 ? 'var(--success)' : 'var(--text-muted)'};">
-                        ${finalPts} / ${qMax} pts ${hasTeacherPts && released ? '<span style="font-size:0.75rem; color:#c4b5fd;">(Adjusted by Instructor)</span>' : ''}
-                    </div>
-                </div>
-                ${qContextHtml}
-                ${qMediaHtml}
-                <div style="margin-top:0.5rem; font-size:0.92rem; color:var(--text-muted);">
-                    <strong>Your Answer:</strong> <span style="color:var(--text-main);">${ansDisplayHtml}</span>
-                </div>
-                ${keyHtml}
-                ${aiHtml}
-                ${commentHtml}
+                ${q.context ? `<div style="color:#64748b; font-size:0.9rem; margin-bottom:0.4rem;">${escapeHtml(q.context)}</div>` : ''}
+                <div style="margin-top:0.35rem;"><strong>Student Answer:</strong> ${ansDisplayHtml}</div>
+                ${showKey ? `<div style="margin-top:0.35rem; color:#059669;"><strong>Correct Answer:</strong> ${escapeHtml(q.correctAnswer || (Array.isArray(q.acceptedAnswers) ? q.acceptedAnswers.map(a => typeof a === 'string' ? a : a.text).join(', ') : '-'))}</div>` : ''}
+                ${released && g.comment ? `<div style="margin-top:0.35rem; color:#7c3aed;"><strong>Instructor Feedback:</strong> ${escapeHtml(g.comment)}</div>` : ''}
             </div>
         `;
     });
 
-    cont.innerHTML = `
-        <div class="text-center">
-            <h2 class="title-gradient" style="margin-bottom:0.25rem;">${escapeHtml(meta.title || 'Formative Review')}</h2>
-            <div style="color:var(--text-muted); font-size:0.92rem;">
-                Student: <strong>${escapeHtml(att.name || offlineState.studentName || '')}</strong> (ID: <code>${escapeHtml(offlineState.studentId)}</code>)
-                • Time Spent: <strong>${formatDurationClock(att.elapsedSec || 0)}</strong>
-            </div>
-            <div class="offline-review-summary-box" style="margin:1.1rem auto; padding:1rem 1.5rem; border-radius:14px; background:var(--input-bg); border:2px solid var(--primary); display:inline-block;">
-                <div style="font-size:0.85rem; color:var(--text-muted);">Total Score</div>
-                <div style="font-size:2.4rem; font-weight:800; color:var(--primary);">${totalScore} <span style="font-size:1.1rem; color:var(--text-muted);">/ ${maxPossible}</span></div>
-            </div>
+    printCont.innerHTML = `
+        <div style="padding:2rem; font-family:sans-serif; color:#0f172a;">
+            <h1 style="margin:0 0 0.5rem 0;">${escapeHtml(meta.title || 'Formative Review')}</h1>
+            <div>Student: <strong>${escapeHtml(att.name || offlineState.studentName || '')}</strong> (ID: ${escapeHtml(offlineState.studentId)}) • Score: <strong>${totalScore} / ${maxPossible}</strong></div>
+            <hr style="margin:1rem 0; border:none; border-top:2px solid #0f172a;">
+            ${qHtml}
         </div>
-        ${statusBadgeHtml}
-        ${overallFeedbackHtml}
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin:1.25rem 0 0.75rem 0;">
-            <h3 style="margin:0; font-size:1.1rem; color:var(--text-main); text-align:left;">Question Breakdown</h3>
-            <button type="button" id="btn-offline-print-top" class="btn-secondary no-print" style="width:auto; padding:0.45rem 1rem; font-size:0.88rem;">Print / Save PDF</button>
-        </div>
-        ${questionsHtml}
     `;
+}
 
-    document.getElementById('btn-offline-print-top')?.addEventListener('click', () => {
-        window.print();
-    });
+async function renderOfflineStudentResultScreen() {
+    if (!offlineState.assignCode || !offlineState.studentId) return;
+
+    // Fetch latest meta and attempt from Firebase
+    const [metaSnap, attSnap] = await Promise.all([
+        db.ref(`rooms/offline_${offlineState.assignCode}/meta`).once('value'),
+        db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${offlineState.studentId}`).once('value')
+    ]);
+
+    if (metaSnap.exists()) offlineState.meta = metaSnap.val() || {};
+    if (attSnap.exists()) offlineState.attempt = attSnap.val() || {};
+
+    // Save active student result session so refreshing stays on review/result screen
+    sessionStorage.setItem('spotDiagnosis_activeOfflineSession', JSON.stringify({
+        type: 'student_result',
+        assignCode: offlineState.assignCode,
+        studentId: offlineState.studentId,
+        studentName: offlineState.studentName || offlineState.attempt?.name || ''
+    }));
+
+    const meta = offlineState.meta || {};
+    const att = offlineState.attempt || {};
+    if ((!offlineState.quiz || offlineState.quiz.length === 0) && meta.quiz) {
+        offlineState.quiz = meta.quiz;
+    }
+    const quiz = offlineState.quiz || [];
+
+    if (!att.grading || Object.keys(att.grading).length === 0) {
+        att.grading = await gradeEntireOfflineAttempt(quiz, att, false);
+    }
+
+    const totalScore = AppServices.computeAttemptTotalScore(att.grading || {}, quiz);
+    const maxPossible = quiz.reduce((sum, q) => sum + getQuestionMaxScoreOffline(q), 0);
+    const released = AppServices.isAttemptReleased(meta, att);
+
+    // Update Sidebar elements
+    const titleEl = document.getElementById('offline-review-quiz-title');
+    if (titleEl) titleEl.innerText = meta.title || 'Formative Review';
+
+    const studentBadge = document.getElementById('offline-review-student-badge');
+    if (studentBadge) {
+        studentBadge.innerHTML = `
+            <div class="offline-meta-name">${escapeHtml(att.name || offlineState.studentName || 'Student')}</div>
+            <div class="offline-meta-id">ID: <code>${escapeHtml(offlineState.studentId)}</code> • Time: ${formatDurationClock(att.elapsedSec || 0)}</div>
+        `;
+    }
+
+    const scoreBadge = document.getElementById('offline-review-score-badge');
+    if (scoreBadge) scoreBadge.innerText = `Score: ${totalScore} / ${maxPossible}`;
+
+    const collapsedScore = document.getElementById('offline-review-collapsed-score');
+    if (collapsedScore) collapsedScore.innerText = `Score: ${totalScore} / ${maxPossible}`;
+
+    const mobScore = document.getElementById('offline-review-mobile-score');
+    if (mobScore) mobScore.innerText = `Score: ${totalScore} / ${maxPossible}`;
+
+    let statusBadgeHtml = '';
+    if (!released) {
+        statusBadgeHtml = `
+            <div class="offline-review-status-box" style="background:rgba(234,179,8,0.14); border:1px solid #eab308; border-radius:10px; padding:0.6rem 0.85rem; font-size:0.85rem; color:var(--text-main);">
+                <strong>Submitted — Pending Instructor Review</strong>
+                <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+                    Preliminary auto-graded score. Answer key and feedback will be released by instructor.
+                </div>
+            </div>
+        `;
+    } else {
+        statusBadgeHtml = `
+            <div class="offline-review-status-box" style="background:rgba(16,185,129,0.14); border:1px solid var(--success); border-radius:10px; padding:0.6rem 0.85rem; font-size:0.85rem; color:var(--text-main);">
+                <strong>Score, Key & Feedback Released</strong>
+            </div>
+        `;
+    }
+
+    let overallFeedbackHtml = '';
+    if (released && att.overallFeedback && String(att.overallFeedback).trim()) {
+        overallFeedbackHtml = `
+            <div class="offline-review-feedback-box" style="background:rgba(139,61,255,0.14); border:1.5px solid #8b3dff; border-radius:10px; padding:0.75rem 0.85rem; text-align:left; font-size:0.85rem;">
+                <div style="font-weight:700; color:#c4b5fd; margin-bottom:0.25rem;">Overall Feedback</div>
+                <div style="white-space:pre-wrap; color:var(--text-main); line-height:1.45;">${escapeHtml(att.overallFeedback)}</div>
+            </div>
+        `;
+    }
+
+    const statusContainer = document.getElementById('offline-review-status-container');
+    if (statusContainer) {
+        statusContainer.innerHTML = statusBadgeHtml + overallFeedbackHtml;
+    }
+
+    const qCountEl = document.getElementById('offline-review-questions-count');
+    if (qCountEl) qCountEl.innerText = `${quiz.length} Questions`;
+
+    // Render Question Navigator Pills
+    const navGrid = document.getElementById('offline-review-question-nav');
+    if (navGrid) {
+        navGrid.innerHTML = '';
+        quiz.forEach((q, qIdx) => {
+            if (!q || q.type === 'slide') return;
+            const g = (att.grading && att.grading[qIdx]) || {};
+            const hasTeacherPts = g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '';
+            const finalPts = hasTeacherPts ? Number(g.teacherPoints) : Number(g.autoPoints || 0);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `offline-q-pill ${finalPts > 0 ? 'has-pts' : 'zero-pts'} ${qIdx === offlineState.reviewQIndex ? 'active' : ''}`;
+            btn.innerText = String(qIdx + 1);
+            btn.title = `Question ${qIdx + 1}: ${finalPts} pts`;
+            btn.addEventListener('click', () => {
+                setOfflineReviewQuestion(qIdx);
+                closeOfflineReviewDrawer();
+            });
+            navGrid.appendChild(btn);
+        });
+    }
+
+    // Render Active Question
+    renderOfflineReviewCurrentQuestion();
+
+    // Render Print Container (All Questions)
+    renderOfflineReviewPrintAll(meta, att, quiz, totalScore, maxPossible, released);
 }
 
 // ── Tickets #4 & #6: Teacher Reviewer Dashboard, Grading, Cross-Question, Stats, CSV, Reset ──
@@ -7641,7 +8256,7 @@ function renderOfflineTeacherStudentsTab(container) {
     `;
 
     container.querySelectorAll('.btn-grade-student').forEach(btn => {
-        btn.onclick = () => openStudentGradingModal(btn.dataset.sid);
+        btn.onclick = () => openStudentGradingScreen(btn.dataset.sid);
     });
     container.querySelectorAll('.btn-release-one').forEach(btn => {
         btn.onclick = async () => {
@@ -7692,25 +8307,84 @@ function renderOfflineTeacherStudentsTab(container) {
     });
 }
 
-async function openStudentGradingModal(studentId) {
+function openOfflineGradeDrawer() {
+    const layout = document.getElementById('offline-grade-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
+    const sidebar = document.getElementById('offline-grade-sidebar');
+    const backdrop = document.getElementById('offline-grade-sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('drawer-open');
+    if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('offline-drawer-active');
+}
+
+function closeOfflineGradeDrawer() {
+    const sidebar = document.getElementById('offline-grade-sidebar');
+    const backdrop = document.getElementById('offline-grade-sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('drawer-open');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('offline-drawer-active');
+}
+
+async function openStudentGradingScreen(studentId) {
     const att = offlineState.attemptsMap?.[studentId];
     if (!att) return;
     const quiz = offlineState.quiz || [];
+    offlineState.activeGradingStudentId = studentId;
 
-    let qItemsHtml = '';
+    const studentTitle = document.getElementById('offline-grade-student-title');
+    if (studentTitle) {
+        const meta = offlineState.meta || {};
+        studentTitle.innerText = meta.quizTitle || meta.title || 'Formative Assignment';
+    }
+
+    const studentMeta = document.getElementById('offline-grade-student-meta');
+    if (studentMeta) {
+        studentMeta.innerHTML = `
+            <div class="offline-meta-name">${escapeHtml(att.name || 'Student')}</div>
+            <div class="offline-meta-id">ID: <code>${escapeHtml(studentId)}</code> • Time: ${formatDurationClock(att.elapsedSec || 0)}</div>
+        `;
+    }
+
+    const headerName = document.getElementById('offline-grade-header-name');
+    if (headerName) headerName.innerText = `Grading: ${att.name || studentId} (${studentId})`;
+
+    const mobileTitle = document.getElementById('offline-grade-mobile-title');
+    if (mobileTitle) mobileTitle.innerText = `Grading: ${att.name || studentId}`;
+
+    const overallInput = document.getElementById('grade-overall-feedback-input');
+    if (overallInput) overallInput.value = att.overallFeedback || '';
+
+    const qCountEl = document.getElementById('offline-grade-questions-count');
+    if (qCountEl) qCountEl.innerText = `${quiz.length} Questions`;
+
+    // Render Question Cards Feed
+    const feed = document.getElementById('offline-grade-cards-feed');
+    let feedHtml = '';
+
     quiz.forEach((q, idx) => {
         if (!q || q.type === 'slide') return;
         const ansVal = getOfflineAnswerValue(att, idx);
-        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '(No response)');
+        const ansStr = Array.isArray(ansVal) ? ansVal.join(', ') : (ansVal ?? '');
         const g = (att.grading && att.grading[idx]) || {};
         const effectivePts = (g.teacherPoints !== undefined && g.teacherPoints !== null && g.teacherPoints !== '')
             ? g.teacherPoints
             : (g.autoPoints ?? 0);
         const maxPts = getQuestionMaxScoreOffline(q);
 
-        const keyStr = q.type === 'typing'
-            ? (q.acceptedAnswers || []).map(a => typeof a === 'string' ? a : `${a.text} (${a.points ?? 10})`).join(' | ')
-            : (q.correctAnswers || (q.correctAnswer ? [q.correctAnswer] : [])).map(c => typeof c === 'string' ? c : c.text).join(', ');
+        const keyHtml = formatCorrectAnswerKeyHtml(q);
+
+        const imgUrls = Array.isArray(q.imageUrls) && q.imageUrls.length > 0
+            ? q.imageUrls
+            : (q.imageUrl && q.mediaType !== 'video' ? [q.imageUrl] : []);
+        let mediaHtml = '';
+        if (q.imageUrl && q.mediaType === 'video') {
+            mediaHtml = `<div class="offline-media-container" style="margin-bottom:0.85rem;"><video class="offline-media-video" src="${escapeHtml(q.imageUrl)}" autoplay loop muted playsinline></video></div>`;
+        } else if (imgUrls.length > 0) {
+            mediaHtml = `<div class="offline-media-container" style="margin-bottom:0.85rem;">` +
+                imgUrls.map((u, i) =>
+                    `<img src="${escapeHtml(u)}" alt="Question media ${i + 1}" class="offline-media-img" onclick="zoomOfflineImage('${escapeHtml(u)}')">`
+                ).join('') + `</div>`;
+        }
 
         let aiConceptText = '';
         if (Array.isArray(g.aiConcepts) && g.aiConcepts.length > 0) {
@@ -7719,74 +8393,160 @@ async function openStudentGradingModal(studentId) {
                 `</div>`;
         }
 
-        qItemsHtml += `
-            <div style="border:1px solid var(--glass-border); background:rgba(255,255,255,0.03); border-radius:10px; padding:0.85rem; margin-bottom:0.75rem;">
-                <div style="font-weight:700; color:var(--primary); margin-bottom:4px;">Question ${idx + 1}: ${escapeHtml(q.text || '')}</div>
-                <div style="font-size:0.88rem; margin-bottom:4px;"><strong>Student Answer:</strong> <span style="color:var(--text-main);">${escapeHtml(String(ansStr))}</span></div>
-                <div style="font-size:0.82rem; color:var(--success);"><strong>Correct Answer:</strong> ${escapeHtml(keyStr || '-')}</div>
-                ${aiConceptText}
-                <div style="display:grid; grid-template-columns:140px 1fr; gap:0.6rem; margin-top:0.6rem; align-items:center;">
-                    <div>
-                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">Score (Max ${maxPts})</label>
-                        <input type="number" class="swal2-input offline-grade-pts" data-qidx="${idx}" style="margin:0; width:100%; height:36px; font-size:0.95rem;" value="${escapeHtml(String(effectivePts))}">
-                    </div>
-                    <div>
-                        <label style="font-size:0.78rem; color:var(--text-muted); display:block;">Question Feedback</label>
-                        <input type="text" class="swal2-input offline-grade-comment" data-qidx="${idx}" style="margin:0; width:100%; height:36px; font-size:0.9rem;" placeholder="Feedback for this question (optional)" value="${escapeHtml(g.comment || '')}">
+        const hasMedia = Boolean(mediaHtml);
+        feedHtml += `
+            <div class="offline-grade-card" id="offline-grade-q-${idx}" style="width: 100%; box-sizing: border-box;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.6rem;">
+                    <span style="font-size:1.1rem; font-weight:800; color:var(--primary); text-transform:uppercase; letter-spacing:0.04em;">Question ${idx + 1}</span>
+                </div>
+                <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-main); margin:0 0 0.5rem 0; line-height:1.4;">${escapeHtml(q.text || '')}</h3>
+                ${q.context && String(q.context).trim() ? `<div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:0.85rem; line-height:1.45;">${escapeHtml(q.context)}</div>` : ''}
+
+                <!-- Two-column grid: Media beside Answers, or 2-column answers if no media -->
+                <div class="offline-card-body-grid ${hasMedia ? 'has-media' : 'no-media'}">
+                    ${hasMedia ? `<div class="offline-card-media-col">${mediaHtml}</div>` : ''}
+                    <div class="offline-card-answers-col">
+                        <div class="answer-box-student">
+                            <div class="answer-box-student-label">
+                                <span>👤 Student's Answer</span>
+                            </div>
+                            <div class="answer-box-student-val">
+                                ${ansStr ? escapeHtml(String(ansStr)) : '<span style="color:var(--text-muted); font-style:italic;">(No response)</span>'}
+                            </div>
+                        </div>
+
+                        <div class="answer-box-key">
+                            <div class="answer-box-key-label">
+                                <span>✓ Correct Answer Key & Explanations</span>
+                            </div>
+                            <div class="answer-box-key-val">
+                                ${keyHtml}
+                            </div>
+                            ${q.explanation ? `<div style="margin-top:6px; font-size:0.88rem; color:var(--text-muted); font-weight:normal; border-top:1px dashed rgba(16,185,129,0.3); padding-top:4px;">${escapeHtml(q.explanation)}</div>` : ''}
+                        </div>
+
+                        ${aiConceptText ? `<div style="padding:0.65rem 0.85rem; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); font-size:0.85rem;">${aiConceptText}</div>` : ''}
+
+                        <!-- Grading Controls: Score input & Give a Feedback input -->
+                        <div style="display:grid; grid-template-columns:140px 1fr; gap:0.85rem; padding-top:0.75rem; border-top:1px solid var(--glass-border); align-items:flex-start;">
+                            <div>
+                                <label style="font-size:0.82rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Score (Max ${maxPts})</label>
+                                <input type="number" min="0" max="${maxPts}" class="clinical-input offline-grade-input-pts" data-qidx="${idx}" data-max="${maxPts}" style="width:100%; height:40px; font-size:1.1rem; font-weight:700; box-sizing:border-box;" value="${escapeHtml(String(effectivePts))}">
+                            </div>
+                            <div>
+                                <label style="font-size:0.82rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Give a Feedback</label>
+                                <input type="text" class="clinical-input offline-grade-input-comment" data-qidx="${idx}" style="width:100%; height:40px; font-size:0.95rem; box-sizing:border-box;" value="${escapeHtml(g.comment || '')}">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
     });
 
-    const { value: saved, isConfirmed } = await Swal.fire({
-        title: `Grade & Feedback: ${att.name || studentId} (${studentId})`,
-        width: 780,
-        html: `
-            <div style="text-align:left; max-height:62vh; overflow-y:auto; padding-right:4px;">
-                ${qItemsHtml}
-                <div style="margin-top:1rem;">
-                    <label style="font-weight:700; display:block; margin-bottom:6px; color:#c4b5fd;">Overall Feedback for Student</label>
-                    <textarea id="swal-overall-feedback" class="swal2-textarea" style="margin:0; width:100%; min-height:90px;" placeholder="Write praise, review points, or overall advice...">${escapeHtml(att.overallFeedback || '')}</textarea>
-                </div>
-                <label style="display:flex; align-items:center; gap:0.5rem; margin-top:0.85rem; cursor:pointer; font-size:0.92rem;">
-                    <input type="checkbox" id="swal-release-this-student" ${AppServices.isAttemptReleased(offlineState.meta || {}, att) ? 'checked' : ''}>
-                    <span>Release score and feedback to this student immediately</span>
-                </label>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Save Score & Feedback',
-        cancelButtonText: 'Cancel',
-        preConfirm: () => {
-            const newGrading = JSON.parse(JSON.stringify(att.grading || {}));
-            document.querySelectorAll('.offline-grade-pts').forEach(inp => {
-                const qi = Number(inp.dataset.qidx);
-                if (!newGrading[qi]) newGrading[qi] = { autoPoints: 0 };
-                newGrading[qi].teacherPoints = Number(inp.value || 0);
-                newGrading[qi].needsReview = false;
-            });
-            document.querySelectorAll('.offline-grade-comment').forEach(inp => {
-                const qi = Number(inp.dataset.qidx);
-                if (!newGrading[qi]) newGrading[qi] = { autoPoints: 0 };
-                newGrading[qi].comment = inp.value.trim();
-            });
-            const overallFeedback = document.getElementById('swal-overall-feedback').value.trim();
-            const releaseNow = document.getElementById('swal-release-this-student').checked;
-            return { newGrading, overallFeedback, releaseNow };
-        }
+    if (feed) feed.innerHTML = feedHtml;
+
+    function updateGradingLiveScore() {
+        let total = 0;
+        let maxTotal = 0;
+        document.querySelectorAll('.offline-grade-input-pts').forEach(inp => {
+            total += Number(inp.value || 0);
+            maxTotal += Number(inp.dataset.max || 0);
+        });
+        const badge1 = document.getElementById('offline-grade-total-score-badge');
+        const badge2 = document.getElementById('offline-grade-top-score');
+        if (badge1) badge1.innerText = `Score: ${total} / ${maxTotal}`;
+        if (badge2) badge2.innerText = `Score: ${total} / ${maxTotal}`;
+
+        document.querySelectorAll('#offline-grade-question-nav .offline-q-pill').forEach(pill => {
+            const qi = Number(pill.dataset.qidx);
+            const valInput = document.querySelector(`.offline-grade-input-pts[data-qidx="${qi}"]`);
+            const pts = Number(valInput ? valInput.value : 0);
+            pill.classList.toggle('has-pts', pts > 0);
+            pill.classList.toggle('zero-pts', pts <= 0);
+        });
+    }
+
+    document.querySelectorAll('.offline-grade-input-pts').forEach(inp => {
+        inp.addEventListener('input', updateGradingLiveScore);
     });
 
-    if (!isConfirmed || !saved) return;
+    // Render Question Pills in Navigator
+    const navGrid = document.getElementById('offline-grade-question-nav');
+    if (navGrid) {
+        navGrid.innerHTML = '';
+        quiz.forEach((q, qIdx) => {
+            if (!q || q.type === 'slide') return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `offline-q-pill`;
+            btn.dataset.qidx = String(qIdx);
+            btn.innerText = String(qIdx + 1);
+            btn.title = `Scroll to Question ${qIdx + 1}`;
+            btn.addEventListener('click', () => {
+                const cardEl = document.getElementById('offline-grade-q-' + qIdx);
+                if (cardEl) {
+                    cardEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const allPills = navGrid.querySelectorAll('.offline-q-pill');
+                allPills.forEach((p, i) => p.classList.toggle('active', i === qIdx));
+                closeOfflineGradeDrawer();
+            });
+            navGrid.appendChild(btn);
+        });
+    }
 
-    const totalScore = AppServices.computeAttemptTotalScore(saved.newGrading, quiz);
-    await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${studentId}`).update({
-        grading: saved.newGrading,
-        overallFeedback: saved.overallFeedback,
-        totalScore,
-        released: saved.releaseNow,
-        status: saved.releaseNow ? 'released' : 'graded'
+    updateGradingLiveScore();
+    switchScreen('offlineTeacherGrade');
+}
+
+async function saveCurrentStudentGrading() {
+    const studentId = offlineState.activeGradingStudentId;
+    if (!studentId || !offlineState.assignCode) return;
+    const att = offlineState.attemptsMap?.[studentId] || {};
+    const quiz = offlineState.quiz || [];
+
+    const newGrading = JSON.parse(JSON.stringify(att.grading || {}));
+    document.querySelectorAll('.offline-grade-input-pts').forEach(inp => {
+        const qi = Number(inp.dataset.qidx);
+        if (!newGrading[qi]) newGrading[qi] = { autoPoints: 0 };
+        newGrading[qi].teacherPoints = Number(inp.value || 0);
+        newGrading[qi].needsReview = false;
     });
+    document.querySelectorAll('.offline-grade-input-comment').forEach(inp => {
+        const qi = Number(inp.dataset.qidx);
+        if (!newGrading[qi]) newGrading[qi] = { autoPoints: 0 };
+        newGrading[qi].comment = inp.value.trim();
+    });
+
+    const overallFeedback = (document.getElementById('grade-overall-feedback-input')?.value || '').trim();
+    const totalScore = AppServices.computeAttemptTotalScore(newGrading, quiz);
+
+    Swal.fire({
+        title: 'Saving...',
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+
+    try {
+        await db.ref(`rooms/offline_${offlineState.assignCode}/attempts/${studentId}`).update({
+            grading: newGrading,
+            overallFeedback,
+            totalScore,
+            status: att.released ? 'released' : 'graded'
+        });
+        Swal.fire({
+            title: 'Saved!',
+            text: `Score and feedback for ${att.name || studentId} have been saved.`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        switchScreen('offlineTeacher');
+    } catch (err) {
+        console.error('Failed to save grading:', err);
+        Swal.fire('Error', 'Unable to save grading: ' + (err.message || err), 'error');
+    }
 }
 
 // ── Ticket #6a: Cross-Student Question-by-Question Grading View ──────────────
@@ -8083,16 +8843,16 @@ function openOfflineJoinScreen(mode = 'assignment') {
         if (enterBtn) enterBtn.innerText = 'View Score & Feedback';
         if (hintEl) hintEl.innerHTML = 'Enter the <strong>Assignment Code + Student ID / Name</strong> you used to view your score, answer key, and instructor feedback.';
         if (codeInp) codeInp.placeholder = '6-Digit Assignment Code';
-        if (idInp) idInp.placeholder = 'Student ID';
+        if (idInp) idInp.placeholder = 'Student ID / Identifier';
         if (nameInp) nameInp.placeholder = 'Full Name';
     } else {
         if (titleEl) titleEl.innerText = 'Formative Assignment';
-        if (subEl) subEl.innerText = 'เข้าทำควิซออฟไลน์ หรือทำต่อจากที่ค้างไว้';
-        if (enterBtn) enterBtn.innerText = 'เริ่มทำควิซ';
-        if (hintEl) hintEl.innerHTML = '💡 กรอก <strong>รหัสควิซ + รหัสนักศึกษา + ชื่อ-นามสกุล</strong> เพื่อเริ่มทำข้อสอบ (บันทึกอัตโนมัติ)';
-        if (codeInp) codeInp.placeholder = 'รหัสควิซ 6 หลัก (Assignment Code)';
-        if (idInp) idInp.placeholder = 'รหัสนักศึกษา / เลขประจำตัว (ใช้ดูผลภายหลัง)';
-        if (nameInp) nameInp.placeholder = 'ชื่อ - นามสกุล';
+        if (subEl) subEl.innerText = 'Start an assignment or resume your progress';
+        if (enterBtn) enterBtn.innerText = 'Start Quiz';
+        if (hintEl) hintEl.innerHTML = '💡 Enter <strong>Assignment Code + Student ID + Full Name</strong> to start the quiz (progress is saved automatically)';
+        if (codeInp) codeInp.placeholder = '6-Digit Assignment Code';
+        if (idInp) idInp.placeholder = 'Student ID / Identifier (for viewing results later)';
+        if (nameInp) nameInp.placeholder = 'Full Name';
     }
 
     switchScreen('offlineJoin');
@@ -8143,6 +8903,10 @@ document.getElementById('btn-offline-submit-finish')?.addEventListener('click', 
     confirmAndSubmitOfflineAttempt();
 });
 
+document.getElementById('btn-offline-save-without-submit')?.addEventListener('click', () => {
+    manualSaveOfflineAnswerProgress();
+});
+
 document.getElementById('btn-offline-save-progress')?.addEventListener('click', () => {
     manualSaveOfflineAnswerProgress();
 });
@@ -8169,6 +8933,64 @@ document.getElementById('btn-offline-refresh-result')?.addEventListener('click',
 
 document.getElementById('btn-offline-print-result')?.addEventListener('click', () => {
     window.print();
+});
+
+// Review Dashboard Sidebar & Drawer Toggle Listeners
+document.getElementById('btn-offline-review-sidebar-toggle')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-review-dashboard-layout');
+    if (layout) layout.classList.add('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-review-sidebar-expand')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-review-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-review-drawer-open')?.addEventListener('click', openOfflineReviewDrawer);
+document.getElementById('btn-offline-review-drawer-close')?.addEventListener('click', closeOfflineReviewDrawer);
+document.getElementById('offline-review-sidebar-backdrop')?.addEventListener('click', closeOfflineReviewDrawer);
+
+document.getElementById('btn-offline-review-prev')?.addEventListener('click', () => {
+    navigateOfflineReviewQuestion(-1);
+});
+
+document.getElementById('btn-offline-review-next')?.addEventListener('click', () => {
+    navigateOfflineReviewQuestion(1);
+});
+
+document.getElementById('btn-offline-review-refresh')?.addEventListener('click', async () => {
+    await renderOfflineStudentResultScreen();
+    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Results updated', showConfirmButton: false, timer: 1300 });
+});
+
+document.getElementById('btn-offline-review-print')?.addEventListener('click', () => {
+    window.print();
+});
+
+// Teacher Full-Screen Grading Screen Listeners
+document.getElementById('btn-offline-grade-sidebar-toggle')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-grade-dashboard-layout');
+    if (layout) layout.classList.add('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-grade-sidebar-expand')?.addEventListener('click', () => {
+    const layout = document.getElementById('offline-grade-dashboard-layout');
+    if (layout) layout.classList.remove('sidebar-collapsed');
+});
+
+document.getElementById('btn-offline-grade-drawer-open')?.addEventListener('click', openOfflineGradeDrawer);
+document.getElementById('btn-offline-grade-drawer-close')?.addEventListener('click', closeOfflineGradeDrawer);
+document.getElementById('offline-grade-sidebar-backdrop')?.addEventListener('click', closeOfflineGradeDrawer);
+
+document.getElementById('btn-save-grade-screen')?.addEventListener('click', saveCurrentStudentGrading);
+document.getElementById('btn-save-grade-top')?.addEventListener('click', saveCurrentStudentGrading);
+document.getElementById('btn-save-grade-mobile')?.addEventListener('click', saveCurrentStudentGrading);
+
+document.getElementById('btn-cancel-grade-screen')?.addEventListener('click', () => {
+    switchScreen('offlineTeacher');
+});
+document.getElementById('btn-grade-quick-back')?.addEventListener('click', () => {
+    switchScreen('offlineTeacher');
 });
 
 document.querySelectorAll('.offline-t-tab').forEach(btn => {

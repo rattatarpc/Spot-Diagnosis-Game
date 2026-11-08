@@ -1,43 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spot Diagnosis Game</title>
-    <link rel="stylesheet" href="style.css?v=8">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Anton&display=swap" rel="stylesheet">
+    <title>Spot Diagnosis - Get into Your Playground</title>
+    <link rel="stylesheet" href="style.css?v=29">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- localForage for IndexedDB storage -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- tsParticles (ambient background effects) -->
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles-slim@2.12.0/tsparticles.slim.bundle.min.js"></script>
 </head>
 <body>
     <script>
-        // Apply saved theme before first paint to avoid a dark flash.
-        // Default is light; only known themes are honoured, otherwise light.
+        // Apply saved theme before first paint to avoid a flash.
+        // Default is light-theme; 'dark' drops the light class.
         (function () {
             try {
-                var allowed = ['light', 'pastel', 'earth', 'warm', 'cool'];
                 var t = localStorage.getItem('spotDiagnosisTheme');
-                if (allowed.indexOf(t) !== -1) {
-                    document.body.classList.add(t + '-theme');
-                } else if (t !== 'dark') {
+                if (t === 'dark') {
+                    // dark mode is base :root
+                } else {
                     document.body.classList.add('light-theme');
                 }
             } catch (e) {}
         })();
     </script>
     <div id="app">
-        <!-- Animated background video (dark theme only) -->
-        <video id="bg-video" class="bg-video" muted loop playsinline webkit-playsinline preload="auto" aria-hidden="true">
-            <source src="bg-dark.mp4" type="video/mp4">
-        </video>
-        <!-- Ambient background particles (decorative, per-theme, tsParticles) -->
-        <div id="ambient-fx" class="ambient-fx" aria-hidden="true"></div>
         <!-- Global Nav Menu -->
         <div class="global-home" id="global-nav-container">
             <div class="nav-header" id="btn-global-home" title="Navigation Menu">
@@ -45,9 +38,7 @@
                 <span class="nav-title">Spot Diagnosis</span>
             </div>
             <div class="nav-dropdown" id="nav-dropdown-menu" style="display: none;">
-                <div class="nav-item" data-target="role">Main Menu</div>
-                <div class="nav-item" data-target="join">Join a Game</div>
-                <div class="nav-item admin-only-ui" id="nav-item-dashboard" data-target="dashboard">My Quiz Library</div>
+                <div class="nav-item" data-target="role">Select Station</div>
             </div>
         </div>
 
@@ -73,85 +64,211 @@
 
         <!-- 0. Login Gateway Screen -->
         <section id="login-screen" class="screen active">
-            <div class="glass-container text-center" style="max-width: 420px; width: 92%;">
-                <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
-                <h1 class="title-gradient">Spot Diagnosis</h1>
-                <p class="subtitle" style="margin-bottom: 1.5rem;">The classroom diagnosis quiz game</p>
-
-                <div class="input-group" style="margin-bottom: 0.75rem;">
-                    <input type="text" id="login-admin-user" placeholder="Username" autocomplete="username">
+            <div class="clinical-auth-card">
+                <div class="login-brand-header text-center">
+                    <div class="login-brand-icon-wrap" id="login-brand-icon-wrap" title="Play Spot Diagnosis">
+                        <svg class="console-controller-svg" viewBox="0 8 72 40" width="68" height="38" fill="none">
+                            <!-- Ergonomic Console Controller Body Shell -->
+                            <path class="controller-shell" d="M 17 11 C 26 12 46 12 55 11 C 62 11 67 15 66 23 C 64.5 32 60 44 54 44 C 49.5 44 46.5 37 43.5 33 C 41 29.5 31 29.5 28.5 33 C 25.5 37 22.5 44 18 44 C 12 44 7.5 32 6 23 C 5 15 10 11 17 11 Z" fill="var(--primary)"/>
+                            <!-- Subtle Faceplate Accent Shading -->
+                            <path d="M 23 12 C 29 13 43 13 49 12 C 51 14 52 18 51 22 C 48 31 46 38 43 38 C 40 38 38 33 36 33 C 34 33 32 38 29 38 C 26 38 24 31 21 22 C 20 18 21 14 23 12 Z" fill="#FFFFFF" opacity="0.12"/>
+                            <!-- Center Illuminated Touchpad -->
+                            <rect class="controller-touchpad" x="27" y="12.5" width="18" height="8" rx="2.5" fill="#38BDF8" fill-opacity="0.32" stroke="#38BDF8" stroke-width="1.3"/>
+                            <!-- D-Pad Directional Cross (Left) -->
+                            <path class="controller-dpad" d="M 13 22 H 21 M 17 18 V 26" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+                            <!-- 4 Console Action Buttons Diamond (Right) -->
+                            <circle class="controller-action-btn" cx="55" cy="18" r="1.8" fill="#38BDF8"/>
+                            <circle class="controller-action-btn" cx="50.8" cy="22" r="1.8" fill="#FFFFFF"/>
+                            <circle class="controller-action-btn" cx="59.2" cy="22" r="1.8" fill="#FFFFFF"/>
+                            <circle class="controller-action-btn" cx="55" cy="26" r="1.8" fill="#38BDF8"/>
+                            <!-- Dual Analog Thumbsticks (Lower Center) -->
+                            <!-- Left Stick -->
+                            <g class="controller-stick stick-left">
+                                <circle cx="27" cy="30" r="5" fill="#0F172A" stroke="#38BDF8" stroke-width="1.2"/>
+                                <circle cx="27" cy="30" r="2.2" fill="#94A3B8"/>
+                            </g>
+                            <!-- Right Stick -->
+                            <g class="controller-stick stick-right">
+                                <circle cx="45" cy="30" r="5" fill="#0F172A" stroke="#38BDF8" stroke-width="1.2"/>
+                                <circle cx="45" cy="30" r="2.2" fill="#94A3B8"/>
+                            </g>
+                            <!-- Center Guide / Home Button -->
+                            <circle class="controller-home" cx="36" cy="24" r="1.8" fill="#FFFFFF"/>
+                        </svg>
+                    </div>
+                    <h1 class="auth-title login-hero-title">Get into Your Playground</h1>
                 </div>
-                <div class="input-group" style="margin-bottom: 0.75rem;">
-                    <input type="password" id="login-admin-pass" placeholder="Password" autocomplete="current-password">
-                </div>
-                <div id="login-admin-error" style="display: none; color: var(--danger); font-size: 0.88rem; text-align: center; margin-bottom: 0.75rem; font-weight: 600;"></div>
 
-                <button id="btn-login-admin" class="btn-primary" style="width: 100%; margin-bottom: 0.75rem;">Log In</button>
-                <button id="btn-login-guest" class="btn-secondary" style="width: 100%;">Log in as Guest</button>
+                <div class="clinical-form-field">
+                    <label for="login-admin-user" class="clinical-field-label">Username</label>
+                    <input type="text" id="login-admin-user" class="clinical-input" autocomplete="username">
+                </div>
+                <div class="clinical-form-field">
+                    <label for="login-admin-pass" class="clinical-field-label">Password</label>
+                    <input type="password" id="login-admin-pass" class="clinical-input" autocomplete="current-password">
+                </div>
+                <div id="login-admin-error" class="field-error-msg" style="display: none;"></div>
+
+                <div class="auth-actions-row">
+                    <button id="btn-login-admin" class="btn-primary" style="width: 100%;">Sign In</button>
+                    <button id="btn-login-guest" class="btn-secondary" style="width: 100%;">Continue as Guest</button>
+                </div>
             </div>
         </section>
 
         <!-- 1. Role Selection Screen -->
         <section id="role-screen" class="screen">
-            <div class="glass-container text-center">
-                <div class="icon-pulse" style="font-size: initial;"><img src="logo.jpg" alt="Spot Diagnosis Logo" class="app-main-logo"></div>
-                <h1 class="title-gradient">Spot Diagnosis</h1>
-                <p class="subtitle" id="role-screen-subtitle">The live classroom diagnosis quiz game</p>
+            <div class="role-station-container">
+                <div class="station-header text-center">
+                    <h1 class="role-heading">Select Station</h1>
+                </div>
 
-                <div class="role-buttons">
-                    <button id="btn-goto-join" class="btn-primary mb-2">🎮 Join a Room (Live)</button>
-                    <button id="btn-goto-offline-student" class="btn-primary mb-2" style="background: linear-gradient(135deg, #8b3dff, #6366f1); border-color: #8b3dff;">Formative Assignment</button>
-                    <button id="btn-goto-offline-review" class="btn-primary mb-2" style="background: linear-gradient(135deg, #0ea5e9, #2563eb); border-color: #0ea5e9;">Formative Review</button>
-                    <button id="btn-goto-maker" class="btn-secondary btn-create-host admin-only-ui">Create & Host</button>
-                    <button id="btn-goto-offline-teacher-login" class="btn-secondary admin-only-ui" style="margin-top: 0.5rem; font-size: 0.95rem;">Check & Score Formative</button>
+                <div class="role-station-grid-3">
+                    <!-- Box 1: Join Live Session (Pastel Blue) -->
+                    <div class="station-card-box station-box-pastel-blue">
+                        <div class="station-box-badge">Live Case Session</div>
+                        <div class="station-box-icon">
+                            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="20" height="14" x="2" y="3" rx="2"/>
+                                <line x1="8" x2="16" y1="21" y2="21"/>
+                                <line x1="12" x2="12" y1="17" y2="21"/>
+                            </svg>
+                        </div>
+                        <h3 class="station-box-title">Join Live Session</h3>
+                        <button id="btn-goto-join" class="station-box-cta station-btn-blue">
+                            <span>Join Playroom</span>
+                        </button>
+                    </div>
+
+                    <!-- Box 2: Self-Paced Assignment (Pastel Green) -->
+                    <div class="station-card-box station-box-pastel-green">
+                        <div class="station-box-badge">Self-Paced</div>
+                        <div class="station-box-icon">
+                            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" x2="8" y1="13" y2="13"/>
+                                <line x1="16" x2="8" y1="17" y2="17"/>
+                            </svg>
+                        </div>
+                        <h3 class="station-box-title">Self-Paced Assignment</h3>
+                        <button id="btn-goto-offline-student" class="station-box-cta station-btn-green">
+                            <span>Start Assignment</span>
+                        </button>
+                    </div>
+
+                    <!-- Box 3: Review Graded Cases (Pastel Purple) -->
+                    <div class="station-card-box station-box-pastel-purple">
+                        <div class="station-box-badge">Results & Review</div>
+                        <div class="station-box-icon">
+                            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <h3 class="station-box-title">Review Graded Cases</h3>
+                        <button id="btn-goto-offline-review" class="station-box-cta station-btn-pink">
+                            <span>Review answer and feedback</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Teacher Column (Admin Only) -->
+                <div class="admin-only-ui station-instructor-wrap">
+                    <div class="station-header text-center">
+                        <span class="station-tag faculty-tag">Instructor Station</span>
+                        <h2 class="instructor-heading">Create and Critique</h2>
+                    </div>
+                    <div class="role-station-grid-2">
+                        <!-- Box 1: Design Your Games (Blue) -->
+                        <div class="station-card-box station-box-instructor-blue">
+                            <div class="station-box-badge">Case Authoring</div>
+                            <div class="station-box-icon">
+                                <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                            </div>
+                            <h3 class="station-box-title">Design Your Games</h3>
+                            <p class="station-box-desc">Create cases, questions, and launch games</p>
+                            <button id="btn-goto-maker" class="station-box-cta station-btn-instructor-blue">
+                                <span>Create</span>
+                            </button>
+                        </div>
+
+                        <!-- Box 2: Formative Assessment (Red) -->
+                        <div class="station-card-box station-box-instructor-red">
+                            <div class="station-box-badge">Formative Review</div>
+                            <div class="station-box-icon">
+                                <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 11l3 3L22 4"/>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                </svg>
+                            </div>
+                            <h3 class="station-box-title">Formative Assessment</h3>
+                            <p class="station-box-desc">Review submissions, score, and export reports</p>
+                            <button id="btn-goto-offline-teacher-login" class="station-box-cta station-btn-instructor-red">
+                                <span>Critique</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- 2. Join Screen (Student) -->
         <section id="join-screen" class="screen">
-            <div class="glass-container text-center">
-                <h2>Join Challenge</h2>
-                <p class="subtitle">Enter the room code from the big screen</p>
-                <div class="input-group mt-4">
-                    <input type="text" id="join-room-code" placeholder="6-Digit Room Code" maxlength="6" autocomplete="off">
+            <div class="clinical-auth-card">
+                <div class="login-brand-header text-center">
+                    <h2 class="auth-title text-center" style="margin: 0 0 1.25rem 0;">Join Playroom</h2>
                 </div>
-                <div class="input-group">
-                    <input type="text" id="join-player-name" placeholder="Your Name" autocomplete="off">
+                <div class="clinical-form-field">
+                    <label for="join-room-code" class="clinical-field-label">Access Code</label>
+                    <input type="text" id="join-room-code" class="clinical-input" maxlength="6" autocomplete="off" style="text-align:center; font-family:var(--font-mono); font-size:1.5rem; letter-spacing:0.2em; text-transform:uppercase;">
                 </div>
-                <button id="btn-join-room" class="btn-primary">Join</button>
-                <div class="btn-back-floating-wrapper">
-                    <button class="btn-secondary btn-back-floating mt-3 back-to-role">Back</button>
+                <div class="clinical-form-field">
+                    <label for="join-player-name" class="clinical-field-label">Name</label>
+                    <input type="text" id="join-player-name" class="clinical-input" autocomplete="name">
+                </div>
+                <div class="auth-actions-row">
+                    <button id="btn-join-room" class="btn-primary" style="width: 100%;">Join</button>
+                    <button class="btn-secondary back-to-role" style="width: 100%;">Back</button>
                 </div>
             </div>
         </section>
 
         <!-- Dashboard Screen (Host) -->
         <section id="dashboard-screen" class="screen">
-            <div class="glass-container maker-container" style="margin-top: 4rem;">
-                <h2 class="title-gradient text-center" style="margin-bottom: 2rem;">🎮 My Quiz Library</h2>
+            <div class="library-dashboard-container">
+                <header class="library-header-row">
+                    <div>
+                        <div class="auth-brand-badge">Quiz Management</div>
+                        <h1 class="library-main-title">Diagnostic Case Library</h1>
+                    </div>
+                    <div class="library-header-actions">
+                        <button id="btn-create-new-quiz" class="btn-primary">
+                            <svg class="lucide-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span>Create New Quiz</span>
+                        </button>
+                    </div>
+                </header>
 
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                    <button id="btn-create-new-quiz" class="btn-primary" style="font-size: 1.4rem; padding: 1.2rem 2.5rem; width: 100%; max-width: 360px;">🎮 Create New Game</button>
-                    <button id="btn-open-offline-dashboard-login" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px; border-color: #8b3dff; color: #c4b5fd;">Check & Score Formative</button>
-                    <button id="btn-dashboard-download" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Download Shared Quiz</button>
-                    <button id="btn-export-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Export My Quizzes</button>
-                    <button id="btn-import-local-quizzes" class="btn-secondary" style="font-size: 1rem; padding: 0.7rem 1.5rem; width: 100%; max-width: 260px;">Import My Quizzes</button>
+                <!-- Utility Action Bar -->
+                <div class="library-toolbar">
+                    <button id="btn-open-offline-dashboard-login" class="btn-secondary btn-sm">Formative Assessment</button>
+                    <button id="btn-dashboard-download" class="btn-secondary btn-sm">Download Shared Quiz</button>
+                    <button id="btn-import-local-quizzes" class="btn-secondary btn-sm">Import JSON</button>
+                    <button id="btn-export-local-quizzes" class="btn-secondary btn-sm">Export All</button>
                     <input id="local-quizzes-file" type="file" accept="application/json,.json" hidden>
-                    <button id="btn-ai-settings" class="btn-secondary" style="display: none; font-size: 1.2rem; padding: 1rem 2rem; background: var(--glass-bg); border-color: #8b3dff; color: #8b3dff; width: 100%; max-width: 300px;">✨ AI Auto-Grading Settings</button>
+                    <button id="btn-ai-settings" class="btn-secondary btn-sm" style="display: none;">AI Auto-Grading Settings</button>
                 </div>
 
-                <div id="local-quizzes-list" class="questions-list">
+                <div id="local-quizzes-list" class="questions-list library-cards-grid">
                     <!-- Local quizzes injected here -->
                 </div>
 
-                <div id="local-offline-assignments-section" style="margin-top: 2.5rem; display: none;">
-                    <h3 style="color: var(--primary); margin-bottom: 1rem; text-align: center;">Formative Assignments Created on This Device</h3>
-                    <div id="local-offline-assignments-list" class="questions-list"></div>
-                </div>
-
-                <div class="btn-back-floating-wrapper mt-4">
-                    <button class="btn-secondary btn-back-floating back-to-role">Back to Main Menu</button>
+                <div class="text-center mt-4">
+                    <button class="btn-secondary back-to-role" style="font-size:0.9rem; padding:0.5rem 1.25rem;">Back</button>
                 </div>
             </div>
         </section>
@@ -478,16 +595,16 @@
         <!-- 4. Lobby Screen -->
         <section id="lobby-screen" class="screen">
             <div class="glass-container text-center">
-                <h2 id="lobby-quiz-title" class="dynamic-gradient-title">Waiting Room</h2>
+                <h2 id="lobby-quiz-title" class="dynamic-gradient-title">Spot Diagnosis Game</h2>
                 <div class="room-code-display">
                     Room Code: <span id="display-room-code" class="highlight">------</span>
                 </div>
                 <div id="qrcode" class="qrcode-container host-only"></div>
 
-                <div class="player-count mt-4">
+                <div class="player-count mt-3 host-only">
                     Players Joined: <span id="lobby-player-count">0</span>
                 </div>
-                <div id="lobby-players-list" class="players-list"></div>
+                <div id="lobby-players-list" class="players-list host-only"></div>
 
                 <!-- Only visible to Host -->
                 <div class="host-only" style="margin-top: 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 12px;">
@@ -513,7 +630,7 @@
                         <!-- Style navigation -->
                         <div class="avatar-style-nav">
                             <button id="avatar-style-prev" class="btn-icon avatar-nav-btn" aria-label="Previous style">◀</button>
-                            <span id="avatar-style-label" class="avatar-style-label">adventurer</span>
+                            <span id="avatar-style-label" class="avatar-style-label">bottts</span>
                             <button id="avatar-style-next" class="btn-icon avatar-nav-btn" aria-label="Next style">▶</button>
                         </div>
 
@@ -538,9 +655,8 @@
 
                 </div>
 
-                <div class="student-only mt-4 waiting-text">Waiting for host to start...</div>
-                <div class="btn-back-floating-wrapper mt-4">
-                    <button class="btn-secondary btn-back-floating" onclick="window.location.reload()">Back</button>
+                <div class="btn-back-floating-wrapper mt-3">
+                    <button type="button" id="btn-lobby-back" class="btn-secondary btn-back-floating">Back</button>
                 </div>
             </div>
         </section>
@@ -580,25 +696,28 @@
             </div>
 
             <div class="quiz-content">
-                <!-- Question + host control row: question left, timer & answers right -->
-                <div class="question-prompt glass-container quiz-prompt-row">
-                    <div class="quiz-prompt-text">
+                <!-- Question prompt with Host timer on right -->
+                <div class="question-prompt glass-container quiz-prompt-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1.25rem;">
+                    <!-- Host Left Panel: Question Number Badge on Left -->
+                    <div class="host-quiz-left-panel host-only flex" style="align-items: center; flex-shrink: 0;">
+                        <div id="host-q-num" class="host-q-num-badge" style="font-size: 1.15rem; font-weight: 800; color: var(--primary); background: var(--primary-muted, rgba(30,58,138,0.08)); padding: 6px 16px; border-radius: 12px; border: 1.5px solid var(--border-color); white-space: nowrap; letter-spacing: 0.04em;">Question 1</div>
+                    </div>
+
+                    <div class="quiz-prompt-text" style="flex: 1; min-width: 0;">
                         <div id="student-q-num" class="student-only" style="text-align:center; font-size:1rem; font-weight:700; color:var(--primary); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.4rem; display:none;"></div>
                         <h2 id="question-text">Question text goes here</h2>
+                        <!-- Relocated Clinical Context: positioned cleanly directly below question text -->
+                        <div class="clinical-context" id="clinical-context" style="display:none;"></div>
                     </div>
-                    <div class="kahoot-middle-row host-only flex">
-                        <div class="kahoot-timer-container host-only flex">
+
+                    <!-- Host Right Panel: Circular Timer on Right -->
+                    <div class="host-quiz-right-panel host-only flex" style="align-items: center; gap: 1rem; flex-shrink: 0;">
+                        <div class="kahoot-timer-container flex" style="flex-shrink: 0;">
                             <svg class="kahoot-timer-svg" viewBox="0 0 100 100">
                                 <circle class="kahoot-timer-bg" cx="50" cy="50" r="45"></circle>
                                 <circle class="kahoot-timer-progress" id="kahoot-timer-progress" cx="50" cy="50" r="45"></circle>
                             </svg>
                             <span class="kahoot-timer-text" id="kahoot-timer-text">30</span>
-                        </div>
-                        <div class="kahoot-answers-container host-only flex host-presenter-box">
-                            <div class="host-presenter-count" id="kahoot-answers-box">
-                                <span class="host-presenter-big" id="kahoot-answers-count">0</span>
-                                <span class="host-presenter-total">/<span id="host-total-players">0</span> answered</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -607,10 +726,9 @@
                 <div class="quiz-main-row">
                     <!-- EKG Viewer -->
                     <div class="ekg-viewer glass-container" id="media-container">
-                        <div class="clinical-context" id="clinical-context">Context goes here</div>
                         <div id="ekg-images" class="media-images-grid" style="display:none;"></div>
                         <img id="ekg-image" src="" alt="Media" class="zoomable" title="Click to zoom" style="display:none;">
-                        <video id="ekg-video" controls loop playsinline webkit-playsinline style="display:none; width: 100%; max-height: 100%; background: black; border-radius: 8px;"></video>
+                        <video id="ekg-video" controls loop playsinline webkit-playsinline style="display:none; width: 100%; max-height: 100%; background: transparent; border-radius: 8px;"></video>
                         <div id="ekg-video-fallback" class="media-video-fallback" style="display:none; text-align:center; padding:2rem;">
                             <p style="color:var(--text-muted); margin-bottom:1rem;">Video failed to play — click retry</p>
                             <button class="btn-secondary" id="btn-video-retry">↻ Retry</button>
@@ -648,8 +766,13 @@
         <!-- 6. Feedback Screen -->
         <section id="feedback-screen" class="screen">
             <div class="glass-container text-center" style="max-width: 1000px;">
-                <h1 id="feedback-title">Time's Up!</h1>
+                <div id="feedback-stamp-container" class="feedback-stamp-container" style="display:none;">
+                    <div id="feedback-stamp" class="feedback-stamp" style="display:none;"></div>
+                </div>
+                <h1 id="feedback-title">Time's Up! Let Reveal</h1>
                 <p id="feedback-points" class="student-only">+0 Points</p>
+                <div id="feedback-rank-pill" class="feedback-rank-pill student-only" style="display:none;"></div>
+                <div id="feedback-your-answer" class="feedback-correct student-only" style="display:none; color: var(--secondary); margin: 0.5rem 0 1.25rem; font-size: 1.05rem; font-weight: 700;"></div>
 
                 <!-- Added for Review Deep Dive -->
                 <div id="feedback-review-context" style="display: none; margin-bottom: 2rem;">
@@ -668,24 +791,19 @@
                 <div id="feedback-typing-panel" class="student-only" style="display:none;"></div>
 
                 <div id="feedback-correct-answer" class="feedback-correct" style="display:none;"></div>
-
-                <div id="feedback-your-answer" class="feedback-correct" style="display:none; color: var(--secondary);"></div>
-                <div class="student-only mt-2" id="student-ai-reason-container" style="display:none;">
-                    <button id="btn-student-ai-reason" class="btn-secondary">🔍 View AI Concept Breakdown</button>
-                </div>
                 
                 <div class="host-only mt-4" id="host-student-details-section">
-                    <button id="btn-toggle-student-details" class="btn-secondary" style="margin-bottom: 1rem;">👁 Show Student Details</button>
+                    <button id="btn-toggle-student-details" class="btn-secondary" style="margin-bottom: 1rem;">Show Student Details</button>
                     <div id="host-student-details-container" style="display: none; text-align: left;"></div>
                 </div>
 
                 <div class="host-only mt-4">
                     <button id="btn-host-continue" class="btn-primary">Next Question</button>
-                    <button id="btn-back-to-review" class="btn-secondary" style="display:none; font-size: 1.5rem; padding: 1rem 3rem;">Back to Review List</button>
+                    <button id="btn-back-to-review" class="btn-secondary" style="display:none; font-size: 1.5rem; padding: 1rem 3rem;">Back</button>
                 </div>
-                <div class="student-only mt-4">
-                    <div class="loader" style="margin-top: 1rem;"></div>
-                    <div class="waiting-text mt-4">Waiting for host...</div>
+
+                <div class="student-only mt-3" id="student-ai-reason-container" style="display:none; text-align:center;">
+                    <button id="btn-student-ai-reason" class="btn-secondary" style="padding: 0.45rem 1.25rem; font-size: 0.9rem; font-weight: 700; border-radius: 10px;">View Scoring Concept</button>
                 </div>
             </div>
         </section>
@@ -693,60 +811,52 @@
         <!-- 7. Results Screen -->
         <section id="results-screen" class="screen">
             <div class="glass-container text-center" style="max-width: 900px;">
-                <h1>🏆 Final Results</h1>
+                <div id="results-podium-view">
+                    <h1>Final Results</h1>
 
-                <div class="student-only">
-                    <div class="final-score-box" style="margin-top: 0; margin-bottom: 1rem; padding: 1rem;">
-                        <span id="final-score-value" style="font-size: 3rem;">0</span>
-                        <span style="font-size: 1.2rem;">Your Total Points</span>
+                    <div class="student-only">
+                        <div class="final-score-box" style="margin-top: 0; margin-bottom: 1rem; padding: 1rem;">
+                            <span id="final-score-value" style="font-size: 3rem;">0</span>
+                            <span style="font-size: 1.2rem;">Your Total Points</span>
+                        </div>
+                    </div>
+
+                    <div class="leaderboard mt-4">
+                        <h3 id="podium-title" style="opacity:0; transition: opacity 0.6s;">Podium</h3>
+                        <div class="podium-container" id="podium-container">
+                            <div class="podium-spot" id="podium-2">
+                                <div class="podium-name" id="podium-name-2"></div>
+                                <div class="podium-score" id="podium-score-2"></div>
+                                <div class="podium-block silver"><span class="podium-rank-text">2nd</span></div>
+                            </div>
+                            <div class="podium-spot" id="podium-1">
+                                <div class="podium-name" id="podium-name-1"></div>
+                                <div class="podium-score" id="podium-score-1"></div>
+                                <div class="podium-block gold"><span class="podium-rank-text">1st</span></div>
+                            </div>
+                            <div class="podium-spot" id="podium-3">
+                                <div class="podium-name" id="podium-name-3"></div>
+                                <div class="podium-score" id="podium-score-3"></div>
+                                <div class="podium-block bronze"><span class="podium-rank-text">3rd</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-actions-row mt-4" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button type="button" class="btn-primary" id="btn-results-review">Review</button>
+                        <button type="button" class="btn-secondary host-only" id="btn-results-view-score">View Score</button>
+                        <button type="button" class="btn-secondary" id="btn-results-finish">Finish</button>
                     </div>
                 </div>
 
-                <div class="leaderboard mt-4">
-                    <h3 id="podium-title" style="opacity:0; transition: opacity 1s;">🏆 Top Players 🏆</h3>
-                    <div class="podium-container" id="podium-container">
-                        <div class="podium-spot" id="podium-2">
-                            <div class="podium-name" id="podium-name-2"></div>
-                            <div class="podium-score" id="podium-score-2"></div>
-                            <div class="podium-block silver">2nd</div>
-                        </div>
-                        <div class="podium-spot" id="podium-1">
-                            <div class="podium-name" id="podium-name-1"></div>
-                            <div class="podium-score" id="podium-score-1"></div>
-                            <div class="podium-block gold">1st</div>
-                        </div>
-                        <div class="podium-spot" id="podium-3">
-                            <div class="podium-name" id="podium-name-3"></div>
-                            <div class="podium-score" id="podium-score-3"></div>
-                            <div class="podium-block bronze">3rd</div>
-                        </div>
-                    </div>
-
-                    <h4 id="others-title" style="margin-top: 2rem; display: none;">Runner-ups</h4>
-                    <ul id="full-leaderboard-list" style="margin-top: 1rem; display: none;">
+                <div id="results-scoreboard-view" style="display: none; width: 100%; max-width: 700px; margin: 0 auto;">
+                    <h1 style="margin-bottom: 1.25rem;">Scoreboard</h1>
+                    <ul id="results-full-score-list" style="list-style: none; padding: 0; margin: 0 0 1.5rem 0; text-align: left; max-height: 60vh; overflow-y: auto;">
                         <!-- Injected via JS -->
                     </ul>
-                    <button class="btn-secondary mt-3" id="btn-toggle-leaderboard" style="display: none; margin: 0 auto;">View Full Scoreboard</button>
-                </div>
-
-                 <div class="mt-4">
-                     <button class="btn-primary host-only" id="btn-review-questions" style="display:none;">Review Questions</button>
-                     <button class="btn-secondary" id="btn-export-results-csv" style="display:none;">Export Results (CSV)</button>
-                 </div>
-                <div class="btn-back-floating-wrapper mt-4">
-                    <button class="btn-secondary btn-back-floating back-to-role">Return to Home</button>
-                </div>
-            </div>
-
-            <!-- Game-show spotlight sweeping the podium -->
-            <div id="results-spotlight" class="results-spotlight"></div>
-
-            <!-- Champion name reveal overlay -->
-            <div id="champion-overlay" class="champion-overlay">
-                <div class="champion-card">
-                    <div class="champion-label">🏆 CHAMPION 🏆</div>
-                    <div id="champion-name" class="champion-name">—</div>
-                    <div class="champion-scores-dot">🥇</div>
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn-secondary" id="btn-scoreboard-back">Back</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -759,33 +869,35 @@
                     <!-- Review items injected via JS -->
                 </div>
                 <div class="text-center mt-4" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
-                    <button class="btn-secondary" id="btn-export-pdf">Save as PDF</button>
-                    <button class="btn-secondary back-to-role">Main Menu</button>
-                    <button class="btn-primary back-to-dashboard">Go to Dashboard</button>
+                    <button type="button" class="btn-secondary student-only" id="btn-export-pdf">Save as PDF</button>
+                    <button type="button" class="btn-secondary" id="btn-review-back-to-podium">Back</button>
                 </div>
             </div>
         </section>
 
         <!-- 9. Offline Student Join / Lookup Screen -->
         <section id="offline-join-screen" class="screen">
-            <div class="glass-container text-center" style="max-width: 540px;">
-                <h2 class="title-gradient" id="offline-join-title">Formative Assignment</h2>
-                <p class="subtitle" id="offline-join-subtitle">เข้าทำควิซออฟไลน์ หรือทำต่อจากที่ค้างไว้</p>
-                <div class="input-group mt-4">
-                    <input type="text" id="offline-assign-code" placeholder="รหัสควิซ 6 หลัก (Assignment Code)" maxlength="8" autocomplete="off" style="text-transform: uppercase;">
+            <div class="clinical-auth-card">
+                <div class="login-brand-header text-center">
+                    <h2 class="auth-title text-center" id="offline-join-title" style="margin: 0 0 1.25rem 0;">Self-Paced Assignment</h2>
+                    <p class="subtitle" id="offline-join-subtitle" style="display: none;"></p>
                 </div>
-                <div class="input-group">
-                    <input type="text" id="offline-student-id" placeholder="รหัสนักศึกษา / เลขประจำตัว (ใช้ดูผลภายหลัง)" autocomplete="off">
+                <div class="clinical-form-field">
+                    <label for="offline-assign-code" class="clinical-field-label">Assignment Code</label>
+                    <input type="text" id="offline-assign-code" class="clinical-input" maxlength="8" autocomplete="off" style="text-align: center; font-family: var(--font-mono); font-size: 1.4rem; letter-spacing: 0.15em; text-transform: uppercase;">
                 </div>
-                <div class="input-group" id="offline-student-name-group">
-                    <input type="text" id="offline-student-name" placeholder="ชื่อ - นามสกุล" autocomplete="off">
+                <div class="clinical-form-field">
+                    <label for="offline-student-id" class="clinical-field-label">Student ID</label>
+                    <input type="text" id="offline-student-id" class="clinical-input" autocomplete="off">
                 </div>
-                <button id="btn-offline-enter" class="btn-primary" style="width: 100%; max-width: 320px;">เริ่มทำควิซ</button>
-                <p id="offline-join-hint" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.9rem;">
-                    💡 กรอกรหัสควิซ รหัสนักศึกษา และชื่อ-นามสกุลเพื่อเข้าทำแบบฝึกหัด
-                </p>
-                <div class="btn-back-floating-wrapper">
-                    <button class="btn-secondary btn-back-floating mt-3 back-to-role">Back</button>
+                <div class="clinical-form-field" id="offline-student-name-group">
+                    <label for="offline-student-name" class="clinical-field-label">Name</label>
+                    <input type="text" id="offline-student-name" class="clinical-input" autocomplete="name">
+                </div>
+                <div id="offline-join-hint" style="display: none;"></div>
+                <div class="auth-actions-row">
+                    <button id="btn-offline-enter" class="btn-primary" style="width: 100%;">Start Quiz</button>
+                    <button class="btn-secondary back-to-role" style="width: 100%;">Back</button>
                 </div>
             </div>
         </section>
@@ -796,13 +908,19 @@
             <div id="offline-sidebar-backdrop" class="offline-sidebar-backdrop"></div>
 
             <div class="offline-dashboard-layout" id="offline-dashboard-layout">
+                <!-- Collapsed Left-Docked Toggle Button -->
+                <button type="button" id="btn-offline-sidebar-expand" class="btn-sidebar-dock-toggle" title="Open Question Dashboard">
+                    <span class="dock-toggle-icon">▼</span>
+                    <span class="dock-toggle-text">Dashboard</span>
+                </button>
+
                 <!-- LEFT SIDEBAR / DASHBOARD -->
                 <aside id="offline-quiz-sidebar" class="offline-quiz-sidebar">
                     <div class="offline-sidebar-header">
                         <div class="offline-sidebar-brand">
-                            <span class="offline-sidebar-badge">Formative Mode</span>
+                            <span class="offline-sidebar-badge">Question Dashboard</span>
                             <button id="btn-offline-sidebar-toggle" class="btn-sidebar-collapse" title="Collapse Sidebar" type="button">
-                                <span class="collapse-icon">◀</span>
+                                <span class="collapse-icon">▲</span>
                             </button>
                             <button id="btn-offline-drawer-close" class="btn-drawer-close" title="Close Menu" type="button">✕</button>
                         </div>
@@ -813,28 +931,31 @@
 
                     <div class="offline-sidebar-nav-section">
                         <div class="offline-nav-section-header">
-                            <span class="offline-nav-section-title">Question Dashboard</span>
                             <span id="offline-answered-summary" class="offline-answered-summary"></span>
                         </div>
                         <!-- Question Navigator Pills / Grid -->
                         <div id="offline-question-nav" class="offline-question-nav-grid"></div>
                     </div>
 
-                    <div class="offline-sidebar-footer">
+                    <div class="offline-sidebar-footer" style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <button id="btn-offline-save-without-submit" type="button" class="btn-secondary btn-save-without-submit" style="width:100%; justify-content:center; padding:0.55rem 1rem; font-size:0.88rem; font-weight:700;">
+                            Save without submit
+                        </button>
                         <button id="btn-offline-submit-finish" type="button" class="btn-primary btn-submit-all" style="width:100%; justify-content:center; background:var(--success); border-color:var(--success);">
-                            ✓ Submit All & Finish
+                            Submit All & Finish
                         </button>
                     </div>
                 </aside>
 
-                <!-- EXPAND BUTTON (visible when sidebar is collapsed on desktop) -->
-                <button id="btn-offline-sidebar-expand" class="btn-sidebar-expand" title="Expand Sidebar" type="button">
-                    <span>▶</span>
-                    <span class="expand-text">Dashboard</span>
-                </button>
-
                 <!-- MAIN QUESTION STAGE -->
                 <main id="offline-quiz-main" class="offline-quiz-main">
+                    <!-- Desktop Stage Top Bar (Clock Timer when collapsed) -->
+                    <div class="offline-desktop-topbar">
+                        <div class="offline-topbar-left">
+                            <div id="offline-collapsed-timer" class="offline-timer-badge offline-collapsed-timer">⏱ --:--</div>
+                        </div>
+                    </div>
+
                     <!-- Mobile/Tablet Top Compact Bar -->
                     <div class="offline-mobile-topbar">
                         <button id="btn-offline-drawer-open" class="btn-drawer-toggle" type="button">
@@ -859,22 +980,23 @@
                         <h2 id="offline-q-text" class="offline-q-text"></h2>
                         <div id="offline-q-context" class="offline-q-context" style="display:none;"></div>
 
-                        <!-- Media container for offline question -->
-                        <div id="offline-media-container" class="offline-media-container" style="display:none;">
-                            <div id="offline-images" class="media-images-grid" style="display:none;"></div>
-                            <img id="offline-image" class="zoomable offline-media-img" style="display:none;" alt="Question media">
-                            <video id="offline-video" class="offline-media-video" style="display:none;" controls playsinline webkit-playsinline></video>
-                            <div id="offline-video-fallback" style="display:none; color:var(--danger); padding:0.75rem;">Unable to play video</div>
-                        </div>
+                        <div id="offline-q-body-split" class="offline-q-body-split">
+                            <!-- Media container for offline question (Left column on PC) -->
+                            <div id="offline-media-container" class="offline-media-container" style="display:none;">
+                                <div id="offline-images" class="media-images-grid" style="display:none;"></div>
+                                <img id="offline-image" class="zoomable offline-media-img" style="display:none;" alt="Question media">
+                                <video id="offline-video" class="offline-media-video" style="display:none;" controls playsinline webkit-playsinline></video>
+                                <div id="offline-video-fallback" style="display:none; color:var(--danger); padding:0.75rem;">Unable to play video</div>
+                            </div>
 
-                        <!-- Answer Area -->
-                        <div id="offline-answer-area" class="offline-answer-area"></div>
+                            <!-- Answer Area (Right column on PC) -->
+                            <div id="offline-answer-area" class="offline-answer-area"></div>
+                        </div>
                     </div>
 
-                    <!-- Prev / Next Navigation -->
+                    <!-- Prev / Next Navigation (Auto-save enabled, manual save button removed) -->
                     <div class="offline-nav-footer">
                         <button id="btn-offline-prev" class="btn-pill btn-offline-prev">⬅ Previous</button>
-                        <button id="btn-offline-save-progress" type="button" class="btn-secondary btn-offline-save">💾 Save Answer</button>
                         <button id="btn-offline-next" class="btn-pill btn-offline-next">Next ➡</button>
                     </div>
                 </main>
@@ -883,40 +1005,178 @@
 
         <!-- 11. Offline Student Result & Feedback View Screen -->
         <section id="offline-student-result-screen" class="screen">
-            <div class="glass-container" style="max-width: 960px; width: 96%; margin-top: 3.5rem; max-height: 88vh; overflow-y: auto;">
-                <div id="offline-student-result-content"></div>
-                <div class="text-center mt-4 offline-result-actions" style="display:flex; gap:0.75rem; justify-content:center; align-items:center; flex-wrap:wrap;">
-                    <button id="btn-offline-refresh-result" class="btn-secondary" style="width:auto; min-width:150px; padding:0.65rem 1.35rem;">Refresh Results</button>
-                    <button id="btn-offline-print-result" class="btn-secondary" style="width:auto; min-width:150px; padding:0.65rem 1.35rem;">Print / Save PDF</button>
-                    <button class="btn-primary back-to-role" style="width:auto; min-width:160px; padding:0.65rem 1.35rem;">Back to Main Menu</button>
-                </div>
+            <!-- Backdrop for off-canvas drawer on mobile/tablet -->
+            <div id="offline-review-sidebar-backdrop" class="offline-sidebar-backdrop"></div>
+
+            <div class="offline-dashboard-layout" id="offline-review-dashboard-layout">
+                <!-- Collapsed Left-Docked Toggle Button -->
+                <button type="button" id="btn-offline-review-sidebar-expand" class="btn-sidebar-dock-toggle" title="Open Question Dashboard">
+                    <span class="dock-toggle-icon">▼</span>
+                    <span class="dock-toggle-text">Dashboard</span>
+                </button>
+
+                <!-- LEFT SIDEBAR / DASHBOARD -->
+                <aside id="offline-review-sidebar" class="offline-quiz-sidebar">
+                    <div class="offline-sidebar-header">
+                        <div class="offline-sidebar-brand">
+                            <span class="offline-sidebar-badge">Question Dashboard</span>
+                            <button id="btn-offline-review-sidebar-toggle" class="btn-sidebar-collapse" title="Collapse Sidebar" type="button">
+                                <span class="collapse-icon">▲</span>
+                            </button>
+                            <button id="btn-offline-review-drawer-close" class="btn-drawer-close" title="Close Menu" type="button">✕</button>
+                        </div>
+                        <div id="offline-review-quiz-title" class="offline-quiz-title"></div>
+                        <div id="offline-review-student-badge" class="offline-student-badge"></div>
+                        <div id="offline-review-score-badge" class="offline-timer-badge" style="font-weight:800; color:var(--primary); border-color:var(--primary);">Score: -- / --</div>
+                    </div>
+
+                    <!-- Status Box & Overall Feedback -->
+                    <div id="offline-review-status-container" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+
+                    <div class="offline-sidebar-nav-section">
+                        <div class="offline-nav-section-header">
+                            <span>Questions</span>
+                            <span id="offline-review-questions-count"></span>
+                        </div>
+                        <!-- Question Navigator Pills Grid -->
+                        <div id="offline-review-question-nav" class="offline-question-nav-grid"></div>
+                    </div>
+
+                    <div class="offline-sidebar-footer" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
+                        <button type="button" id="btn-offline-review-print" class="btn-secondary" style="width: 100%; justify-content: center; padding: 0.5rem; font-size: 0.88rem;">
+                            Print / Save PDF
+                        </button>
+                        <button type="button" id="btn-offline-review-refresh" class="btn-secondary" style="width: 100%; justify-content: center; padding: 0.5rem; font-size: 0.88rem;">
+                            Refresh Results
+                        </button>
+                        <button type="button" class="btn-secondary back-to-role" style="width: 100%; justify-content: center; padding: 0.5rem; font-size: 0.88rem;">
+                            Back
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- MAIN REVIEW STAGE -->
+                <main id="offline-review-main" class="offline-quiz-main">
+
+                    <!-- Mobile/Tablet Top Compact Bar -->
+                    <div class="offline-mobile-topbar">
+                        <button id="btn-offline-review-drawer-open" class="btn-drawer-toggle" type="button">
+                            <span class="drawer-burger-icon">☰</span>
+                            <span>Dashboard</span>
+                        </button>
+                        <div id="offline-review-mobile-q-indicator" class="offline-mobile-q-indicator">Question</div>
+                        <div id="offline-review-mobile-score" class="offline-mobile-timer" style="color: var(--primary);">Score: -- / --</div>
+                    </div>
+
+                    <!-- Scrollable Feed of All Questions (Vertical Scroll) -->
+                    <div id="offline-review-feed-container" class="offline-scrollable-feed" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; box-sizing: border-box; padding-bottom: 3rem;">
+                        <!-- Injected by renderOfflineStudentResultScreen() -->
+                    </div>
+                </main>
             </div>
+
+            <!-- Hidden container for window.print() printing full report -->
+            <div id="offline-review-print-container" class="offline-review-print-all" style="display:none;"></div>
         </section>
 
-        <!-- 12. Offline Teacher Reviewer Dashboard Screen -->
+        <!-- 12. Offline Teacher Reviewer Dashboard Screen (Full-Screen Workstation, No Floating Box) -->
         <section id="offline-teacher-screen" class="screen">
-            <div class="glass-container" style="max-width: 1180px; width: 96%; margin-top: 3.5rem; max-height: 90vh; overflow-y: auto;">
-                <div id="offline-teacher-header" style="text-align: center; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border);">
-                    <h2 id="offline-teacher-title" class="title-gradient" style="margin: 0 0 0.5rem 0; font-size: 2rem;"></h2>
-                    <div id="offline-teacher-meta" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6;"></div>
+            <div class="offline-teacher-workspace-container" style="width: 100%; max-width: 1400px; margin: 0 auto; box-sizing: border-box;">
+                <div id="offline-teacher-header" style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+                    <h2 id="offline-teacher-title" class="title-gradient" style="margin: 0 0 0.5rem 0; font-size: 2.3rem; font-weight: 800;"></h2>
+                    <div id="offline-teacher-meta" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6;"></div>
                     <div class="offline-teacher-actions" style="display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; align-items: center;">
                         <button id="btn-offline-share-info" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Code & QR</button>
                         <button id="btn-offline-edit-window" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Schedule Window</button>
                         <button id="btn-offline-release-all" class="btn-primary" style="width: auto; min-width: 150px; padding: 0.55rem 1.15rem; font-size: 0.92rem; background: var(--success); border-color: var(--success);">Release All Results</button>
                         <button id="btn-offline-export-csv" class="btn-secondary" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Export CSV</button>
-                        <button class="btn-secondary back-to-dashboard" style="width: auto; min-width: 130px; padding: 0.55rem 1.15rem; font-size: 0.92rem;">Back to Library</button>
                     </div>
                 </div>
 
                 <!-- Teacher View Tabs -->
-                <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.25rem 0;">
-                    <button class="btn-pill btn-pill-primary offline-t-tab" data-tab="students" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Students</button>
-                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="by-question" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Grade by Question</button>
-                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="stats" style="padding: 0.5rem 1.2rem; font-size: 0.95rem;">Stats & Score Chart</button>
+                <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; justify-content: center; align-items: center; margin: 1.25rem 0 1.75rem;">
+                    <button class="btn-pill btn-pill-primary offline-t-tab" data-tab="students" style="padding: 0.55rem 1.35rem; font-size: 0.95rem;">Students</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="by-question" style="padding: 0.55rem 1.35rem; font-size: 0.95rem;">Grade by Question</button>
+                    <button class="btn-pill btn-pill-outline offline-t-tab" data-tab="stats" style="padding: 0.55rem 1.35rem; font-size: 0.95rem;">Stats & Score Chart</button>
                 </div>
 
-                <!-- Tab Body -->
-                <div id="offline-teacher-body"></div>
+                <!-- Tab Body (Full Width Content) -->
+                <div id="offline-teacher-body" style="width: 100%; box-sizing: border-box;"></div>
+            </div>
+        </section>
+
+        <!-- 13. Offline Teacher Full-Screen Grading Screen (No Popup Modal!) -->
+        <section id="offline-teacher-grade-screen" class="screen">
+            <!-- Backdrop for off-canvas drawer on mobile/tablet -->
+            <div id="offline-grade-sidebar-backdrop" class="offline-sidebar-backdrop"></div>
+
+            <div class="offline-dashboard-layout" id="offline-grade-dashboard-layout">
+                <!-- Collapsed Left-Docked Toggle Button -->
+                <button type="button" id="btn-offline-grade-sidebar-expand" class="btn-sidebar-dock-toggle" title="Open Grading Dashboard">
+                    <span class="dock-toggle-icon">☰</span>
+                    <span class="dock-toggle-text">Dashboard</span>
+                </button>
+
+                <!-- SIDEBAR / DASHBOARD -->
+                <aside id="offline-grade-sidebar" class="offline-quiz-sidebar">
+                    <div class="offline-sidebar-header">
+                        <div class="offline-sidebar-brand">
+                            <span class="offline-sidebar-badge">Grading Dashboard</span>
+                            <button id="btn-offline-grade-sidebar-toggle" class="btn-sidebar-collapse" title="Hide Sidebar" type="button">
+                                <span class="collapse-icon">▲</span>
+                            </button>
+                            <button id="btn-offline-grade-drawer-close" class="btn-drawer-close" title="Close Menu" type="button">✕</button>
+                        </div>
+                        <div id="offline-grade-student-title" class="offline-quiz-title" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);"></div>
+                        <div id="offline-grade-student-meta" class="offline-student-badge"></div>
+                        <div id="offline-grade-total-score-badge" class="offline-timer-badge" style="font-weight: 800; color: var(--success); border-color: var(--success); font-size: 1.1rem; padding: 0.4rem 0.85rem;">
+                            Score: 0 / 0
+                        </div>
+                    </div>
+
+                    <!-- Question Navigator Pills Grid -->
+                    <div class="offline-sidebar-nav-section" style="margin-top: 0.5rem;">
+                        <div class="offline-nav-section-header">
+                            <span>Questions</span>
+                            <span id="offline-grade-questions-count"></span>
+                        </div>
+                        <div id="offline-grade-question-nav" class="offline-question-nav-grid"></div>
+                    </div>
+
+                    <!-- Overall Feedback for Student -->
+                    <div style="margin-top: 0.85rem; padding: 0 4px;">
+                        <label for="grade-overall-feedback-input" style="font-size: 0.82rem; font-weight: 700; color: #8b3dff; display: block; margin-bottom: 4px;">Overall Feedback for Student</label>
+                        <textarea id="grade-overall-feedback-input" class="clinical-input" style="width: 100%; min-height: 85px; font-size: 0.88rem; padding: 0.55rem; resize: vertical; box-sizing: border-box; line-height: 1.45;" placeholder="Write praise, review points, or overall advice..."></textarea>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div class="offline-sidebar-footer" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto; padding-top: 1rem;">
+                        <button type="button" id="btn-save-grade-screen" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.65rem; font-size: 0.95rem; background: var(--primary);">
+                            Save Score & Feedback
+                        </button>
+                        <button type="button" id="btn-cancel-grade-screen" class="btn-secondary" style="width: 100%; justify-content: center; padding: 0.5rem; font-size: 0.88rem;">
+                            Back
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- MAIN SCROLLABLE GRADING FEED -->
+                <main id="offline-grade-main" class="offline-quiz-main" style="width: 100%; min-width: 0;">
+                    <!-- Mobile/Tablet Top Compact Bar -->
+                    <div class="offline-mobile-topbar" style="margin-bottom: 1rem;">
+                        <button id="btn-offline-grade-drawer-open" class="btn-drawer-toggle" type="button">
+                            <span class="drawer-burger-icon">☰</span>
+                            <span>Dashboard</span>
+                        </button>
+                        <div id="offline-grade-mobile-title" class="offline-mobile-q-indicator">Grading</div>
+                        <button type="button" id="btn-save-grade-mobile" class="btn-primary btn-sm">Save</button>
+                    </div>
+
+                    <!-- Feed of all question grading cards -->
+                    <div id="offline-grade-cards-feed" class="offline-scrollable-feed" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%; box-sizing: border-box; padding-bottom: 3rem;">
+                        <!-- Injected by openStudentGradingScreen() -->
+                    </div>
+                </main>
             </div>
         </section>
     </div>
@@ -1037,60 +1297,11 @@
             <!-- Appearance tab -->
             <div id="settings-tab-appearance" class="settings-tab-panel">
                 <div class="form-group" style="margin-bottom:1.2rem;">
-                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Theme</label>
+                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Theme Palette</label>
                     <select id="theme-select" class="settings-select">
-                        <option value="dark">🌑 Dark</option>
-                        <option value="light">☀️ Light</option>
-                        <option value="pastel">🌸 Pastel</option>
-                        <option value="earth">🌿 Earth</option>
-                        <option value="warm">🔥 Warm</option>
-                        <option value="cool">❄️ Cool</option>
+                        <option value="light">Light (Clinical Workstation)</option>
+                        <option value="dark">Dark (Surgical Slate)</option>
                     </select>
-                </div>
-
-                <div class="settings-row">
-                    <div class="settings-row-label">
-                        <strong>Background Video</strong>
-                        <span class="settings-row-sub">Animated background on waiting screens</span>
-                    </div>
-                    <label class="ios-toggle">
-                        <input type="checkbox" id="settings-video-toggle">
-                        <span class="ios-toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="form-group" id="settings-video-style-wrap" style="margin-bottom:1.2rem;">
-                    <label style="display:block; margin-bottom:0.4rem; color:var(--text-muted); font-size:0.9rem; font-weight:600;">Video Style</label>
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.6rem;">
-                        <div class="video-style-card" data-style="style1" title="Style 1">
-                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
-                                <source src="bg-dark.mp4" type="video/mp4">
-                            </video>
-                            <div class="video-style-name">Style 1</div>
-                        </div>
-                        <div class="video-style-card" data-style="style2" title="Style 2">
-                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
-                                <source src="25547-350507936_medium.mp4" type="video/mp4">
-                            </video>
-                            <div class="video-style-name">Style 2</div>
-                        </div>
-                        <div class="video-style-card" data-style="style3" title="Style 3">
-                            <video muted loop playsinline webkit-playsinline preload="metadata" style="pointer-events:none;">
-                                <source src="30356-380729027_medium.mp4" type="video/mp4">
-                            </video>
-                            <div class="video-style-name">Style 3</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-row">
-                    <div class="settings-row-label">
-                        <strong>Particles</strong>
-                        <span class="settings-row-sub">Floating effects per theme</span>
-                    </div>
-                    <label class="ios-toggle">
-                        <input type="checkbox" id="settings-effects-toggle">
-                        <span class="ios-toggle-slider"></span>
-                    </label>
                 </div>
             </div>
 
@@ -1144,7 +1355,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-    <script src="app-services.js?v=8"></script>
-    <script src="app.js?v=30"></script>
+    <script src="app-services.js?v=9"></script>
+    <script src="app.js?v=47"></script>
 </body>
 </html>

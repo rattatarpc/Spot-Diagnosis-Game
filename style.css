@@ -1,138 +1,77 @@
 :root {
-    --bg-color: #0B1118;
-    --bg-dark: #0B1118;
-    --surface: #141E28;
-    --primary: #0ea5e9;
-    --primary-hover: #0284c7;
-    --secondary: #8b5cf6;
-    --secondary-hover: #7c3aed;
-    --accent: #8b5cf6;
-    --success: #10b981;
-    --danger: #ef4444;
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --glass-bg: #141E28;
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --input-bg: rgba(11, 17, 24, 0.75);
-    --panel-bg: #141E28;
-    --arena-glow-1: rgba(14, 165, 233, 0.15);
-    --arena-glow-2: rgba(36, 53, 71, 0.25);
-    --font-display: 'Anton', 'Outfit', sans-serif;
+    /* Base Surface - Dark Theme (Deep Navy Workstation) */
+    --bg-color: #070D18;
+    --bg-dark: #070D18;
+    --surface: #0F172A;
+    --panel-bg: #0F172A;
+    --glass-bg: #0F172A;
+    --input-bg: #0B1120;
+    --border-subtle: #1E293B;
+    --glass-border: #1E293B;
+    
+    /* Primary Accent - Deep Medical Navy (Dark Theme Bright Blue for contrast) */
+    --primary: #38BDF8;
+    --primary-hover: #0EA5E9;
+    --primary-muted: rgba(56, 189, 248, 0.14);
+    --secondary: #1D4ED8;
+    --secondary-hover: #1E40AF;
+    --accent: #38BDF8;
+
+    /* Semantic States */
+    --success: #10B981;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+
+    /* Typography: TH Sarabun PSK / Sarabun with Inter and JetBrains Mono */
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --font-sans: 'TH Sarabun PSK', 'Sarabun', 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-display: 'TH Sarabun PSK', 'Sarabun', 'Inter', sans-serif;
 }
 
 body.light-theme {
-    --bg-color: #f4f6fb;
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary: #6366f1;
-    --secondary-hover: #4f46e5;
-    --accent: #6366f1;
+    /* Base Surface - Light Theme (Clean Crisp White/Slate) */
+    --bg-color: #F4F6F9;
+    --bg-dark: #EAEFF5;
+    --surface: #FFFFFF;
+    --panel-bg: #FFFFFF;
+    --glass-bg: #FFFFFF;
+    --input-bg: #F8FAFC;
+    --border-subtle: #CBD5E1;
+    --glass-border: #E2E8F0;
+
+    /* Primary Accent - Deep Navy Blue (น้ำเงินเข้ม สบายตา น่าเชื่อถือ) */
+    --primary: #1E3A8A;
+    --primary-hover: #1E40AF;
+    --primary-muted: rgba(30, 58, 138, 0.08);
+    --secondary: #2563EB;
+    --secondary-hover: #1D4ED8;
+    --accent: #1E3A8A;
+
+    /* Semantic States */
     --success: #059669;
-    --danger: #dc2626;
-    --text-main: #0f172a;
+    --danger: #DC2626;
+    --warning: #D97706;
+
+    /* Typography */
+    --text-main: #0F172A;
     --text-muted: #475569;
-    --glass-bg: rgba(255, 255, 255, 0.82);
-    --glass-border: rgba(0, 0, 0, 0.12);
-    --input-bg: rgba(255, 255, 255, 0.95);
-    --panel-bg: rgba(255, 255, 255, 0.9);
-    --arena-glow-1: rgba(37, 99, 235, 0.14);
-    --arena-glow-2: rgba(99, 102, 241, 0.14);
 }
-
-body.pastel-theme {
-    --bg-color: #fbeefd;
-    --primary: #c76bf3;
-    --primary-hover: #b450e6;
-    --secondary: #f27fc0;
-    --secondary-hover: #e967b0;
-    --accent: #f27fc0;
-    --success: #34d399;
-    --danger: #fb7185;
-    --text-main: #581c87;
-    --text-muted: #a855f7;
-    --glass-bg: rgba(255, 250, 255, 0.85);
-    --glass-border: rgba(199, 107, 243, 0.35);
-    --input-bg: rgba(255, 255, 255, 0.92);
-    --panel-bg: rgba(255, 255, 255, 0.88);
-    --arena-glow-1: rgba(216, 165, 245, 0.45);
-    --arena-glow-2: rgba(251, 200, 223, 0.5);
-}
-
-body.earth-theme {
-    --bg-color: #f2ecdf;
-    --primary: #9a4d0e;
-    --primary-hover: #7c3d08;
-    --secondary: #5b7a1e;
-    --secondary-hover: #476114;
-    --accent: #a07a3f;
-    --success: #3f6212;
-    --danger: #b45309;
-    --text-main: #292524;
-    --text-muted: #78716c;
-    --glass-bg: rgba(250, 245, 237, 0.85);
-    --glass-border: rgba(146, 64, 14, 0.25);
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --panel-bg: rgba(250, 246, 240, 0.9);
-    --arena-glow-1: rgba(180, 122, 40, 0.25);
-    --arena-glow-2: rgba(107, 142, 35, 0.22);
-}
-
-body.warm-theme {
-    --bg-color: #ffeeda;
-    --primary: #e55c0d;
-    --primary-hover: #c2430a;
-    --secondary: #e08a00;
-    --secondary-hover: #b87400;
-    --accent: #f27f0d;
-    --success: #65a30d;
-    --danger: #e11d48;
-    --text-main: #431407;
-    --text-muted: #9a3412;
-    --glass-bg: rgba(255, 249, 242, 0.85);
-    --glass-border: rgba(229, 92, 13, 0.28);
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --panel-bg: rgba(255, 250, 244, 0.9);
-    --arena-glow-1: rgba(255, 120, 30, 0.28);
-    --arena-glow-2: rgba(250, 190, 60, 0.3);
-}
-
-body.cool-theme {
-    --bg-color: #e8f4ff;
-    --primary: #0284c7;
-    --primary-hover: #0369a1;
-    --secondary: #4f46e5;
-    --secondary-hover: #4338ca;
-    --accent: #6366f1;
-    --success: #059669;
-    --danger: #dc2626;
-    --text-main: #0c4a6e;
-    --text-muted: #0369a1;
-    --glass-bg: rgba(240, 249, 255, 0.85);
-    --glass-border: rgba(2, 132, 199, 0.25);
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --panel-bg: rgba(250, 252, 255, 0.9);
-    --arena-glow-1: rgba(2, 132, 199, 0.2);
-    --arena-glow-2: rgba(99, 102, 241, 0.18);
-}
-
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-sans);
 }
 
 body {
     background-color: var(--bg-color);
-    background-image: 
-        radial-gradient(at 0% 0%, var(--arena-glow-1) 0px, transparent 55%),
-        radial-gradient(at 100% 100%, var(--arena-glow-2) 0px, transparent 55%);
-    background-attachment: fixed;
     color: var(--text-main);
     min-height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.4s, color 0.4s;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 /* Game show display font for titles, scores and numbers.
@@ -352,7 +291,7 @@ h1, h2, h3 {
     transform: scale(1.1);
 }
 
-/* Screen Management */
+/* Screen Management (Clean instant switch without top-screen clipping) */
 .screen {
     position: absolute;
     top: 0;
@@ -361,25 +300,55 @@ h1, h2, h3 {
     height: 0;
     min-height: 0;
     overflow: hidden;
-    padding: 1rem;
-    display: flex;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: none !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.4s ease-in-out, transform 0.4s ease;
-    transform: translateY(20px);
+    transform: none !important;
 }
 
 .screen.active {
+    display: flex !important;
     height: auto;
     min-height: 100%;
     overflow: visible;
+    padding: 1rem !important;
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: none !important;
     z-index: 10;
+    animation: screenEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes screenEntrance {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Subtle, smooth scale arrival on cards inside the active screen - zero top clipping */
+.screen.active > .clinical-auth-card,
+.screen.active > .glass-container,
+.screen.active > .role-station-container,
+.screen.active > .library-dashboard-container,
+.screen.active > .countdown-wrap {
+    animation: cardEntrance 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.975);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+    to { opacity: 1; }
 }
 
 /* Maker screen: top-aligned, full screen */
@@ -1056,7 +1025,7 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background: white; 
+    background: transparent;
     border-radius: 8px;
 }
 
@@ -1150,17 +1119,14 @@ body[data-role="student"] .student-only.flex { display: flex !important; }
     padding: 4.25rem 1rem 0.75rem !important;
     box-sizing: border-box !important;
 }
-#quiz-screen.active {
+/* Both Host and Student fit strictly within viewport on active quiz screen */
+#quiz-screen.active,
+body[data-role="student"] #quiz-screen.active,
+body[data-role="host"] #quiz-screen.active {
     height: 100dvh !important;
     max-height: 100dvh !important;
     min-height: 0 !important;
     overflow: hidden !important;
-}
-/* Students keep their own scrollable behavior */
-body[data-role="student"] #quiz-screen.active {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
 }
 #quiz-screen .quiz-content {
     flex: 1 1 auto;
@@ -1285,66 +1251,139 @@ body[data-role="host"] #quiz-screen .quiz-content {
     transform: translateY(-3px) scale(1.02);
 }
 
-/* Info / Slide view: media left, text right, full screen */
+/* Info / Slide view: media left, text right, single screen without overflow */
 .slide-view {
-    display: flex;
+    display: none;
     flex-direction: column;
     width: 100%;
     height: 100%;
     grid-column: 1 / -1;
-    min-height: 80vh;
+    max-height: calc(100dvh - 85px);
+    min-height: 0;
     box-sizing: border-box;
-    padding: 1.5rem 2.5rem;
+    padding: 0.5rem 1rem;
+    overflow: hidden;
+}
+body.layout-info #slide-view {
+    display: flex !important;
+}
+body:not(.layout-info) #slide-view,
+#slide-view.hidden,
+#slide-view[style*="display: none"] {
+    display: none !important;
 }
 .slide-main-row {
-    display: flex;
-    flex-direction: row;
-    gap: 2.5rem;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 1.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
 }
 .slide-media-area {
-    flex: 1 1 50%;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    margin-bottom: 0 !important;
 }
 .slide-media-area img,
 .slide-media-area video {
-    max-width: 100%;
-    max-height: 70vh;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    object-fit: contain;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18) !important;
+    object-fit: contain !important;
+    display: block !important;
 }
 .slide-text-area {
-    flex: 1 1 50%;
-    min-width: 0;
-    text-align: left;
+    flex: 1 1 45% !important;
+    min-width: 0 !important;
+    text-align: left !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+.slide-text-area h2#slide-title {
+    font-size: 1.45rem !important;
+    margin-bottom: 0.4rem !important;
+    line-height: 1.25 !important;
+}
+.slide-text-area div#slide-description {
+    font-size: 1rem !important;
+    line-height: 1.45 !important;
 }
 .slide-bottom-controls {
     display: flex;
     justify-content: center;
-    padding: 1rem 0 0.5rem;
+    padding: 0.5rem 0 0.15rem;
     flex-shrink: 0;
+    margin-top: 0.4rem;
+    position: relative;
+    z-index: 10;
+}
+body[data-role="host"] .slide-bottom-controls {
+    display: flex !important;
+}
+/* Player / Student live game: NEVER display any host control or next slide button */
+body[data-role="student"] #quiz-screen .host-controls,
+body[data-role="student"] #quiz-screen .slide-bottom-controls,
+body[data-role="student"] #quiz-screen #btn-slide-next,
+body[data-role="student"] #quiz-screen #btn-host-next,
+body[data-role="student"] #quiz-screen .host-only,
+body:not([data-role="host"]) #quiz-screen .host-controls,
+body:not([data-role="host"]) #quiz-screen .slide-bottom-controls,
+body:not([data-role="host"]) #quiz-screen #btn-slide-next,
+body:not([data-role="host"]) #quiz-screen #btn-host-next,
+body:not([data-role="host"]) #quiz-screen .host-only {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+#btn-slide-next {
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 0.95rem !important;
+    padding: 0.4rem 2rem !important;
+    border-radius: 8px !important;
 }
 @media (max-width: 768px) {
     .slide-view {
-        padding: 1rem;
-        min-height: 60vh;
+        padding: 0.35rem 0.5rem !important;
+        max-height: calc(100dvh - 80px) !important;
     }
     .slide-main-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
     }
-    .slide-media-area img,
-    .slide-media-area video {
-        max-height: 40vh;
+    .slide-media-area {
+        flex: 1 1 0 !important;
+        max-height: 52% !important;
+    }
+    .slide-text-area {
+        flex: 1 1 0 !important;
+        max-height: 40% !important;
+        text-align: center !important;
+        margin-bottom: 0.25rem !important;
+    }
+    .slide-text-area h2#slide-title {
+        font-size: 1.15rem !important;
+    }
+    .slide-text-area div#slide-description {
+        font-size: 0.88rem !important;
     }
 }
 
@@ -1466,19 +1505,26 @@ body[data-role="host"] #quiz-screen .quiz-content {
     justify-content: center;
     align-items: flex-end;
     gap: 1rem;
-    margin: 3rem auto 0;
-    height: 300px;
+    margin: 0.75rem auto 0;
+    height: 310px;
     max-width: 600px;
+    width: 100%;
+    overflow: hidden;
+    border-bottom: 3px solid var(--glass-border);
+    padding-top: 0.75rem;
+    box-sizing: border-box;
 }
 
 .podium-spot {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
     width: 30%;
+    min-width: 0;
     opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(100%);
+    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
 }
 
 .podium-spot.revealed {
@@ -1487,20 +1533,36 @@ body[data-role="host"] #quiz-screen .quiz-content {
 }
 
 .podium-name {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
     color: var(--text-main);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: none !important;
     text-align: center;
-    word-break: break-word;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.podium-name-text {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+    box-sizing: border-box;
+    line-height: 1.25;
 }
 
 .podium-score {
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--accent);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
+    line-height: 1.2;
 }
 
 .podium-block {
@@ -1509,25 +1571,38 @@ body[data-role="host"] #quiz-screen .quiz-content {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 1rem;
-    font-size: 2rem;
+    padding-top: 0.75rem;
+    font-size: 1.85rem;
     font-weight: 800;
     color: rgba(0,0,0,0.5);
     box-shadow: inset 0 2px 10px rgba(255,255,255,0.3), 0 -5px 15px rgba(0,0,0,0.3);
 }
 
-#podium-1 .podium-block { height: 200px; background: linear-gradient(135deg, #fef08a, #eab308); } /* Gold */
-#podium-2 .podium-block { height: 140px; background: linear-gradient(135deg, #e2e8f0, #94a3b8); } /* Silver */
-#podium-3 .podium-block { height: 100px; background: linear-gradient(135deg, #fed7aa, #b45309); } /* Bronze */
+#podium-1 .podium-block { height: 165px; background: linear-gradient(135deg, #fef08a, #eab308); } /* Gold */
+#podium-2 .podium-block { height: 120px; background: linear-gradient(135deg, #e2e8f0, #94a3b8); } /* Silver */
+#podium-3 .podium-block { height: 85px; background: linear-gradient(135deg, #fed7aa, #b45309); } /* Bronze */
 
-#podium-1.revealed .podium-block {
-    animation: goldBounce 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.scoreboard-row-item {
+    background: var(--input-bg);
+    border: 1.5px solid var(--glass-border);
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.6rem;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-@keyframes goldBounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(234, 179, 8, 0.8); }
-    100% { transform: scale(1); box-shadow: 0 0 20px rgba(234, 179, 8, 0.5); }
+body[data-role="host"] #btn-results-view-score {
+    display: inline-flex !important;
+}
+body[data-role="student"] #btn-export-pdf {
+    display: inline-flex !important;
+}
+#student-ai-reason-container.hidden-important,
+#student-ai-reason-container[style*="display: none"],
+#student-ai-reason-container[style*="display:none"] {
+    display: none !important;
 }
 
 /* Hourglass Spinner Loader (used while waiting for the host) */
@@ -2195,7 +2270,7 @@ body[data-role="host"] #quiz-screen .quiz-content {
 .btn-create-host {
     background: var(--glass-bg) !important;
     border: 1px solid var(--glass-border) !important;
-    border-bottom: 4px solid rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid var(--glass-border) !important;
     border-radius: 14px;
     color: var(--text-main) !important;
     font-weight: 800;
@@ -2293,24 +2368,29 @@ body[data-role="host"] #quiz-screen .quiz-content {
     box-shadow: 0 0 0 2px #eab308 !important;
 }
 .offline-q-pill {
-    min-width: 44px;
+    width: 44px;
     height: 44px;
-    padding: 0 0.5rem;
+    min-width: 44px;
+    padding: 0;
+    margin: 0;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    gap: 4px;
     font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
     box-sizing: border-box;
     text-align: center;
+    line-height: 1;
 }
 .offline-q-pill.has-star {
-    min-width: 68px;
-    padding: 0 0.75rem;
+    min-width: 66px;
+    width: auto;
+    max-width: none;
+    padding: 0 10px;
 }
 
 /* Offline Quiz Options (MC & Multiple Answer) Selection Styling */
@@ -2570,7 +2650,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     text-transform: uppercase;
     letter-spacing: 0.03em;
     border: none;
-    border-bottom: 4px solid rgba(0, 0, 0, 0.2);
+    border: none !important;
     border-radius: 12px;
     box-shadow: 0 4px 12px -4px var(--accent);
 }
@@ -2694,26 +2774,29 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     width: 170px;
     height: 170px;
     border-radius: 50%;
-    border: 3.5px solid var(--primary);
+    border: 4px solid var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 5.5rem;
+    font-weight: 800;
     line-height: 1;
-    color: #ffffff;
+    color: var(--primary) !important;
+    background: var(--surface-1, #ffffff);
     margin: 1.5rem auto;
     position: relative;
     animation: countPulse 1s infinite ease-out;
-    text-shadow: 0 0 25px rgba(14, 165, 233, 0.6);
-    background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+    text-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
 }
 .countdown-number.go {
     border-color: var(--success);
-    color: var(--success);
+    color: var(--success) !important;
     font-size: 3.8rem;
     animation: goPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    box-shadow: 0 0 35px rgba(16, 185, 129, 0.45);
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+    text-shadow: none !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    background: var(--surface-1, #ffffff);
 }
 .countdown-sub {
     color: var(--text-muted);
@@ -2722,18 +2805,9 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     text-transform: uppercase;
 }
 @keyframes countPulse {
-    0% {
-        transform: scale(0.96);
-        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.55);
-    }
-    60% {
-        transform: scale(1.04);
-        box-shadow: 0 0 0 28px rgba(14, 165, 233, 0);
-    }
-    100% {
-        transform: scale(0.96);
-        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
-    }
+    0% { transform: scale(0.96); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(0.96); }
 }
 @keyframes goPop {
     0% { transform: scale(0.5); opacity: 0; }
@@ -2772,13 +2846,14 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 
 /* Podium avatar image */
 .podium-avatar {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: contain;
-    border: 3px solid rgba(255,255,255,0.5);
+    border: 2.5px solid rgba(255,255,255,0.5);
     display: block;
-    margin: 0 auto 0.25rem;
+    margin: 0 auto 0.2rem;
+    flex-shrink: 0;
 }
 
 /* Leaderboard list avatar image */
@@ -2984,9 +3059,9 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     font-size: 2.6rem;
     color: var(--success);
     font-weight: 800;
-    text-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+    text-shadow: none !important;
 }
-#feedback-points.incorrect { color: var(--danger); text-shadow: 0 6px 20px rgba(239, 68, 68, 0.35); }
+#feedback-points.incorrect { color: var(--danger); text-shadow: none !important; }
 
 .answer-submitted {
     background: var(--panel-bg);
@@ -3051,7 +3126,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.35), 0 -5px 18px rgba(0, 0, 0, 0.35);
 }
 .podium-name {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
@@ -3062,6 +3137,170 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
     background: var(--panel-bg);
     border: 2px solid var(--primary);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Single-screen Podium & Results Layout for Student and Host */
+#results-screen.active {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 3.8rem 0.75rem 0.75rem !important;
+    box-sizing: border-box !important;
+}
+
+body[data-role="student"] #results-screen .glass-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    max-width: 560px !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: calc(100dvh - 4.55rem) !important;
+    padding: 0.25rem 0.5rem !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+body[data-role="student"] #results-screen #results-podium-view {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+}
+
+body[data-role="student"] #results-screen #results-podium-view > h1 {
+    font-size: clamp(1.35rem, 3.2vh, 1.8rem) !important;
+    margin: 0 0 0.25rem 0 !important;
+    line-height: 1.2 !important;
+}
+
+body[data-role="student"] #results-screen .student-only {
+    width: 100% !important;
+    max-width: 400px !important;
+}
+
+body[data-role="student"] #results-screen .final-score-box {
+    margin: 0 auto 0.25rem !important;
+    padding: clamp(0.45rem, 1.2vh, 0.75rem) 1rem !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body[data-role="student"] #results-screen #final-score-value {
+    font-size: clamp(1.9rem, 4.8vh, 2.5rem) !important;
+    line-height: 1.05 !important;
+}
+
+body[data-role="student"] #results-screen .final-score-box span:last-child {
+    font-size: clamp(0.85rem, 1.8vh, 1rem) !important;
+}
+
+body[data-role="student"] #results-screen .leaderboard {
+    margin-top: 0.15rem !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+body[data-role="student"] #results-screen #podium-title {
+    font-size: clamp(0.95rem, 2vh, 1.15rem) !important;
+    margin: 0 0 0.15rem 0 !important;
+}
+
+body[data-role="student"] #results-screen .podium-container {
+    height: clamp(185px, 34vh, 250px) !important;
+    margin: 0 auto !important;
+    padding-top: 0.35rem !important;
+}
+
+body[data-role="student"] #results-screen #podium-1 .podium-block {
+    height: clamp(100px, 17vh, 140px) !important;
+    font-size: 1.5rem !important;
+    padding-top: 0.5rem !important;
+}
+
+body[data-role="student"] #results-screen #podium-2 .podium-block {
+    height: clamp(72px, 12.5vh, 100px) !important;
+    font-size: 1.3rem !important;
+    padding-top: 0.4rem !important;
+}
+
+body[data-role="student"] #results-screen #podium-3 .podium-block {
+    height: clamp(52px, 9vh, 72px) !important;
+    font-size: 1.15rem !important;
+    padding-top: 0.35rem !important;
+}
+
+body[data-role="student"] #results-screen .podium-avatar {
+    width: clamp(36px, 5.5vh, 44px) !important;
+    height: clamp(36px, 5.5vh, 44px) !important;
+    margin: 0 auto 0.15rem !important;
+}
+
+body[data-role="student"] #results-screen .podium-name {
+    font-size: clamp(0.88rem, 1.8vh, 1.05rem) !important;
+    margin-bottom: 0.1rem !important;
+}
+
+body[data-role="student"] #results-screen .podium-score {
+    font-size: clamp(0.8rem, 1.6vh, 0.92rem) !important;
+    margin-bottom: 0.25rem !important;
+}
+
+#results-screen .results-actions-row,
+body[data-role="host"] #results-screen .results-actions-row,
+body[data-role="student"] #results-screen .results-actions-row {
+    margin: 0.75rem auto 0 !important;
+    width: 100% !important;
+    max-width: 560px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.75rem !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+#results-screen .results-actions-row button,
+body[data-role="host"] #results-screen .results-actions-row button,
+body[data-role="student"] #results-screen .results-actions-row button {
+    width: auto !important;
+    flex: 1 1 0 !important;
+    max-width: 175px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0.45rem 1.25rem !important;
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+body:not([data-role="host"]) #results-screen #btn-results-view-score {
+    display: none !important;
 }
 
 /* Nav pill */
@@ -3218,7 +3457,7 @@ body.light-theme .quiz-progress-track { background: rgba(0, 0, 0, 0.12); }
 .btn-save-question {
     background: var(--success) !important;
     border-color: var(--success) !important;
-    border-bottom: 4px solid rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid var(--glass-border) !important;
     color: white !important;
     box-shadow: 0 6px 16px -5px rgba(16, 185, 129, 0.55);
 }
@@ -3598,8 +3837,9 @@ body[data-role="host"] .quiz-main-row {
     width: 100%;
 }
 /* Slides keep their own full-screen layout (slide-view) */
-body[data-role="host"].layout-info .quiz-main-row {
-    display: none;
+body.layout-info .quiz-main-row,
+body.layout-info .question-prompt {
+    display: none !important;
 }
 .quiz-main-row #media-container {
     flex: 1 1 45%;
@@ -3658,16 +3898,114 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
     min-height: 100px;
 }
 
-/* No-media questions: collapse to a single full-width column */
+/* No-media questions: 2 rows x 2 columns grid filling available area */
 #quiz-screen.no-media .quiz-main-row {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
 }
 #quiz-screen.no-media .quiz-main-row #media-container {
     display: none !important;
 }
 #quiz-screen.no-media .quiz-main-row #question-container {
     width: 100% !important;
-    flex: none !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    padding: clamp(0.6rem, 1.2vh, 1rem) !important;
+}
+body[data-role="host"] #quiz-screen.no-media #options-container {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: clamp(12px, 2vh, 20px) clamp(16px, 2.2vw, 26px) !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    align-content: center !important;
+}
+body[data-role="host"] #quiz-screen.no-media .kahoot-btn {
+    height: 100% !important;
+    min-height: clamp(90px, 15vh, 150px) !important;
+    max-height: none !important;
+    padding: clamp(0.85rem, 1.8vh, 1.5rem) clamp(1.4rem, 2.8vw, 2.2rem) !important;
+    font-size: clamp(1.3rem, 2.5vh, 1.8rem) !important;
+    font-weight: 800 !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+}
+body[data-role="host"] #quiz-screen.no-media .kahoot-shape-container {
+    width: clamp(48px, 7.5vh, 66px) !important;
+    height: clamp(48px, 7.5vh, 66px) !important;
+    margin-right: 1.4rem !important;
+    flex-shrink: 0 !important;
+}
+body[data-role="host"] #quiz-screen.no-media .kahoot-shape-container svg {
+    width: clamp(34px, 5.2vh, 48px) !important;
+    height: clamp(34px, 5.2vh, 48px) !important;
+}
+body[data-role="host"] #quiz-screen.no-media .kahoot-answer-text,
+body[data-role="host"] #quiz-screen.no-media .kahoot-btn-text {
+    font-size: clamp(1.3rem, 2.5vh, 1.8rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+}
+
+/* Questions with media: enlarge choices in right-hand column so they are easy to read and fill space */
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row #options-container {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    gap: clamp(12px, 2vh, 18px) !important;
+    justify-content: center !important;
+}
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row .kahoot-btn {
+    flex: 0 1 auto !important;
+    min-height: clamp(68px, 11vh, 100px) !important;
+    max-height: clamp(85px, 15vh, 130px) !important;
+    padding: clamp(0.75rem, 1.5vh, 1.3rem) clamp(1.2rem, 2vw, 1.8rem) !important;
+    font-size: clamp(1.25rem, 2.3vh, 1.65rem) !important;
+    font-weight: 800 !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+}
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row .kahoot-shape-container {
+    width: clamp(44px, 6.5vh, 58px) !important;
+    height: clamp(44px, 6.5vh, 58px) !important;
+    margin-right: 1.25rem !important;
+    flex-shrink: 0 !important;
+}
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row .kahoot-shape-container svg {
+    width: clamp(32px, 4.8vh, 42px) !important;
+    height: clamp(32px, 4.8vh, 42px) !important;
+}
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row .kahoot-answer-text,
+body[data-role="host"] #quiz-screen:not(.no-media) .quiz-main-row .kahoot-btn-text {
+    font-size: clamp(1.25rem, 2.3vh, 1.65rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.3 !important;
+}
+
+body[data-role="host"] #quiz-screen .host-controls {
+    flex: 0 0 auto !important;
+    margin-top: clamp(0.4rem, 1vh, 0.75rem) !important;
+    padding-top: 0 !important;
+    gap: 0.5rem !important;
+}
+body[data-role="host"] #quiz-screen #btn-host-next {
+    height: clamp(40px, 4.8vh, 46px) !important;
+    min-height: clamp(40px, 4.8vh, 46px) !important;
+    font-size: 1.05rem !important;
+    padding: 0 2rem !important;
 }
 
 /* Multiple-image grid */
@@ -3688,7 +4026,7 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
     max-height: 100%;
     min-height: 0;
     object-fit: contain;
-    background: white;
+    background: transparent;
     border-radius: 8px;
     cursor: zoom-in;
 }
@@ -3784,17 +4122,29 @@ body[data-role="student"] .quiz-main-row .kahoot-btn {
     overflow-wrap: break-word;
     min-width: 0;
 }
-/* Minimal Student View overrides */
-body.student-minimal-view .kahoot-btn-text {
+/* Minimal Student View overrides (Live Multiplayer Quiz Screen ONLY) */
+body.student-minimal-view #quiz-screen .kahoot-btn-text {
     display: none;
 }
-body.student-minimal-view .kahoot-shape-container {
+body.student-minimal-view #quiz-screen .kahoot-shape-container {
     margin: 0 auto;
     width: 80px;
     height: 80px;
 }
-body.student-minimal-view .kahoot-btn {
+body.student-minimal-view #quiz-screen .kahoot-btn {
     min-height: 25vh;
+}
+/* Ensure Formative Offline Quiz options text always displays clearly */
+#offline-quiz-screen .kahoot-btn-text,
+.offline-answer-area .kahoot-btn-text {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: #ffffff !important;
+}
+#offline-quiz-screen .kahoot-btn,
+.offline-answer-area .kahoot-btn {
+    min-height: unset;
 }
 /* Strongly hide the big question media + prompt on student screens */
 body.student-minimal-view #media-container,
@@ -3896,29 +4246,78 @@ body[data-role="host"] .hud-item.timer-info {
 /* =====================================================================
    GAME SHOW WINNER EFFECTS (results spotlight + champion reveal)
    ===================================================================== */
-.results-spotlight {
+/* ── CIRCULAR THEATRICAL SPOTLIGHT (Curtain Dimming + Circular Focus) ── */
+.results-spotlight-circular {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.55s ease;
+    background: radial-gradient(
+        circle var(--spot-radius, 95px) at var(--spot-x, 50%) var(--spot-y, 50%),
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 240, 180, 0.08) 60%,
+        transparent 90%,
+        rgba(5, 10, 24, 0.85) 100%
+    );
+}
+.results-spotlight-circular.active {
+    opacity: 1;
+}
+
+.spotlight-beam-ring {
     position: fixed;
     top: 0;
-    left: 50%;
-    width: 340px;
-    height: 100%;
+    left: 0;
+    width: calc(var(--spot-radius, 95px) * 2);
+    height: calc(var(--spot-radius, 95px) * 2);
+    transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px)));
+    border-radius: 50%;
     pointer-events: none;
-    z-index: 20;
+    z-index: 51;
     opacity: 0;
-    transition: left 0.8s ease, opacity 0.6s ease;
-    background:
-        radial-gradient(ellipse 50% 30% at 50% 0%, rgba(255,255,255,0.85), transparent 70%),
-        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,240,150,0.35), transparent 70%);
-    mix-blend-mode: screen;
-    filter: blur(2px);
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), width 0.4s ease, height 0.4s ease, opacity 0.35s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    border: 3px solid rgba(255, 255, 255, 0.7);
+    box-shadow: none;
 }
-.results-spotlight.active { opacity: 0.9; }
-.results-spotlight.slam {
+.spotlight-beam-ring.active {
     opacity: 1;
-    width: 460px;
-    background:
-        radial-gradient(ellipse 55% 35% at 50% 0%, rgba(255,255,255,0.95), transparent 70%),
-        radial-gradient(ellipse 70% 50% at 50% 100%, rgba(255,220,120,0.5), transparent 70%);
+}
+.spotlight-beam-ring.bronze {
+    border-color: rgba(253, 186, 116, 0.9);
+    box-shadow: none;
+}
+.spotlight-beam-ring.silver {
+    border-color: rgba(226, 232, 240, 0.95);
+    box-shadow: none;
+}
+.spotlight-beam-ring.suspense {
+    border-color: rgba(234, 179, 8, 0.9);
+    box-shadow: none;
+    animation: suspenseRingPulse 0.65s ease-in-out infinite alternate;
+}
+@keyframes suspenseRingPulse {
+    0% { transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px))) scale(0.93); }
+    100% { transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px))) scale(1.07); }
+}
+.spotlight-beam-ring.champion-slam {
+    border-color: #fef08a;
+    box-shadow: none;
+    animation: championRingExplode 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes championRingExplode {
+    0% { transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px))) scale(0.65); opacity: 0.5; }
+    50% { transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px))) scale(1.25); opacity: 1; }
+    100% { transform: translate(calc(var(--spot-x, 50%) - var(--spot-radius, 95px)), calc(var(--spot-y, 50%) - var(--spot-radius, 95px))) scale(1); opacity: 1; }
+}
+
+.podium-spot {
+    position: relative;
+    z-index: 55;
+}
+.podium-spot.revealed .podium-name {
+    text-shadow: none !important;
 }
 
 /* Champion name reveal overlay */
@@ -3958,7 +4357,7 @@ body[data-role="host"] .hud-item.timer-info {
     font-size: 3.6rem;
     line-height: 1.1;
     color: var(--text-main);
-    text-shadow: 0 4px 20px rgba(139,92,246,0.6);
+    text-shadow: none;
 }
 .champion-scores-dot { font-size: 3rem; margin-top: 0.6rem; }
 
@@ -3988,11 +4387,131 @@ body[data-role="host"] .hud-item.timer-info {
     }
 }
 
-/* Options grid stacks to one column on mobile to avoid overflow */
+/* Multiple choice on mobile: 2x2 grid fitting comfortably in 1 screen */
 @media (max-width: 768px) {
     .kahoot-options-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: clamp(6px, 1.2vh, 10px) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .kahoot-btn {
+        min-height: clamp(44px, 6.5vh, 58px) !important;
+        height: auto !important;
+        padding: clamp(0.45rem, 1vh, 0.75rem) clamp(0.5rem, 1.2vw, 0.85rem) !important;
+        font-size: clamp(0.85rem, 1.4vh, 1.05rem) !important;
+        border-radius: 10px !important;
+        box-sizing: border-box !important;
+    }
+    .kahoot-shape-container {
+        width: clamp(20px, 3.2vh, 30px) !important;
+        height: clamp(20px, 3.2vh, 30px) !important;
+        margin-right: clamp(0.35rem, 1vw, 0.65rem) !important;
+    }
+    .kahoot-btn-text {
+        font-size: clamp(0.82rem, 1.4vh, 0.98rem) !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Student view on mobile: allow smooth scroll if screen is very short, zero cutoff */
+    body[data-role="student"] #quiz-screen.active {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    body[data-role="student"] #quiz-screen .quiz-content {
+        min-height: min-content !important;
+        overflow: visible !important;
+    }
+    body[data-role="student"] #quiz-screen #media-container {
+        max-height: clamp(120px, 20vh, 170px) !important;
+        padding: 4px !important;
+    }
+    body[data-role="student"] #quiz-screen #ekg-image,
+    body[data-role="student"] #quiz-screen #ekg-video {
+        max-height: 100% !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+    }
+    body[data-role="student"] #quiz-screen .question-prompt {
+        padding: clamp(0.4rem, 1vh, 0.65rem) clamp(0.6rem, 1.2vw, 0.9rem) !important;
+        margin-bottom: clamp(0.35rem, 0.8vh, 0.6rem) !important;
+    }
+    body[data-role="student"] #quiz-screen #question-text {
+        font-size: clamp(0.95rem, 1.6vh, 1.15rem) !important;
+        margin: 0 !important;
+    }
+
+    /* Minimal student view: 2x2 grid fills available screen perfectly */
+    body.student-minimal-view #quiz-screen {
+        padding-top: 3.5rem !important;
+        padding-bottom: 0.4rem !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+    body.student-minimal-view #quiz-screen .quiz-content {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        justify-content: center !important;
+    }
+    body.student-minimal-view #quiz-screen .quiz-main-row,
+    body.student-minimal-view #quiz-screen #question-container {
+        height: 100% !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        padding: 0.25rem !important;
+        overflow: hidden !important;
+    }
+    body.student-minimal-view #quiz-screen .kahoot-options-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: 1fr 1fr !important;
+        flex: 1 1 auto !important;
+        height: calc(100dvh - 175px) !important;
+        max-height: calc(100dvh - 175px) !important;
+        min-height: 0 !important;
+        gap: clamp(6px, 1.2vh, 10px) !important;
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    /* True/False minimal view on student screen: 2 rows stacked top-and-bottom (บนล่าง) */
+    body.student-minimal-view.layout-tf #quiz-screen .kahoot-options-grid,
+    body.student-minimal-view #quiz-screen .kahoot-options-grid.tf-mode {
         grid-template-columns: 1fr !important;
-        gap: 0.6rem;
+        grid-template-rows: 1fr 1fr !important;
+        gap: clamp(8px, 1.5vh, 14px) !important;
+    }
+    body.student-minimal-view #quiz-screen .kahoot-btn {
+        min-height: 0 !important;
+        height: 100% !important;
+        max-height: none !important;
+        padding: clamp(0.4rem, 1vh, 0.75rem) !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    body.student-minimal-view #quiz-screen .kahoot-shape-container {
+        width: clamp(44px, 7vh, 64px) !important;
+        height: clamp(44px, 7vh, 64px) !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    body.student-minimal-view #quiz-screen .kahoot-shape-container svg {
+        width: clamp(34px, 5.5vh, 50px) !important;
+        height: clamp(34px, 5.5vh, 50px) !important;
+    }
+    body.student-minimal-view #quiz-screen .kahoot-btn-text {
+        font-size: clamp(1.2rem, 2.8vh, 1.6rem) !important;
+        font-weight: 800 !important;
     }
 }
 
@@ -4113,32 +4632,191 @@ body.light-theme .hud {
     min-height: 100vh;
 }
 
+#dashboard-screen,
+#offline-teacher-screen,
+#offline-student-result-screen,
+#offline-teacher-grade-screen {
+    position: relative !important;
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 4.5rem 2rem 3rem !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+#offline-student-result-screen .offline-dashboard-layout,
+#offline-teacher-grade-screen .offline-dashboard-layout {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    align-items: flex-start !important;
+}
+
+#offline-student-result-screen .offline-quiz-main,
+#offline-teacher-grade-screen .offline-quiz-main {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+}
+
+#offline-quiz-screen .offline-quiz-sidebar,
+#offline-student-result-screen .offline-quiz-sidebar,
+#offline-teacher-grade-screen .offline-quiz-sidebar {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 1rem !important;
+    align-self: flex-start !important;
+    max-height: calc(100vh - 2rem) !important;
+    overflow-y: auto !important;
+    z-index: 100 !important;
+}
+
+.btn-sidebar-dock-toggle {
+    display: none;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 1rem;
+    align-self: flex-start;
+    z-index: 100;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    padding: 0.55rem 0.95rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.btn-sidebar-dock-toggle:hover {
+    background: var(--primary);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+.offline-dashboard-layout.sidebar-collapsed .btn-sidebar-dock-toggle {
+    display: inline-flex !important;
+}
+@media (max-width: 1024px) {
+    .btn-sidebar-dock-toggle {
+        display: none !important;
+    }
+}
+
 .offline-dashboard-layout {
     display: flex;
     flex-direction: row;
     gap: 1.5rem;
     width: 100%;
-    max-width: 1440px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
     align-items: flex-start;
     position: relative;
     box-sizing: border-box;
 }
 
+.offline-dashboard-layout.sidebar-collapsed {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.offline-dashboard-layout.sidebar-collapsed .offline-quiz-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+}
+
+.offline-scrollable-feed {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Question Card Two-Column Layout (Media beside Answers, or 2-column answers when no media) */
+.offline-card-body-grid {
+    display: grid;
+    gap: 1.25rem;
+    align-items: flex-start;
+    margin-top: 0.85rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.offline-card-body-grid.has-media {
+    grid-template-columns: minmax(280px, 400px) 1fr;
+}
+
+.offline-card-media-col {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.offline-card-media-col .offline-media-container {
+    margin-bottom: 0 !important;
+    width: 100%;
+}
+
+.offline-card-media-col .offline-media-img,
+.offline-card-media-col .offline-media-video {
+    width: 100% !important;
+    max-height: 320px !important;
+    object-fit: contain !important;
+    border-radius: 12px !important;
+    background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.offline-card-answers-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.offline-card-body-grid.no-media {
+    grid-template-columns: 1fr;
+}
+
+.offline-card-body-grid.no-media .offline-card-answers-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 900px) {
+    .offline-card-body-grid.has-media {
+        grid-template-columns: 1fr !important;
+    }
+    .offline-card-body-grid.no-media .offline-card-answers-col {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 /* SIDEBAR (Desktop) */
 .offline-quiz-sidebar {
-    width: 320px;
-    min-width: 320px;
+    width: 310px;
+    min-width: 310px;
     background: var(--panel-bg);
     border: 1px solid var(--glass-border);
     border-radius: 18px;
-    padding: 1.25rem;
+    padding: 1.15rem;
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
-    position: sticky;
-    top: 5rem;
-    max-height: calc(100vh - 6.5rem);
+    justify-content: flex-start;
+    gap: 0.9rem;
+    height: fit-content;
+    max-height: calc(100vh - 5.5rem);
     overflow-y: auto;
     box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -4146,8 +4824,10 @@ body.light-theme .hud {
     box-sizing: border-box;
 }
 
-.offline-dashboard-layout.sidebar-collapsed .offline-quiz-sidebar {
-    display: none !important;
+@media (min-width: 1025px) {
+    .offline-dashboard-layout.sidebar-collapsed .offline-quiz-sidebar {
+        display: none !important;
+    }
 }
 
 .btn-sidebar-collapse {
@@ -4167,19 +4847,16 @@ body.light-theme .hud {
 
 .btn-sidebar-expand {
     display: none;
-    position: fixed;
-    left: 15px;
-    top: 5rem;
-    z-index: 45;
+    position: static;
     background: var(--panel-bg);
     border: 1.5px solid var(--primary);
     color: var(--primary);
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 1rem;
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     align-items: center;
     gap: 6px;
     transition: all 0.2s ease;
@@ -4192,12 +4869,46 @@ body.light-theme .hud {
     display: inline-flex;
 }
 
+/* Formative Desktop Stage Top Bar (Visible only when sidebar is collapsed) */
+.offline-desktop-topbar {
+    display: none;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    min-height: 0;
+}
+.offline-dashboard-layout.sidebar-collapsed .offline-desktop-topbar {
+    display: flex;
+}
+.offline-topbar-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.offline-collapsed-timer {
+    display: none;
+    margin-top: 0 !important;
+}
+.offline-dashboard-layout.sidebar-collapsed .offline-collapsed-timer {
+    display: inline-flex;
+}
+
 .btn-drawer-close {
     display: none;
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.3rem;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
     line-height: 1;
 }
@@ -4206,7 +4917,7 @@ body.light-theme .hud {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
 }
 .offline-sidebar-badge {
     font-size: 0.75rem;
@@ -4217,34 +4928,56 @@ body.light-theme .hud {
 }
 
 .offline-quiz-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: var(--text-main);
-    line-height: 1.35;
+    line-height: 1.3;
     word-break: break-word;
 }
 .offline-student-badge {
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-top: 6px;
+    border-top: 1px solid var(--glass-border);
+}
+.offline-student-badge .offline-meta-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+.offline-student-badge .offline-meta-id {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.offline-student-badge .offline-meta-due {
+    font-size: 0.82rem;
+    color: var(--primary);
+    font-weight: 600;
 }
 .offline-timer-badge {
-    margin-top: 10px;
-    background: var(--input-bg);
-    border: 1.5px solid var(--primary);
-    padding: 0.45rem 0.9rem;
+    margin-top: 8px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--glass-border);
+    padding: 0.4rem 0.95rem;
     border-radius: 999px;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--text-main);
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .offline-sidebar-nav-section {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.6rem;
 }
 .offline-nav-section-header {
     display: flex;
@@ -4254,30 +4987,50 @@ body.light-theme .hud {
     color: var(--text-muted);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 6px;
+    padding-bottom: 5px;
 }
+.offline-answered-summary {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .offline-question-nav-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    display: flex !important;
+    flex-wrap: wrap !important;
     gap: 8px;
-    max-height: 280px;
+    justify-content: flex-start;
+    align-items: center;
+    max-height: 260px;
     overflow-y: auto;
     padding: 4px 2px;
 }
 
 .offline-q-pill {
-    min-height: 40px;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 999px;
+    font-size: 0.95rem;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
+    padding: 0;
+    margin: 0;
     transition: all 0.15s ease;
+    box-sizing: border-box;
+    text-align: center;
+    line-height: 1;
 }
 
 /* MAIN STAGE (Center/Right) */
@@ -4286,7 +5039,7 @@ body.light-theme .hud {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 0.85rem;
 }
 
 .offline-mobile-topbar {
@@ -4294,9 +5047,10 @@ body.light-theme .hud {
     background: var(--panel-bg);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
-    padding: 0.6rem 1rem;
+    padding: 0.55rem 0.85rem;
     justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     width: 100%;
     box-sizing: border-box;
 }
@@ -4312,24 +5066,52 @@ body.light-theme .hud {
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    width: auto !important;
 }
 .offline-mobile-q-indicator {
     font-weight: 800;
     color: var(--primary);
     font-size: 0.95rem;
+    flex: 1 1 auto !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding: 0 0.5rem !important;
+    min-width: 0 !important;
 }
 .offline-mobile-timer {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
     font-size: 0.9rem;
     color: var(--text-main);
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+.offline-mobile-topbar .btn-primary,
+.offline-mobile-topbar #btn-save-grade-mobile {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: fit-content !important;
+    flex-shrink: 0 !important;
+    padding: 0.45rem 1.1rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+    border-bottom: 2.5px solid #162B68 !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    cursor: pointer;
 }
 
 .offline-question-card {
     background: var(--panel-bg);
     border: 1px solid var(--glass-border);
     border-radius: 20px;
-    padding: 1.75rem;
+    padding: 1.5rem;
     box-shadow: none;
     width: 100%;
     box-sizing: border-box;
@@ -4339,14 +5121,14 @@ body.light-theme .hud {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.6rem;
     gap: 0.5rem;
     flex-wrap: wrap;
 }
 .offline-q-number {
     font-weight: 800;
     color: var(--primary);
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -4358,38 +5140,97 @@ body.light-theme .hud {
     letter-spacing: 0.05em;
 }
 .offline-q-text {
-    font-size: 1.45rem;
-    margin: 0 0 0.85rem 0;
+    font-size: 1.35rem;
+    margin: 0 0 0.65rem 0;
     color: var(--text-main);
-    line-height: 1.4;
+    line-height: 1.35;
     font-weight: 600;
 }
 .offline-q-context {
-    font-size: 1.05rem;
+    font-size: 1rem;
     color: var(--text-muted);
-    margin-bottom: 1.2rem;
-    line-height: 1.5;
+    margin-bottom: 0.85rem;
+    line-height: 1.45;
     background: var(--input-bg);
     border-left: 3px solid var(--primary);
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.9rem;
     border-radius: 6px;
+    flex-shrink: 0;
+}
+
+/* Left-Right Split inside Formative Question Card (Media Left, Options/Typing Right) */
+.offline-q-body-split {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.5rem;
+    width: 100%;
+    flex: 0 1 auto;
+    min-height: 0;
+}
+.offline-q-body-split.has-media .offline-media-container {
+    flex: 1 1 48%;
+    max-width: 50%;
+    min-width: 0;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+.offline-q-body-split.has-media .offline-answer-area {
+    flex: 1 1 52%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.offline-q-body-split.no-media .offline-answer-area {
+    flex: 0 1 auto;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.offline-q-body-split.has-media .offline-answer-area .kahoot-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem;
+    width: 100%;
+}
+.offline-q-body-split.has-media .offline-answer-area .typing-input-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+.offline-q-body-split.has-media .offline-answer-area .typing-input-container textarea {
+    width: 100%;
+    min-height: 180px;
+    height: 100%;
+    max-height: 300px;
+    box-sizing: border-box;
 }
 
 .offline-media-container {
     width: 100%;
-    background: #000000;
-    border-radius: 14px;
-    border: 1px solid var(--glass-border);
-    padding: 12px;
-    margin-bottom: 1.25rem;
+    background: transparent !important;
+    border-radius: 12px;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 0.85rem;
     text-align: center;
     box-sizing: border-box;
+    flex-shrink: 0 !important;
 }
 .offline-media-img, .offline-media-video {
-    max-height: 380px;
+    display: block;
+    margin: 0 auto;
+    max-height: 320px;
     max-width: 100%;
-    border-radius: 8px;
+    border-radius: 10px;
     object-fit: contain;
+    background: transparent !important;
 }
 
 .offline-nav-footer {
@@ -4401,83 +5242,3180 @@ body.light-theme .hud {
     background: var(--panel-bg);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
-    padding: 0.85rem 1.25rem;
+    padding: 0.7rem 1.25rem;
+}
+
+/* DESKTOP SINGLE-SCREEN VIEWPORT OPTIMIZATION */
+@media (min-width: 1025px) {
+    #offline-quiz-screen {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        padding: 4.5rem 1.5rem 0.75rem !important;
+        box-sizing: border-box !important;
+    }
+    #offline-quiz-screen .offline-dashboard-layout {
+        height: calc(100vh - 5.25rem);
+        max-height: calc(100vh - 5.25rem);
+        align-items: flex-start;
+    }
+    #offline-quiz-screen .offline-quiz-sidebar {
+        height: fit-content;
+        max-height: calc(100vh - 5.25rem);
+        position: static;
+        top: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 0.9rem;
+    }
+    #offline-quiz-screen .offline-quiz-main {
+        height: auto;
+        max-height: calc(100vh - 5.25rem);
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        justify-content: flex-start;
+        overflow-y: auto;
+    }
+    .offline-desktop-topbar {
+        margin-bottom: 0.25rem;
+        min-height: 0;
+        flex-shrink: 0;
+    }
+    #offline-quiz-screen .offline-question-card {
+        flex: 0 1 auto;
+        height: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 1.15rem 1.5rem;
+        overflow: visible;
+    }
+    .offline-q-top-row {
+        margin-bottom: 0.35rem;
+        flex-shrink: 0;
+    }
+    .offline-q-text {
+        font-size: 1.25rem;
+        margin: 0 0 0.45rem 0;
+        flex-shrink: 0;
+    }
+    .offline-q-context {
+        margin-bottom: 0.65rem;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+    .offline-media-container {
+        flex-shrink: 0 !important;
+        margin-bottom: 0;
+        padding: 0 !important;
+    }
+    .offline-media-img, .offline-media-video {
+        max-height: 340px;
+    }
+    .offline-answer-area {
+        flex: 0 1 auto;
+        min-height: 0;
+        margin-bottom: 0.25rem;
+    }
+    .offline-answer-area .kahoot-options-grid {
+        gap: 0.65rem;
+    }
+    .offline-answer-area .kahoot-btn {
+        min-height: 58px !important;
+        padding: 0.6rem 1rem !important;
+    }
+    .offline-nav-footer {
+        flex-shrink: 0;
+        padding: 0.55rem 1.25rem;
+        margin-top: 0;
+    }
 }
 
 /* TABLET & MOBILE (<= 1024px) */
 @media (max-width: 1024px) {
-    #offline-quiz-screen {
+    body.offline-drawer-active #offline-quiz-screen.screen.active,
+    body.offline-drawer-active #offline-student-result-screen.screen.active,
+    body.offline-drawer-active #offline-teacher-grade-screen.screen.active {
+        z-index: 2000 !important;
+    }
+    body.offline-drawer-active .global-home,
+    body.offline-drawer-active .global-controls {
+        z-index: 1 !important;
+        pointer-events: none;
+    }
+    #dashboard-screen,
+    #offline-quiz-screen,
+    #offline-teacher-screen,
+    #offline-student-result-screen,
+    #offline-teacher-grade-screen {
         padding: 4.25rem 0.75rem 1.25rem !important;
     }
     .offline-dashboard-layout {
         flex-direction: column;
+        width: 100%;
+    }
+    .offline-quiz-main {
+        width: 100%;
     }
     .offline-mobile-topbar {
         display: flex;
+        width: 100%;
     }
+    #offline-quiz-screen .offline-quiz-sidebar,
+    #offline-student-result-screen .offline-quiz-sidebar,
+    #offline-teacher-grade-screen .offline-quiz-sidebar,
+    .offline-dashboard-layout.sidebar-collapsed .offline-quiz-sidebar,
     .offline-quiz-sidebar {
-        position: fixed;
-        left: -340px;
-        top: 0;
-        bottom: 0;
-        width: 300px;
-        min-width: 300px;
-        max-height: 100vh;
-        height: 100vh;
-        border-radius: 0 20px 20px 0;
-        z-index: 1100;
-        box-shadow: 4px 0 25px rgba(0,0,0,0.5);
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        gap: 1rem !important;
+        position: fixed !important;
+        left: -380px !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: min(320px, 86vw) !important;
+        min-width: 0 !important;
+        max-width: 86vw !important;
+        max-height: 100dvh !important;
+        height: 100dvh !important;
+        padding: 1.25rem !important;
+        border-radius: 0 20px 20px 0 !important;
+        z-index: 2500 !important;
+        background: var(--panel-bg) !important;
+        box-shadow: 6px 0 35px rgba(0,0,0,0.55) !important;
+        overflow-y: auto !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
+    #offline-quiz-screen .offline-quiz-sidebar.drawer-open,
+    #offline-student-result-screen .offline-quiz-sidebar.drawer-open,
+    #offline-teacher-grade-screen .offline-quiz-sidebar.drawer-open,
+    .offline-dashboard-layout.sidebar-collapsed .offline-quiz-sidebar.drawer-open,
     .offline-quiz-sidebar.drawer-open {
-        left: 0;
+        left: 0 !important;
     }
     .btn-sidebar-collapse {
-        display: none;
+        display: none !important;
     }
     .btn-drawer-close {
-        display: block;
+        display: inline-flex !important;
     }
     .btn-sidebar-expand {
+        display: none !important;
+    }
+    .offline-desktop-topbar {
         display: none !important;
     }
 
     .offline-sidebar-backdrop {
         display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        z-index: 1090;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.65) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        z-index: 2400 !important;
     }
     .offline-sidebar-backdrop.show {
-        display: block;
+        display: block !important;
     }
 
+    /* Formative mobile/tablet full-width single-column flow */
     .offline-question-card {
-        padding: 1.25rem;
+        padding: 1.15rem 1.15rem;
         border-radius: 16px;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
-    .offline-q-text {
-        font-size: 1.2rem;
+    .offline-q-body-split {
+        flex-direction: column !important;
+        gap: 0.85rem !important;
+        width: 100% !important;
+    }
+    .offline-q-body-split.has-media .offline-media-container,
+    .offline-q-body-split.has-media .offline-answer-area,
+    .offline-q-body-split.no-media .offline-answer-area {
+        max-width: 100% !important;
+        width: 100% !important;
+        flex: none !important;
+    }
+    .offline-media-container {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
     }
     .offline-media-img, .offline-media-video {
-        max-height: 280px;
+        max-height: 185px !important;
+        width: auto !important;
+        max-width: 100% !important;
+    }
+
+    /* Compact 2x2 multiple choice buttons on mobile/tablet so all options fit without cutting off */
+    .offline-answer-area {
+        width: 100% !important;
+    }
+    .offline-answer-area .kahoot-options-grid {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.45rem !important;
+    }
+    .offline-answer-area .kahoot-btn {
+        width: 100% !important;
+        min-height: 40px !important;
+        padding: 0.4rem 0.65rem !important;
+        font-size: 0.86rem !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18) !important;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.22) !important;
+        box-sizing: border-box !important;
+        gap: 0.45rem !important;
+    }
+    .offline-answer-area .kahoot-btn:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18) !important;
+    }
+    .offline-answer-area .kahoot-btn-text {
+        font-size: 0.86rem !important;
+        line-height: 1.25 !important;
+    }
+    .offline-answer-area .kahoot-shape-container {
+        width: 20px !important;
+        height: 20px !important;
+        flex-shrink: 0 !important;
+    }
+    .offline-answer-area .typing-input-container textarea {
+        min-height: 90px !important;
+        height: 100px !important;
+        max-height: 140px !important;
+        padding: 0.65rem 0.85rem !important;
+        font-size: 0.95rem !important;
     }
 }
 
-@media (max-width: 600px) {
-    #offline-quiz-screen {
-        padding: 4.25rem 0.5rem 1rem !important;
+@media (max-width: 768px) {
+    #offline-quiz-screen,
+    #offline-student-result-screen {
+        padding: 4.1rem 0.6rem 1rem !important;
     }
     .offline-question-card {
-        padding: 1rem;
+        padding: 0.95rem 0.95rem !important;
     }
-    .offline-nav-footer {
-        padding: 0.65rem 0.85rem;
+    .offline-q-text {
+        font-size: 1.15rem !important;
+        margin-bottom: 0.45rem !important;
+        line-height: 1.35 !important;
+    }
+    .offline-q-context {
+        font-size: 0.92rem !important;
+        padding: 0.5rem 0.75rem !important;
+        margin-bottom: 0.6rem !important;
     }
     .offline-media-img, .offline-media-video {
-        max-height: 220px;
+        max-height: 160px !important;
+    }
+    .offline-answer-area .kahoot-btn {
+        min-height: 44px !important;
+        padding: 0.5rem 0.85rem !important;
+        font-size: 0.92rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #offline-quiz-screen,
+    #offline-student-result-screen {
+        padding: 4rem 0.4rem 0.85rem !important;
+    }
+    .offline-question-card {
+        padding: 0.85rem 0.85rem !important;
+        border-radius: 14px !important;
+    }
+    .offline-q-top-row {
+        margin-bottom: 0.35rem !important;
+    }
+    .offline-q-number {
+        font-size: 1rem !important;
+    }
+    .offline-q-text {
+        font-size: 1.08rem !important;
+    }
+    .offline-media-img, .offline-media-video {
+        max-height: 145px !important;
+    }
+    .offline-answer-area .kahoot-btn {
+        min-height: 42px !important;
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        gap: 0.5rem !important;
+    }
+    .offline-nav-footer {
+        padding: 0.5rem 0.75rem !important;
+        gap: 0.5rem !important;
+    }
+    .offline-nav-footer button {
+        padding: 0.45rem 0.9rem !important;
+        font-size: 0.88rem !important;
+    }
+}
+
+/* =====================================================================
+   CLINICAL WORKSTATION REFINEMENTS: NO AI SLOP / HIGH CONTRAST FOCUS
+   ===================================================================== */
+
+/* Global focus accessibility */
+:focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+}
+
+/* Lucide inline SVG helper */
+.lucide-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+/* Brand Badge */
+.auth-brand-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    background: var(--primary-muted);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    margin-bottom: 0.75rem;
+}
+
+/* Clinical Auth & Join Card */
+.clinical-auth-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 440px;
+    margin: 1.5rem auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+.auth-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    line-height: 1.25;
+}
+.auth-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.5;
+}
+.clinical-form-field {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+.clinical-field-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.clinical-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: border-color 0.15s ease;
+}
+.clinical-input:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+.field-error-msg {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+.auth-actions-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    margin-top: 1.5rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.auth-actions-row .btn-primary,
+.auth-actions-row .btn-secondary {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+}
+
+body.light-theme .auth-actions-row .btn-secondary {
+    background: #F1F5F9 !important;
+    color: #1E293B !important;
+    border: 1px solid #CBD5E1 !important;
+}
+
+body.light-theme .auth-actions-row .btn-secondary:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+}
+
+/* Universal Spacing Utilities */
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+
+/* =====================================================================
+   IMPECCABLE DELIGHT & SYSTEM MICRO-INTERACTIONS
+   ===================================================================== */
+/* 1. Tactile Press on interactive buttons */
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-pill:active:not(:disabled),
+.btn-icon:active:not(:disabled) {
+    transform: translateY(1.5px) scale(0.985) !important;
+    transition: transform 0.06s ease-out !important;
+}
+
+/* 2. Station Panels Hover Lift with subtle border response */
+.station-panel {
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.24s ease !important;
+}
+.station-panel:hover {
+    transform: translateY(-4px) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 3. Input Focus Delight with Soft Ring Bloom */
+.clinical-input {
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease !important;
+}
+.clinical-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12) !important;
+}
+body:not(.light-theme) .clinical-input:focus {
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18) !important;
+}
+
+/* 4. Kahoot Options Interactive Micro-Feedback */
+.kahoot-btn {
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
+}
+.kahoot-btn:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.04) !important;
+}
+.kahoot-btn:active:not(:disabled) {
+    transform: translateY(2px) scale(0.99) !important;
+}
+
+/* 5. Staggered Entrance Delight in Role Station Grid */
+.role-station-grid .station-panel:nth-child(1) {
+    animation: stationEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: 0.05s;
+}
+.role-station-grid .station-panel:nth-child(2) {
+    animation: stationEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: 0.12s;
+}
+@keyframes stationEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 6. Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .screen.active,
+    .screen.active > *,
+    .station-panel,
+    .kahoot-btn,
+    .role-station-grid .station-panel {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+/* Station Role Screen */
+.role-station-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+.role-heading {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.4rem;
+}
+.role-subheading {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+.role-station-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+.station-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.station-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+    background: var(--primary-muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.station-tag.faculty-tag {
+    color: #0284C7;
+    background: rgba(2, 132, 199, 0.12);
+}
+.station-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.4rem;
+}
+.station-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+.station-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: auto;
+}
+.btn-station-cta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 0.85rem 1.25rem !important;
+    font-size: 0.95rem !important;
+    border-radius: 10px !important;
+    width: 100%;
+}
+
+/* Quiz Library Dashboard */
+.library-dashboard-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+.library-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.library-main-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
+}
+.library-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+.library-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+.btn-sm {
+    padding: 0.45rem 0.9rem !important;
+    font-size: 0.85rem !important;
+}
+
+/* Relocated Clinical Context Under Question */
+.clinical-context {
+    background: var(--input-bg) !important;
+    border-left: 3px solid var(--primary) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-style: normal !important;
+    color: var(--text-main) !important;
+    line-height: 1.5 !important;
+    margin-top: 0.85rem !important;
+    margin-bottom: 0.5rem !important;
+    text-align: left !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Unobstructed Hero Media in Quiz View */
+#quiz-screen .ekg-viewer {
+    max-height: calc(100vh - 16rem) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border-radius: 14px !important;
+    border: none !important;
+    padding: 8px !important;
+}
+#quiz-screen #ekg-image,
+#quiz-screen #ekg-video {
+    max-height: 100% !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+}
+/* =====================================================================
+   IMPROVED LIBRARY TOOLBAR & QUESTIONS LIST (IMAGE 1 FIX)
+   ===================================================================== */
+.library-dashboard-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    min-height: auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.library-header-row {
+    margin-bottom: 0.6rem !important;
+}
+
+.library-main-title {
+    font-size: 1.6rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+/* Clean horizontal utility bar: buttons in a row without enclosing box */
+.library-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    padding: 0 !important;
+    margin-bottom: 0.85rem !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    align-items: center !important;
+    box-shadow: none !important;
+}
+
+.library-toolbar .btn-secondary,
+.library-toolbar .btn-sm,
+.library-toolbar button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    padding: 0.28rem 0.75rem !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    white-space: nowrap !important;
+    cursor: pointer;
+}
+
+body.light-theme .library-toolbar {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+body.light-theme .library-toolbar .btn-secondary {
+    background: #F1F5F9 !important;
+    color: #1E293B !important;
+    border: 1px solid #CBD5E1 !important;
+}
+
+body.light-theme .library-toolbar .btn-secondary:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+}
+
+/* Maximize list width and height so it fills full-width screen and gives breathing room */
+#dashboard-screen .questions-list {
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    gap: 0.65rem !important;
+    padding-right: 0 !important;
+}
+
+/* Compact, sleek quiz glass cards */
+.quiz-glass-card {
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.5rem !important;
+    border-radius: 10px !important;
+    min-height: 0 !important;
+    border: 1px solid var(--glass-border) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    transition: transform 0.2s ease, border-color 0.2s ease !important;
+}
+
+.quiz-glass-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.quiz-glass-card .btn-pill {
+    padding: 0.3rem 0.75rem !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 0.82rem !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+.quiz-glass-card .btn-delete-quiz {
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    border: 1px solid #EF4444 !important;
+    background: transparent !important;
+    color: #EF4444 !important;
+    box-shadow: none !important;
+}
+
+body.light-theme .quiz-glass-card .btn-create-offline {
+    color: #6D28D9 !important;
+    border-color: #8B5CF6 !important;
+}
+
+/* Compact back button at bottom */
+#dashboard-screen .back-to-role {
+    width: auto !important;
+    display: inline-block !important;
+    padding: 0.35rem 1.25rem !important;
+    font-size: 0.85rem !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    border-radius: 6px !important;
+    margin: 0.5rem auto 0 !important;
+}
+
+/* =====================================================================
+   LOBBY SCREEN (RESPONSIVE PC & MOBILE ARENA)
+   - Host: Widescreen Presentation Hub on PC, clean & full
+   - Student: Compact Personal Waiting Screen on Mobile, zero duplicates
+   ===================================================================== */
+#lobby-screen.active {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 4.5rem 1.5rem 1rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Default / Student Lobby Container (No outer rectangle box, full screen space) */
+#lobby-screen .glass-container {
+    max-width: 440px !important;
+    width: 92% !important;
+    max-height: calc(100dvh - 5.5rem) !important;
+    padding: 1.25rem 1.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: auto !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    border-radius: 18px !important;
+}
+
+body[data-role="student"] #lobby-screen .glass-container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    max-width: 680px !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: calc(100dvh - 5.2rem) !important;
+    padding: 0.25rem 0.5rem !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    overflow: visible !important;
+}
+
+body[data-role="student"] #lobby-screen .avatar-picker-section {
+    width: 100% !important;
+    max-width: 520px !important;
+    margin: 0.35rem auto !important;
+    padding: 1rem 1.25rem !important;
+    box-sizing: border-box !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-header {
+    margin-bottom: 0.4rem !important;
+    font-size: 1.05rem !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-preview-wrap {
+    margin-bottom: 0.4rem !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-preview-img {
+    width: 64px !important;
+    height: 64px !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-style-nav {
+    margin-bottom: 0.45rem !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-grid {
+    max-width: 310px !important;
+    margin: 0 auto 0.55rem !important;
+    gap: 7px !important;
+}
+
+body[data-role="student"] #lobby-screen #avatar-confirmed-view {
+    padding: 1.5rem 1rem !important;
+}
+
+body[data-role="student"] #lobby-screen .avatar-confirmed-header {
+    font-size: 1.45rem !important;
+    margin-bottom: 0.6rem !important;
+}
+
+body[data-role="student"] #lobby-screen .avatar-confirmed-img {
+    width: 125px !important;
+    height: 125px !important;
+    margin: 0 auto 0.65rem !important;
+}
+
+body[data-role="student"] #lobby-screen .avatar-confirmed-name {
+    font-size: 1.55rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+body[data-role="student"] #lobby-screen #btn-avatar-change {
+    margin-top: 0.5rem !important;
+    padding: 0.5rem 1.4rem !important;
+    font-size: 0.95rem !important;
+    height: auto !important;
+    min-height: 38px !important;
+    border-radius: 999px !important;
+}
+
+body[data-role="student"] #lobby-screen .btn-back-floating-wrapper {
+    text-align: center !important;
+    margin-top: 0.35rem !important;
+}
+
+body[data-role="student"] #lobby-screen .btn-back-floating {
+    margin-top: 0 !important;
+    padding: 0.45rem 1.5rem !important;
+    font-size: 0.92rem !important;
+    height: auto !important;
+    min-height: 36px !important;
+}
+
+/* HOST WIDESCREEN LOBBY (PC) - Full Screen Arena */
+@media (min-width: 800px) {
+    body[data-role="host"] #lobby-screen.active {
+        padding: 4.8rem 2rem 1.25rem !important;
+    }
+    body[data-role="host"] #lobby-screen .glass-container {
+        max-width: 1140px !important;
+        width: 92% !important;
+        max-height: calc(100dvh - 6rem) !important;
+        padding: 1.5rem 2.5rem !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08) !important;
+    }
+    body[data-role="host"] #lobby-screen .dynamic-gradient-title {
+        font-size: 2.2rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    body[data-role="host"] #lobby-screen .room-code-display {
+        font-size: 1.2rem !important;
+        padding: 0.45rem 1.8rem !important;
+        margin: 0.4rem 0 0.8rem !important;
+        border-radius: 12px !important;
+    }
+    body[data-role="host"] #lobby-screen .room-code-display .highlight {
+        font-size: 2.4rem !important;
+        letter-spacing: 0.08em !important;
+    }
+    body[data-role="host"] #lobby-screen .qrcode-container {
+        width: 160px !important;
+        height: 160px !important;
+        max-width: 160px !important;
+        max-height: 160px !important;
+        padding: 10px !important;
+        margin: 0.5rem auto 0.75rem !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    body[data-role="host"] #lobby-screen .qrcode-container canvas,
+    body[data-role="host"] #lobby-screen .qrcode-container img {
+        width: 140px !important;
+        height: 140px !important;
+    }
+    body[data-role="host"] #lobby-screen .player-count {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        margin-top: 0.6rem !important;
+        margin-bottom: 0.4rem !important;
+        color: var(--text-main) !important;
+    }
+    body[data-role="host"] #lobby-screen .players-list {
+        min-height: 50px !important;
+        max-height: none !important;
+        overflow: visible !important;
+        gap: 0.75rem !important;
+        margin: 0.5rem auto 0.85rem !important;
+    }
+    body[data-role="host"] #lobby-screen #btn-start-game {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        padding: 0.55rem 2.8rem !important;
+        border-radius: 12px !important;
+        margin-top: 0.65rem !important;
+        box-shadow: 0 4px 16px rgba(30, 58, 138, 0.28) !important;
+    }
+}
+
+#lobby-screen .dynamic-gradient-title {
+    font-size: 1.35rem !important;
+    margin: 0 0 0.25rem 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 800 !important;
+}
+
+#lobby-screen .room-code-display {
+    font-size: 0.95rem !important;
+    padding: 0.25rem 0.75rem !important;
+    margin: 0.2rem 0 0.35rem !important;
+    border-radius: 8px !important;
+    background: var(--input-bg, rgba(0, 0, 0, 0.05)) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+#lobby-screen .room-code-display .highlight {
+    font-size: 1.45rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+}
+
+#lobby-screen .qrcode-container {
+    padding: 6px !important;
+    margin: 0.3rem auto !important;
+    border-radius: 8px !important;
+    width: 130px !important;
+    height: 130px !important;
+    max-width: 130px !important;
+    max-height: 130px !important;
+    min-width: 130px !important;
+    min-height: 130px !important;
+    background: #ffffff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+#lobby-screen .qrcode-container canvas,
+#lobby-screen .qrcode-container img {
+    width: 118px !important;
+    height: 118px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+}
+
+#lobby-screen #qr-debug-text {
+    display: none !important;
+}
+
+#lobby-screen .player-count {
+    font-size: 0.92rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.2rem !important;
+    font-weight: 700 !important;
+}
+
+/* ZERO SCROLLBAR FOR PLAYERS LIST */
+#lobby-screen .players-list {
+    max-height: none !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin: 0.3rem auto 0.5rem !important;
+    width: 100% !important;
+}
+
+#lobby-screen .host-only {
+    margin-top: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
+}
+
+#lobby-screen .host-only span {
+    font-size: 0.88rem !important;
+}
+
+#lobby-screen #btn-start-game {
+    margin-top: 0.4rem !important;
+    padding: 0.45rem 1.6rem !important;
+    font-size: 1rem !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    border-radius: 8px !important;
+}
+
+/* STRICT ROLE ISOLATION - Fix Host seeing Waiting Screen & Student seeing QR/Pills */
+body:not([data-role="student"]) .waiting-container,
+body[data-role="host"] .waiting-container,
+body[data-role="host"] #lobby-screen .waiting-container,
+body[data-role="host"] #feedback-screen .waiting-container {
+    display: none !important;
+}
+
+body[data-role="student"] .waiting-container {
+    display: none !important;
+}
+
+/* Student lobby must NEVER show QR code, player count, or player chips list */
+body:not([data-role="host"]) #lobby-screen .qrcode-container,
+body[data-role="student"] #lobby-screen .qrcode-container,
+body:not([data-role="host"]) #lobby-screen .player-count,
+body[data-role="student"] #lobby-screen .player-count,
+body:not([data-role="host"]) #lobby-screen #lobby-players-list,
+body[data-role="student"] #lobby-screen #lobby-players-list,
+body:not([data-role="host"]) #lobby-screen .players-list,
+body[data-role="student"] #lobby-screen .players-list,
+body:not([data-role="host"]) #lobby-screen #btn-start-game,
+body[data-role="student"] #lobby-screen #btn-start-game,
+body:not([data-role="host"]) #lobby-screen .host-only,
+body[data-role="student"] #lobby-screen .host-only {
+    display: none !important;
+}
+
+body[data-role="host"] #lobby-screen .qrcode-container {
+    display: flex !important;
+}
+
+/* Mobile Lobby Ergonomics */
+@media (max-width: 600px) {
+    #lobby-screen.active {
+        padding: 4.3rem 0.65rem 0.5rem !important;
+    }
+    #lobby-screen .glass-container {
+        padding: 0.4rem 0.5rem !important;
+        max-height: calc(100dvh - 4.8rem) !important;
+        width: 96% !important;
+    }
+    #lobby-screen .dynamic-gradient-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+    #lobby-screen .room-code-display {
+        font-size: 0.88rem !important;
+        padding: 0.2rem 0.7rem !important;
+        margin: 0.1rem 0 0.2rem !important;
+    }
+    #lobby-screen .room-code-display .highlight {
+        font-size: 1.3rem !important;
+    }
+    #lobby-screen .player-count {
+        font-size: 0.78rem !important;
+        margin: 0.1rem 0 !important;
+    }
+    body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-preview-img {
+        width: 56px !important;
+        height: 56px !important;
+    }
+    body[data-role="student"] #lobby-screen #avatar-picker-view .avatar-picker-grid {
+        max-width: 280px !important;
+        gap: 6px !important;
+        margin: 0 auto 0.45rem !important;
+    }
+    body[data-role="student"] #lobby-screen .avatar-confirmed-header {
+        font-size: 1.35rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    body[data-role="student"] #lobby-screen .avatar-confirmed-img {
+        width: 115px !important;
+        height: 115px !important;
+        margin: 0 auto 0.5rem !important;
+    }
+    body[data-role="student"] #lobby-screen .avatar-confirmed-name {
+        font-size: 1.45rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+    body[data-role="student"] #lobby-screen #btn-avatar-change {
+        margin-top: 0.4rem !important;
+        padding: 0.45rem 1.25rem !important;
+        font-size: 0.9rem !important;
+        height: auto !important;
+        min-height: 36px !important;
+    }
+    #lobby-screen .btn-back-floating-wrapper {
+        margin-top: 0.25rem !important;
+    }
+    #lobby-screen .btn-back-floating {
+        padding: 0.35rem 1.2rem !important;
+        font-size: 0.85rem !important;
+        height: auto !important;
+        min-height: 32px !important;
+    }
+}
+
+/* =====================================================================
+   HOURGLASS AND WAITING TEXT COMPLETELY REMOVED PER USER REQUEST
+   ===================================================================== */
+.waiting-container,
+.hourglass-loader,
+.hourglass-svg,
+.waiting-text,
+.loader {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* =====================================================================
+   IMPECCABLE DELIGHT & ANIMATION (Podium, Feedback & App-wide Micro-Interactions)
+   ===================================================================== */
+
+/* 1. Results Podium Suspense & Celebration */
+.podium-suspense-teaser {
+    margin: 1.25rem auto 0;
+    display: inline-block;
+    padding: 0.55rem 1.8rem;
+    background: rgba(234, 179, 8, 0.14);
+    border: 2px dashed #eab308;
+    border-radius: 9999px;
+    color: #fef08a;
+    font-family: var(--font-display, var(--font-main));
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-shadow: none;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.podium-suspense-teaser.active {
+    opacity: 1;
+    transform: scale(1);
+    animation: suspensePulse 0.75s ease-in-out infinite alternate;
+}
+@keyframes suspensePulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+.podium-spot.suspense-anticipation {
+    opacity: 0.5;
+    transform: translateY(30px);
+    animation: anticipationTremor 0.12s linear infinite;
+}
+@keyframes anticipationTremor {
+    0% { transform: translateY(30px) translateX(-2px); }
+    50% { transform: translateY(30px) translateX(2px); }
+    100% { transform: translateY(30px) translateX(-2px); }
+}
+
+.podium-crown {
+    font-size: 2.6rem;
+    line-height: 1;
+    margin-bottom: -0.2rem;
+    opacity: 0;
+    transform: translateY(-25px) scale(0.6);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    filter: drop-shadow(0 4px 10px rgba(234, 179, 8, 0.8));
+    z-index: 5;
+    pointer-events: none;
+}
+#podium-1.revealed .podium-crown {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation: crownFloat 2.6s ease-in-out infinite alternate;
+}
+@keyframes crownFloat {
+    0% { transform: translateY(0) scale(1) rotate(0deg); }
+    50% { transform: translateY(-7px) scale(1.08) rotate(3deg); }
+    100% { transform: translateY(0) scale(1) rotate(-3deg); }
+}
+
+.medal-badge {
+    font-size: 1.8rem;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+}
+.podium-rank-text {
+    vertical-align: middle;
+}
+
+#podium-1.champion-burst .podium-block {
+    animation: goldHeroBounce 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes goldHeroBounce {
+    0% { transform: scale(0.9); }
+    40% { transform: scale(1.08); }
+    70% { transform: scale(0.98); }
+    100% { transform: scale(1); }
+}
+
+.results-spotlight.suspense {
+    opacity: 0.75;
+    animation: spotlightSweep 1.6s ease-in-out infinite alternate;
+}
+@keyframes spotlightSweep {
+    0% { left: 42%; transform: scale(0.9); opacity: 0.5; }
+    100% { left: 58%; transform: scale(1.1); opacity: 0.85; }
+}
+
+/* 2. Score Announcement & Feedback (Single Screen Ergonomics for Student & Host) */
+#feedback-screen.active {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 2.2rem 0.75rem 0.5rem !important;
+    box-sizing: border-box !important;
+}
+
+/* Default / Student Feedback Container (Single Screen Fit on Mobile) */
+#feedback-screen .glass-container {
+    max-width: 440px !important;
+    width: 92% !important;
+    max-height: calc(100vh - 2.8rem) !important;
+    padding: 0.75rem 1rem !important;
+    margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    border-radius: 16px !important;
+}
+
+/* HOST WIDESCREEN FEEDBACK (PC) - Full Screen Stage with Tall Kahoot Bar Chart */
+@media (min-width: 800px) {
+    body[data-role="host"] #feedback-screen.active {
+        padding: 4.5rem 2rem 1.5rem !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        box-sizing: border-box !important;
+    }
+    body[data-role="host"] #feedback-screen .glass-container {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        max-width: 1200px !important;
+        width: 100% !important;
+        max-height: none !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        overflow: visible !important;
+    }
+    body[data-role="host"] #feedback-title {
+        font-size: clamp(1.6rem, 3vh, 2.2rem) !important;
+        text-align: center !important;
+        margin: 0 0 1rem 0 !important;
+        text-transform: none !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.02em !important;
+    }
+    body[data-role="host"] #feedback-chart {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        display: block !important;
+        margin: 0 0 1rem 0 !important;
+        overflow: visible !important;
+    }
+    body[data-role="host"] #feedback-chart .feedback-chart-bars-wrap {
+        height: 160px !important;
+        max-height: 160px !important;
+        min-height: 160px !important;
+        gap: 28px !important;
+        margin: 0.5rem 0 1rem !important;
+    }
+    body[data-role="host"] #feedback-chart .feedback-chart-col {
+        width: 75px !important;
+    }
+    body[data-role="host"] #feedback-chart .feedback-chart-count {
+        font-size: 1.4rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 6px !important;
+    }
+    body[data-role="host"] #feedback-chart .feedback-chart-shape {
+        font-size: 1.25rem !important;
+        padding: 4px 18px !important;
+        border-radius: 6px !important;
+    }
+    body[data-role="student"] #feedback-chart {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0.25rem auto 0.5rem !important;
+    }
+    body[data-role="student"] #feedback-chart .feedback-chart-bars-wrap {
+        height: 120px !important;
+        min-height: 120px !important;
+        gap: 14px !important;
+        padding-bottom: 6px !important;
+        margin: 0.35rem 0 0.65rem !important;
+    }
+    body[data-role="student"] #feedback-chart .feedback-chart-col {
+        width: 42px !important;
+    }
+    body[data-role="student"] #feedback-chart .feedback-chart-count {
+        font-size: 0.95rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 2px !important;
+    }
+    body[data-role="student"] #feedback-chart .feedback-chart-shape {
+        font-size: 0.82rem !important;
+        padding: 2px 8px !important;
+        border-radius: 4px !important;
+        margin-top: 4px !important;
+    }
+    .host-quiz-right-panel {
+        display: inline-flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+    .host-q-num-badge {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--primary);
+        background: var(--primary-muted, rgba(30, 58, 138, 0.08));
+        padding: 6px 16px;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        white-space: nowrap;
+        letter-spacing: 0.04em;
+    }
+    /* Compact choices container: 2 rows, 2 choices per row */
+    body[data-role="host"] #feedback-options-container {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px 20px !important;
+        width: 100% !important;
+        max-width: 900px !important;
+        margin: 0 auto 1.25rem !important;
+        box-sizing: border-box !important;
+    }
+    body[data-role="host"] #feedback-options-container .kahoot-btn {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 52px !important;
+        max-height: none !important;
+        padding: 0.65rem 1.4rem !important;
+        font-size: clamp(1.15rem, 2vh, 1.35rem) !important;
+        font-weight: 800 !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+    }
+    body[data-role="host"] #feedback-options-container .kahoot-shape-container {
+        width: 36px !important;
+        height: 36px !important;
+        margin-right: 1rem !important;
+        flex-shrink: 0 !important;
+    }
+    body[data-role="host"] #feedback-options-container .kahoot-shape-container svg {
+        width: 26px !important;
+        height: 26px !important;
+    }
+    body[data-role="host"] #feedback-screen #host-student-details-section {
+        width: 100% !important;
+        max-width: 850px !important;
+        margin: 0.5rem auto !important;
+        text-align: center !important;
+    }
+    body[data-role="host"] #feedback-screen #host-student-details-container {
+        width: 100% !important;
+        background: var(--input-bg) !important;
+        border: 1.5px solid var(--glass-border) !important;
+        border-radius: 12px !important;
+        padding: 1rem 1.5rem !important;
+        margin-top: 0.5rem !important;
+        box-sizing: border-box !important;
+        text-align: left !important;
+    }
+    body[data-role="host"] #feedback-screen #btn-toggle-student-details {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0.4rem auto !important;
+        height: auto !important;
+        min-height: 40px !important;
+        padding: 0.5rem 1.4rem !important;
+        font-size: 0.95rem !important;
+        border-radius: 10px !important;
+    }
+    body[data-role="host"] #feedback-screen #btn-host-continue {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        padding: 0.55rem 2.8rem !important;
+        border-radius: 12px !important;
+        margin: 0.5rem auto 0 !important;
+        display: inline-block !important;
+    }
+}
+
+/* Remove stamp badge completely per user request */
+.feedback-stamp-container,
+.feedback-stamp {
+    display: none !important;
+}
+
+/* Remove hourglass loader and waiting text from ALL screens per user request */
+.waiting-container,
+.hourglass-loader,
+.waiting-text {
+    display: none !important;
+}
+
+/* Hide answers count box on host playing screen per user request */
+.kahoot-answers-container,
+#kahoot-answers-box {
+    display: none !important;
+}
+
+/* Position Host timer on the right side of the prompt row */
+.quiz-prompt-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1.25rem !important;
+}
+.host-quiz-left-panel {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.host-q-num-badge {
+    font-size: clamp(0.95rem, 1.6vh, 1.15rem);
+    font-weight: 800;
+    color: var(--primary);
+    background: var(--primary-muted, rgba(30, 58, 138, 0.08));
+    padding: clamp(4px, 0.8vh, 6px) clamp(10px, 1.5vw, 16px);
+    border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+}
+body.layout-info .quiz-prompt-row .quiz-prompt-text {
+    display: none !important;
+}
+
+/* Hide countdown timer bar on student live quiz screen (HUD already has numeric timer) */
+body[data-role="student"] #quiz-screen .hud-timer-track,
+body[data-role="student"] #quiz-screen .quiz-progress {
+    display: none !important;
+}
+
+#feedback-title {
+    font-size: clamp(1.05rem, 4.6vw, 1.45rem) !important;
+    margin: 0 0 0.25rem 0 !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+}
+
+#feedback-title.feedback-title-animate-correct {
+    animation: feedbackTitlePopCorrect 540ms cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+#feedback-title.feedback-title-animate-wrong {
+    animation: feedbackTitleShakeWrong 480ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both !important;
+}
+
+@keyframes feedbackTitlePopCorrect {
+    0% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.86);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-3px) scale(1.04);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes feedbackTitleShakeWrong {
+    0% {
+        opacity: 0;
+        transform: translateX(0) scale(0.95);
+    }
+    20% {
+        opacity: 1;
+        transform: translateX(-8px) scale(1);
+    }
+    40% {
+        transform: translateX(7px);
+    }
+    60% {
+        transform: translateX(-5px);
+    }
+    80% {
+        transform: translateX(3px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+#feedback-points {
+    font-size: 1.15rem !important;
+    margin: 0 0 0.25rem 0 !important;
+    font-weight: 800 !important;
+    animation: none !important;
+}
+
+.feedback-rank-pill {
+    display: inline-flex;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.45rem !important;
+    margin: 0.4rem auto 0.55rem !important;
+    padding: 0.45rem 1.65rem !important;
+    background: linear-gradient(135deg, #1E3A8A, #2563EB) !important;
+    border: 2px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 9999px !important;
+    font-size: 1.38rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.02em !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 8px 20px -4px rgba(30, 58, 138, 0.38) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+body[data-role="host"] #feedback-rank-pill,
+.feedback-rank-pill:empty,
+#feedback-rank-pill[style*="display: none"],
+#feedback-rank-pill[style*="display:none"] {
+    display: none !important;
+}
+
+.feedback-rank-pill.rank-pill-animate {
+    animation: rankPillReveal 580ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both !important;
+}
+
+.feedback-rank-pill.rank-pill-animate::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 65%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+    transform: skewX(-20deg);
+    animation: rankPillSheen 680ms cubic-bezier(0.22, 1, 0.36, 1) 240ms both;
+    pointer-events: none;
+}
+
+@keyframes rankPillReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.76);
+    }
+    65% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.06);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes rankPillSheen {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 160%;
+    }
+}
+
+#feedback-your-answer {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    color: var(--text-muted) !important;
+    margin: 0.25rem 0 0.5rem !important;
+}
+
+.student-correct-answer-box {
+    margin: 0.5rem auto 0.25rem !important;
+    padding: 0.85rem 1.25rem !important;
+    border-radius: 14px !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1.5px solid var(--success, #10b981) !important;
+    max-width: 380px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+}
+
+.student-correct-answer-label {
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: var(--success, #10b981) !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.student-correct-answer-value {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+}
+
+#feedback-chart {
+    width: 100% !important;
+    text-align: center !important;
+}
+
+body:not([data-role="host"]) #feedback-chart .feedback-chart-bars-wrap,
+body[data-role="student"] #feedback-chart .feedback-chart-bars-wrap {
+    display: none !important;
+}
+
+body[data-role="student"] #feedback-chart .saq-answer-key-card {
+    padding: 0.85rem 1rem !important;
+    margin: 0.35rem auto 0.5rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #feedback-title.feedback-title-animate-correct,
+    #feedback-title.feedback-title-animate-wrong,
+    .feedback-rank-pill.rank-pill-animate {
+        animation-duration: 180ms !important;
+        animation-delay: 0ms !important;
+        transform: none !important;
+    }
+    .feedback-rank-pill.rank-pill-animate::after {
+        display: none !important;
+    }
+}
+
+/* Strictly hide choice options box and duplicate answer keys for student */
+body:not([data-role="host"]) #feedback-options-container,
+body[data-role="student"] #feedback-options-container,
+body:not([data-role="host"]) #feedback-typing-panel,
+body[data-role="student"] #feedback-typing-panel {
+    display: none !important;
+}
+
+@media (max-width: 799px) {
+    #feedback-screen #btn-host-continue {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 0.92rem !important;
+        padding: 0.35rem 1.4rem !important;
+        margin-top: 0.35rem !important;
+        border-radius: 8px !important;
+    }
+
+    #feedback-screen #btn-toggle-student-details {
+        height: 30px !important;
+        min-height: 30px !important;
+        font-size: 0.8rem !important;
+        padding: 0.2rem 0.8rem !important;
+        margin-bottom: 0.35rem !important;
+        border-radius: 6px !important;
+    }
+}
+
+/* 3. Timer Urgency Pulse */
+.timer-urgent {
+    animation: urgentPulse 0.5s ease-in-out infinite alternate !important;
+}
+.timer-urgent circle,
+.timer-urgent #kahoot-timer-progress {
+    stroke: var(--danger) !important;
+}
+@keyframes urgentPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.06); filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.7)); }
+}
+
+/* 4. Tactile Micro-Interactions */
+.btn-primary:active,
+.btn-secondary:active,
+.btn-accent:active,
+.kahoot-btn:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.08s ease;
+}
+
+/* Dark mode solid countdown */
+body:not(.light-theme) .countdown-number {
+    background: #1E293B !important;
+    color: #38BDF8 !important;
+    border-color: #38BDF8 !important;
+}
+body:not(.light-theme) .countdown-number.go {
+    background: #1E293B !important;
+    color: var(--success) !important;
+    border-color: var(--success) !important;
+}
+
+
+/* Hide Online / Connection Status */
+#connection-status,
+.connection-status {
+    display: none !important;
+}
+
+
+/* =====================================================================
+   CLEAN 3D BUTTONS (MATCHING BOTTOM BAR COLOR / ZERO INSET HIGHLIGHT)
+   ===================================================================== */
+.btn-primary,
+button.btn-primary {
+    border: none !important;
+    border-bottom: 4px solid #162B68 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: #1E3A8A !important;
+    color: #ffffff !important;
+    transition: transform 0.08s ease, border-bottom-width 0.08s ease, filter 0.08s ease !important;
+}
+
+body.light-theme .btn-primary,
+body.light-theme button.btn-primary {
+    background: #1E3A8A !important;
+    border: none !important;
+    border-bottom: 4px solid #162B68 !important; /* Rich matching navy blue, NOT black */
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.btn-primary:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1.5px) !important;
+    filter: brightness(1.08) !important;
+    box-shadow: none !important;
+}
+
+.btn-primary:active:not(:disabled),
+button.btn-primary:active:not(:disabled) {
+    transform: translateY(3px) !important;
+    border-bottom-width: 1px !important;
+    box-shadow: none !important;
+}
+
+/* Secondary & Back Buttons — Flat 2D (No 3D bottom border or shadow) */
+.btn-secondary,
+button.btn-secondary,
+.btn-back-floating,
+.back-to-role,
+#btn-avatar-change,
+#btn-lobby-back,
+#btn-scoreboard-back,
+#btn-review-back-to-podium,
+#btn-back-to-review,
+#btn-cancel-grade-screen {
+    border: 1px solid #CBD5E1 !important;
+    border-bottom: 1px solid #CBD5E1 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: #F1F5F9 !important;
+    color: #1E293B !important;
+    transform: none !important;
+    transition: background 0.12s ease, border-color 0.12s ease !important;
+}
+
+body.light-theme .btn-secondary,
+body.light-theme button.btn-secondary,
+body.light-theme .btn-back-floating,
+body.light-theme .back-to-role,
+body.light-theme #btn-avatar-change {
+    background: #F1F5F9 !important;
+    border: 1px solid #CBD5E1 !important;
+    border-bottom: 1px solid #CBD5E1 !important;
+    color: #1E293B !important;
+    box-shadow: none !important;
+}
+
+.btn-secondary:hover:not(:disabled),
+button.btn-secondary:hover:not(:disabled),
+.btn-back-floating:hover:not(:disabled),
+.back-to-role:hover:not(:disabled),
+#btn-avatar-change:hover:not(:disabled) {
+    transform: none !important;
+    background: #E2E8F0 !important;
+    border-color: #94A3B8 !important;
+    border-bottom-color: #94A3B8 !important;
+    box-shadow: none !important;
+}
+
+.btn-secondary:active:not(:disabled),
+button.btn-secondary:active:not(:disabled),
+.btn-back-floating:active:not(:disabled),
+.back-to-role:active:not(:disabled),
+#btn-avatar-change:active:not(:disabled) {
+    transform: none !important;
+    border-bottom-width: 1px !important;
+    background: #CBD5E1 !important;
+    box-shadow: none !important;
+}
+
+/* Dark Theme Overrides */
+body:not(.light-theme) .btn-primary,
+body:not(.light-theme) button.btn-primary {
+    background: #0284C7 !important;
+    border: none !important;
+    border-bottom: 4px solid #0369A1 !important; /* Matching darker cyan/sky */
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+body:not(.light-theme) .btn-secondary,
+body:not(.light-theme) button.btn-secondary,
+body:not(.light-theme) .btn-back-floating,
+body:not(.light-theme) .back-to-role,
+body:not(.light-theme) #btn-avatar-change {
+    background: #1E293B !important;
+    border: 1px solid #334155 !important;
+    border-bottom: 1px solid #334155 !important;
+    color: #F8FAFC !important;
+    box-shadow: none !important;
+}
+
+.btn-pill,
+button.btn-pill {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+
+/* =====================================================================
+   LOGIN HERO HEADER & JOYSTICK ANIMATION (DELIGHT & ANIMATE)
+   ===================================================================== */
+.login-brand-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.login-brand-icon-wrap {
+    margin-bottom: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: joystickPopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               joystickFloating 4s ease-in-out infinite 0.7s;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.console-controller-svg {
+    overflow: visible;
+    filter: drop-shadow(0 4px 10px rgba(30, 58, 138, 0.16));
+}
+
+.login-brand-icon-wrap:hover .stick-left {
+    transform: translate(0.8px, -0.8px);
+    transition: transform 0.15s ease;
+}
+
+.login-brand-icon-wrap:hover .stick-right {
+    transform: translate(-0.8px, -0.8px);
+    transition: transform 0.15s ease;
+}
+
+.login-brand-icon-wrap:hover .controller-touchpad {
+    fill-opacity: 0.55;
+    transition: fill-opacity 0.2s ease;
+}
+
+.login-brand-icon-wrap:active {
+    transform: scale(0.94);
+    transition: transform 0.08s ease;
+}
+
+/* Joystick Entrance Pop & Spring */
+@keyframes joystickPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.4) rotate(-20deg) translateY(12px);
+    }
+    60% {
+        transform: scale(1.12) rotate(6deg) translateY(-4px);
+    }
+    85% {
+        transform: scale(0.96) rotate(-3deg) translateY(1px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg) translateY(0);
+    }
+}
+
+/* Gentle, playful idle breathing motion */
+@keyframes joystickFloating {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    30% {
+        transform: translateY(-3px) rotate(2.5deg);
+    }
+    70% {
+        transform: translateY(-1px) rotate(-2deg);
+    }
+}
+
+/* Title Entrance & Micro-interaction */
+.login-hero-title {
+    font-family: 'Inter', 'Sarabun', sans-serif !important;
+    font-size: 1.65rem !important;
+    font-weight: 800 !important;
+    color: var(--primary) !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    text-align: center !important;
+    animation: titleSettle 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.14s backwards;
+    transition: transform 0.2s ease, letter-spacing 0.2s ease, color 0.2s ease;
+    cursor: default;
+    user-select: none;
+}
+
+.login-hero-title:hover {
+    letter-spacing: -0.01em !important;
+    transform: translateY(-1px);
+}
+
+@keyframes titleSettle {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+        letter-spacing: 0.02em;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        letter-spacing: -0.025em;
+    }
+}
+
+/* =====================================================================
+   PAGE 2: 3-BOX SEPARATE STATIONS GRID (Balanced Single Screen Ergonomics)
+   ===================================================================== */
+#role-screen {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100vh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: clamp(0.75rem, 2.5vh, 2rem) 1.25rem clamp(0.4rem, 1.5vh, 1rem) !important;
+    box-sizing: border-box !important;
+}
+
+.role-station-container {
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    width: 94% !important;
+    height: 100% !important;
+    max-height: calc(100vh - 40px) !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.role-heading {
+    font-size: clamp(1.4rem, 2.6vh, 2.1rem) !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    margin: 0 0 clamp(0.35rem, 1vh, 0.75rem) 0 !important;
+    text-align: center !important;
+}
+
+.role-station-grid-3 {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: clamp(0.9rem, 1.8vh, 1.5rem) !important;
+    width: 100% !important;
+}
+
+.role-station-grid-2 {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: clamp(0.9rem, 1.8vh, 1.5rem) !important;
+    width: 100% !important;
+    max-width: 960px !important;
+    margin: 0 auto !important;
+}
+
+.station-card-box {
+    background: var(--surface-1, #ffffff) !important;
+    border: 1.5px solid var(--border-color, #E2E8F0) !important;
+    border-radius: 16px !important;
+    padding: clamp(1rem, 2.2vh, 1.6rem) clamp(1.1rem, 1.6vw, 1.8rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.24s ease !important;
+    position: relative !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-theme .station-card-box {
+    background: #ffffff !important;
+    border: 1.5px solid #E2E8F0 !important;
+}
+
+.station-card-box:hover {
+    transform: translateY(-3px) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.08) !important;
+}
+
+.station-box-badge {
+    font-size: clamp(0.68rem, 1.1vh, 0.76rem) !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--primary) !important;
+    background: var(--primary-muted, rgba(30,58,138,0.08)) !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    margin-bottom: clamp(0.25rem, 0.8vh, 0.45rem) !important;
+}
+
+.station-box-icon {
+    width: clamp(44px, 5.5vh, 54px) !important;
+    height: clamp(44px, 5.5vh, 54px) !important;
+    border-radius: 13px !important;
+    background: var(--primary-muted, rgba(30,58,138,0.08)) !important;
+    color: var(--primary) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: clamp(0.3rem, 0.9vh, 0.55rem) !important;
+    transition: transform 0.2s ease !important;
+}
+
+.station-box-icon svg {
+    width: clamp(23px, 2.8vh, 28px) !important;
+    height: clamp(23px, 2.8vh, 28px) !important;
+}
+
+.station-card-box:hover .station-box-icon {
+    transform: scale(1.08) !important;
+}
+
+.station-box-title {
+    font-size: clamp(1.06rem, 1.9vh, 1.25rem) !important;
+    font-weight: 800 !important;
+    color: var(--text-main) !important;
+    margin: 0 0 clamp(0.15rem, 0.4vh, 0.25rem) 0 !important;
+    line-height: 1.25 !important;
+}
+
+.station-box-desc {
+    font-size: clamp(0.8rem, 1.35vh, 0.9rem) !important;
+    color: var(--text-muted) !important;
+    line-height: 1.4 !important;
+    margin: 0 0 clamp(0.55rem, 1.2vh, 0.9rem) 0 !important;
+    flex-grow: 1 !important;
+    white-space: normal !important;
+    max-width: 100% !important;
+}
+
+.station-box-cta {
+    width: 100% !important;
+    height: clamp(38px, 4.5vh, 44px) !important;
+    min-height: clamp(38px, 4.5vh, 44px) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: clamp(0.86rem, 1.4vh, 0.96rem) !important;
+    font-weight: 800 !important;
+    border-radius: 9px !important;
+    margin-top: auto !important;
+    text-decoration: none !important;
+    transition: transform 0.12s ease, background-color 0.15s ease, filter 0.12s ease !important;
+}
+
+.station-instructor-wrap {
+    margin-top: clamp(0.6rem, 1.5vh, 1.2rem) !important;
+}
+
+.station-instructor-wrap .station-tag.faculty-tag {
+    font-size: 0.68rem !important;
+    padding: 2px 8px !important;
+    margin-bottom: 0.15rem !important;
+    display: inline-block !important;
+}
+
+.instructor-heading {
+    font-size: clamp(1.05rem, 1.8vh, 1.3rem) !important;
+    color: var(--text-main) !important;
+    font-weight: 800 !important;
+    margin: clamp(0.1rem, 0.3vh, 0.2rem) 0 clamp(0.25rem, 0.7vh, 0.5rem) 0 !important;
+}
+
+/* =====================================================================
+   PC WIDESCREEN: GUEST VIEW (3 Cards fill the vast PC area grandly)
+   ===================================================================== */
+@media (min-width: 861px) {
+    body:not([data-auth-tier="admin"]) .role-station-container,
+    body[data-auth-tier="guest"] .role-station-container {
+        max-width: 1440px !important;
+        width: 92% !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-heading,
+    body[data-auth-tier="guest"] .role-heading {
+        font-size: clamp(1.9rem, 3.8vh, 2.6rem) !important;
+        margin-bottom: clamp(1.2rem, 2.6vh, 2.2rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3,
+    body[data-auth-tier="guest"] .role-station-grid-3 {
+        gap: clamp(1.5rem, 2.5vw, 2.6rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-card-box,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-card-box {
+        min-height: clamp(320px, 48vh, 460px) !important;
+        padding: clamp(2.2rem, 4.5vh, 3.6rem) clamp(1.6rem, 2.2vw, 2.6rem) !important;
+        border-radius: 22px !important;
+        box-shadow: 0 6px 28px rgba(0, 0, 0, 0.05) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-badge,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-badge {
+        font-size: clamp(0.78rem, 1.3vh, 0.92rem) !important;
+        padding: 4px 14px !important;
+        margin-bottom: clamp(0.6rem, 1.4vh, 1.2rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-icon,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-icon {
+        width: clamp(70px, 9.5vh, 92px) !important;
+        height: clamp(70px, 9.5vh, 92px) !important;
+        border-radius: 20px !important;
+        margin-bottom: clamp(0.8rem, 1.8vh, 1.4rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-icon svg,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-icon svg {
+        width: clamp(36px, 4.8vh, 46px) !important;
+        height: clamp(36px, 4.8vh, 46px) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-title,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-title {
+        font-size: clamp(1.35rem, 2.5vh, 1.75rem) !important;
+        margin-bottom: clamp(0.35rem, 0.9vh, 0.65rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-desc,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-desc {
+        font-size: clamp(0.95rem, 1.6vh, 1.15rem) !important;
+        line-height: 1.55 !important;
+        margin-bottom: clamp(1.2rem, 2.5vh, 1.8rem) !important;
+    }
+    body:not([data-auth-tier="admin"]) .role-station-grid-3 .station-box-cta,
+    body[data-auth-tier="guest"] .role-station-grid-3 .station-box-cta {
+        height: clamp(48px, 6.2vh, 58px) !important;
+        min-height: clamp(48px, 6.2vh, 58px) !important;
+        font-size: clamp(1rem, 1.7vh, 1.18rem) !important;
+        border-radius: 14px !important;
+    }
+
+    /* Admin View: Both Row 1 and Row 2 utilize the widescreen width cleanly */
+    body[data-auth-tier="admin"] .role-station-container {
+        max-width: 1440px !important;
+        width: 94% !important;
+    }
+    body[data-auth-tier="admin"] .role-heading {
+        font-size: clamp(1.6rem, 2.8vh, 2.2rem) !important;
+        margin-bottom: clamp(0.4rem, 1vh, 0.8rem) !important;
+    }
+    body[data-auth-tier="admin"] .role-station-grid-3 {
+        gap: clamp(1rem, 1.8vh, 1.5rem) !important;
+    }
+    body[data-auth-tier="admin"] .role-station-grid-2 {
+        max-width: 960px !important;
+        gap: clamp(1rem, 1.8vh, 1.5rem) !important;
+        margin: 0 auto !important;
+    }
+    body[data-auth-tier="admin"] .station-card-box {
+        min-height: clamp(185px, 24vh, 240px) !important;
+        padding: clamp(1.15rem, 2.2vh, 1.65rem) clamp(1.2rem, 1.6vw, 1.85rem) !important;
+        border-radius: 16px !important;
+    }
+    body[data-auth-tier="admin"] .station-box-badge {
+        font-size: clamp(0.72rem, 1.1vh, 0.8rem) !important;
+        padding: 3px 11px !important;
+        margin-bottom: clamp(0.3rem, 0.8vh, 0.5rem) !important;
+    }
+    body[data-auth-tier="admin"] .station-box-icon {
+        width: clamp(48px, 5.8vh, 58px) !important;
+        height: clamp(48px, 5.8vh, 58px) !important;
+        border-radius: 14px !important;
+        margin-bottom: clamp(0.35rem, 0.9vh, 0.6rem) !important;
+    }
+    body[data-auth-tier="admin"] .station-box-icon svg {
+        width: clamp(24px, 2.8vh, 29px) !important;
+        height: clamp(24px, 2.8vh, 29px) !important;
+    }
+    body[data-auth-tier="admin"] .station-box-title {
+        font-size: clamp(1.12rem, 1.9vh, 1.28rem) !important;
+        margin-bottom: clamp(0.2rem, 0.5vh, 0.35rem) !important;
+    }
+    body[data-auth-tier="admin"] .station-box-desc {
+        font-size: clamp(0.82rem, 1.35vh, 0.92rem) !important;
+        margin-bottom: clamp(0.65rem, 1.3vh, 1.05rem) !important;
+    }
+    body[data-auth-tier="admin"] .station-box-cta {
+        height: clamp(40px, 4.8vh, 46px) !important;
+        min-height: clamp(40px, 4.8vh, 46px) !important;
+        font-size: clamp(0.9rem, 1.45vh, 1.02rem) !important;
+        border-radius: 10px !important;
+    }
+    body[data-auth-tier="admin"] .station-instructor-wrap {
+        margin-top: clamp(0.8rem, 1.8vh, 1.5rem) !important;
+    }
+    body[data-auth-tier="admin"] .instructor-heading {
+        font-size: clamp(1.15rem, 2vh, 1.45rem) !important;
+        margin: clamp(0.15rem, 0.4vh, 0.25rem) 0 clamp(0.35rem, 0.9vh, 0.65rem) 0 !important;
+    }
+}
+
+/* =====================================================================
+   MOBILE: Keep 3 Station Boxes together on ONE screen (Zero Vertical Scroll)
+   Expanded squarish cards filling the vertical height nicely
+   ===================================================================== */
+@media (max-width: 860px) {
+    #role-screen {
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+        padding: 3.5rem 1rem 0.85rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+    .role-station-container {
+        height: 100% !important;
+        max-height: calc(100dvh - 58px) !important;
+        width: 100% !important;
+        max-width: 440px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        padding: 0 !important;
+    }
+    .station-header {
+        margin-bottom: clamp(4px, 1vh, 8px) !important;
+    }
+    .role-heading {
+        font-size: clamp(1.25rem, 2.8vh, 1.55rem) !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+    .role-station-grid-3 {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        gap: clamp(10px, 1.8vh, 16px) !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+    .role-station-grid-3 .station-card-box {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        padding: clamp(10px, 1.8vh, 16px) clamp(14px, 3.5vw, 20px) !important;
+        border-radius: 18px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        text-align: center !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+    }
+    .role-station-grid-3 .station-box-badge {
+        font-size: clamp(0.68rem, 1.3vh, 0.78rem) !important;
+        padding: 2px 10px !important;
+        margin-bottom: clamp(2px, 0.6vh, 4px) !important;
+        border-radius: 20px !important;
+    }
+    .role-station-grid-3 .station-box-icon {
+        width: clamp(38px, 5.2vh, 48px) !important;
+        height: clamp(38px, 5.2vh, 48px) !important;
+        border-radius: 12px !important;
+        margin-bottom: clamp(2px, 0.6vh, 4px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .role-station-grid-3 .station-box-icon svg {
+        width: clamp(20px, 2.8vh, 26px) !important;
+        height: clamp(20px, 2.8vh, 26px) !important;
+    }
+    .role-station-grid-3 .station-box-title {
+        font-size: clamp(1.02rem, 2.2vh, 1.25rem) !important;
+        font-weight: 800 !important;
+        margin: 0 0 clamp(1px, 0.4vh, 3px) 0 !important;
+        line-height: 1.25 !important;
+    }
+    .role-station-grid-3 .station-box-desc {
+        font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
+        color: var(--text-muted) !important;
+        margin: 0 0 clamp(6px, 1.2vh, 10px) 0 !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+    }
+    .role-station-grid-3 .station-box-cta {
+        width: 100% !important;
+        height: clamp(36px, 4.8vh, 42px) !important;
+        min-height: clamp(36px, 4.8vh, 42px) !important;
+        font-size: clamp(0.85rem, 1.7vh, 0.98rem) !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Admin on mobile: allows vertical scroll to reach the instructor section */
+    body[data-auth-tier="admin"] #role-screen {
+        overflow-y: auto !important;
+        display: block !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        padding-bottom: 2.5rem !important;
+    }
+    body[data-auth-tier="admin"] .role-station-container {
+        height: auto !important;
+        max-height: none !important;
+    }
+    body[data-auth-tier="admin"] .role-station-grid-3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+    }
+    body[data-auth-tier="admin"] .role-station-grid-3 .station-card-box {
+        flex: none !important;
+        min-height: clamp(170px, 24vh, 210px) !important;
+    }
+    .role-station-grid-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        width: 100% !important;
+    }
+    .role-station-grid-2 .station-card-box {
+        min-height: clamp(170px, 24vh, 210px) !important;
+        padding: clamp(10px, 1.8vh, 16px) clamp(14px, 3.5vw, 20px) !important;
+        border-radius: 18px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        text-align: center !important;
+    }
+    .role-station-grid-2 .station-box-badge {
+        font-size: clamp(0.68rem, 1.3vh, 0.78rem) !important;
+        padding: 2px 10px !important;
+        margin-bottom: clamp(2px, 0.6vh, 4px) !important;
+        border-radius: 20px !important;
+    }
+    .role-station-grid-2 .station-box-icon {
+        width: clamp(38px, 5.2vh, 48px) !important;
+        height: clamp(38px, 5.2vh, 48px) !important;
+        border-radius: 12px !important;
+        margin-bottom: clamp(2px, 0.6vh, 4px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .role-station-grid-2 .station-box-icon svg {
+        width: clamp(20px, 2.8vh, 26px) !important;
+        height: clamp(20px, 2.8vh, 26px) !important;
+    }
+    .role-station-grid-2 .station-box-title {
+        font-size: clamp(1.02rem, 2.2vh, 1.25rem) !important;
+        font-weight: 800 !important;
+        margin: 0 0 clamp(1px, 0.4vh, 3px) 0 !important;
+    }
+    .role-station-grid-2 .station-box-desc {
+        font-size: clamp(0.76rem, 1.4vh, 0.88rem) !important;
+        color: var(--text-muted) !important;
+        margin: 0 0 clamp(6px, 1.2vh, 10px) 0 !important;
+        line-height: 1.35 !important;
+    }
+    .role-station-grid-2 .station-box-cta {
+        width: 100% !important;
+        height: clamp(36px, 4.8vh, 42px) !important;
+        min-height: clamp(36px, 4.8vh, 42px) !important;
+        font-size: clamp(0.85rem, 1.7vh, 0.98rem) !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+    }
+}
+}
+
+.station-box-cta span {
+    color: inherit !important;
+    font-weight: inherit !important;
+}
+
+.station-box-cta:active {
+    transform: translateY(2px) !important;
+    border-bottom-width: 2px !important;
+}
+
+/* =====================================================================
+   PASTEL BUTTON ACCENTS & WHITE CARDS FOR 3 STATION BOXES
+   Card Background: Pure White (#ffffff)
+   Box 1: #9dc3e2 (Pastel Sky Blue)
+   Box 2: #9dd2d8 (Pastel Mint / Cyan)
+   Box 3: #fadce4 (Pastel Soft Rose)
+   Title Text: Same color as requested
+   Description Text: Kept neutral slate as requested
+   ===================================================================== */
+
+/* --- 1. Box 1: Live Playroom (#9dc3e2) --- */
+.station-box-pastel-blue {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+body.light-theme .station-box-pastel-blue {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+.station-box-pastel-blue:hover {
+    border-color: #9dc3e2 !important;
+    transform: translateY(-4px) !important;
+}
+
+.station-box-pastel-blue .station-box-badge {
+    background: rgba(157, 195, 226, 0.28) !important;
+    color: #1E3A8A !important;
+}
+
+.station-box-pastel-blue .station-box-icon {
+    background: rgba(157, 195, 226, 0.28) !important;
+    color: #1E3A8A !important;
+}
+
+.station-box-pastel-blue .station-box-title {
+    color: #9dc3e2 !important;
+    text-shadow: 0 1px 1px rgba(15, 23, 42, 0.1);
+}
+
+.station-box-pastel-blue .station-box-desc {
+    color: var(--text-muted, #475569) !important;
+}
+
+#btn-goto-join,
+.station-btn-blue,
+.station-box-pastel-blue .station-box-cta,
+body.light-theme #btn-goto-join,
+body.light-theme .station-btn-blue {
+    background: #9dc3e2 !important;
+    background-color: #9dc3e2 !important;
+    color: #0F2942 !important;
+    border: 1px solid #8bb8d8 !important;
+    border-bottom: 4px solid #72a1c4 !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+#btn-goto-join:hover,
+.station-btn-blue:hover,
+.station-box-pastel-blue .station-box-cta:hover {
+    background: #8ec3e8 !important;
+    background-color: #8ec3e8 !important;
+    filter: brightness(1.05) !important;
+}
+
+/* --- 2. Box 2: Self-Paced Assignment (#9dd2d8) --- */
+.station-box-pastel-green {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+body.light-theme .station-box-pastel-green {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+.station-box-pastel-green:hover {
+    border-color: #9dd2d8 !important;
+    transform: translateY(-4px) !important;
+}
+
+.station-box-pastel-green .station-box-badge {
+    background: rgba(157, 210, 216, 0.3) !important;
+    color: #0E7490 !important;
+}
+
+.station-box-pastel-green .station-box-icon {
+    background: rgba(157, 210, 216, 0.3) !important;
+    color: #0E7490 !important;
+}
+
+.station-box-pastel-green .station-box-title {
+    color: #9dd2d8 !important;
+    text-shadow: 0 1px 1px rgba(15, 23, 42, 0.1);
+}
+
+.station-box-pastel-green .station-box-desc {
+    color: var(--text-muted, #475569) !important;
+}
+
+#btn-goto-offline-student,
+.station-btn-green,
+.station-box-pastel-green .station-box-cta,
+body.light-theme #btn-goto-offline-student,
+body.light-theme .station-btn-green {
+    background: #9dd2d8 !important;
+    background-color: #9dd2d8 !important;
+    color: #0B3B42 !important;
+    border: 1px solid #8ac5cc !important;
+    border-bottom: 4px solid #6eb0b8 !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+#btn-goto-offline-student:hover,
+.station-btn-green:hover,
+.station-box-pastel-green .station-box-cta:hover {
+    background: #8ecfd7 !important;
+    background-color: #8ecfd7 !important;
+    filter: brightness(1.05) !important;
+}
+
+/* --- 3. Box 3: Results & Review (#fadce4) --- */
+.station-box-pastel-purple {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+body.light-theme .station-box-pastel-purple {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+.station-box-pastel-purple:hover {
+    border-color: #fadce4 !important;
+    transform: translateY(-4px) !important;
+}
+
+.station-box-pastel-purple .station-box-badge {
+    background: rgba(250, 220, 228, 0.45) !important;
+    color: #9D174D !important;
+}
+
+.station-box-pastel-purple .station-box-icon {
+    background: rgba(250, 220, 228, 0.45) !important;
+    color: #9D174D !important;
+}
+
+.station-box-pastel-purple .station-box-title {
+    color: #BE185D !important;
+    text-shadow: none !important;
+}
+
+.station-box-pastel-purple .station-box-desc {
+    color: var(--text-muted, #475569) !important;
+}
+
+#btn-goto-offline-review,
+.station-btn-pink,
+.station-box-pastel-purple .station-box-cta,
+body.light-theme #btn-goto-offline-review,
+body.light-theme .station-btn-pink {
+    background: #fadce4 !important;
+    background-color: #fadce4 !important;
+    color: #5C1D2E !important;
+    border: 1px solid #f0cad4 !important;
+    border-bottom: 4px solid #dba4b1 !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+#btn-goto-offline-review:hover,
+.station-btn-pink:hover,
+.station-box-pastel-purple .station-box-cta:hover {
+    background: #fcd5df !important;
+    background-color: #fcd5df !important;
+    filter: brightness(1.05) !important;
+}
+
+/* Dark Theme Adaptations for Pastel Boxes */
+body:not(.light-theme) .station-box-pastel-blue {
+    background: #0F172A !important;
+    border: 1.5px solid rgba(157, 195, 226, 0.35) !important;
+}
+body:not(.light-theme) .station-box-pastel-blue .station-box-badge,
+body:not(.light-theme) .station-box-pastel-blue .station-box-icon {
+    background: rgba(157, 195, 226, 0.18) !important;
+    color: #9dc3e2 !important;
+}
+body:not(.light-theme) .station-box-pastel-blue .station-box-title {
+    color: #9dc3e2 !important;
+}
+body:not(.light-theme) .station-box-pastel-blue .station-box-desc {
+    color: #94A3B8 !important;
+}
+
+body:not(.light-theme) .station-box-pastel-green {
+    background: #0F172A !important;
+    border: 1.5px solid rgba(157, 210, 216, 0.35) !important;
+}
+body:not(.light-theme) .station-box-pastel-green .station-box-badge,
+body:not(.light-theme) .station-box-pastel-green .station-box-icon {
+    background: rgba(157, 210, 216, 0.18) !important;
+    color: #9dd2d8 !important;
+}
+body:not(.light-theme) .station-box-pastel-green .station-box-title {
+    color: #9dd2d8 !important;
+}
+body:not(.light-theme) .station-box-pastel-green .station-box-desc {
+    color: #94A3B8 !important;
+}
+
+body:not(.light-theme) .station-box-pastel-purple {
+    background: #0F172A !important;
+    border: 1.5px solid rgba(250, 220, 228, 0.35) !important;
+}
+body:not(.light-theme) .station-box-pastel-purple .station-box-badge,
+body:not(.light-theme) .station-box-pastel-purple .station-box-icon {
+    background: rgba(250, 220, 228, 0.18) !important;
+    color: #fadce4 !important;
+}
+body:not(.light-theme) .station-box-pastel-purple .station-box-title {
+    color: #F472B6 !important;
+}
+body:not(.light-theme) .station-box-pastel-purple .station-box-desc {
+    color: #94A3B8 !important;
+}
+
+/* =====================================================================
+   INSTRUCTOR STATION BOXES (Blue & Red in matching station box style)
+   Box 1: Blue (#2563EB / #1D4ED8) - Design Your Games (Create)
+   Box 2: Red (#DC2626 / #B91C1C) - Formative Assessment (Critique)
+   ===================================================================== */
+
+/* --- 1. Instructor Box 1: Blue (Design / Create) --- */
+.station-box-instructor-blue {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+body.light-theme .station-box-instructor-blue {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+.station-box-instructor-blue:hover {
+    border-color: #2563eb !important;
+    transform: translateY(-4px) !important;
+}
+
+.station-box-instructor-blue .station-box-badge {
+    background: rgba(37, 99, 235, 0.12) !important;
+    color: #1d4ed8 !important;
+}
+
+.station-box-instructor-blue .station-box-icon {
+    background: rgba(37, 99, 235, 0.12) !important;
+    color: #2563eb !important;
+}
+
+.station-box-instructor-blue .station-box-title {
+    color: #1e40af !important;
+    text-shadow: 0 1px 1px rgba(15, 23, 42, 0.05);
+}
+
+.station-box-instructor-blue .station-box-desc {
+    color: var(--text-muted, #475569) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+}
+
+#btn-goto-maker,
+.station-btn-instructor-blue,
+.station-box-instructor-blue .station-box-cta,
+body.light-theme #btn-goto-maker,
+body.light-theme .station-btn-instructor-blue {
+    background: #2563eb !important;
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border: 1px solid #1d4ed8 !important;
+    border-bottom: 4px solid #1e40af !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+#btn-goto-maker:hover,
+.station-btn-instructor-blue:hover,
+.station-box-instructor-blue .station-box-cta:hover {
+    background: #1d4ed8 !important;
+    background-color: #1d4ed8 !important;
+    filter: brightness(1.05) !important;
+}
+
+/* --- 2. Instructor Box 2: Red (Assessment / Critique) --- */
+.station-box-instructor-red {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+body.light-theme .station-box-instructor-red {
+    background: #ffffff !important;
+    border: 1.5px solid #CBD5E1 !important;
+}
+
+.station-box-instructor-red:hover {
+    border-color: #dc2626 !important;
+    transform: translateY(-4px) !important;
+}
+
+.station-box-instructor-red .station-box-badge {
+    background: rgba(220, 38, 38, 0.12) !important;
+    color: #b91c1c !important;
+}
+
+.station-box-instructor-red .station-box-icon {
+    background: rgba(220, 38, 38, 0.12) !important;
+    color: #dc2626 !important;
+}
+
+.station-box-instructor-red .station-box-title {
+    color: #b91c1c !important;
+    text-shadow: 0 1px 1px rgba(15, 23, 42, 0.05);
+}
+
+.station-box-instructor-red .station-box-desc {
+    color: var(--text-muted, #475569) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+}
+
+#btn-goto-offline-teacher-login,
+.station-btn-instructor-red,
+.station-box-instructor-red .station-box-cta,
+body.light-theme #btn-goto-offline-teacher-login,
+body.light-theme .station-btn-instructor-red {
+    background: #dc2626 !important;
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    border: 1px solid #b91c1c !important;
+    border-bottom: 4px solid #991b1b !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+
+#btn-goto-offline-teacher-login:hover,
+.station-btn-instructor-red:hover,
+.station-box-instructor-red .station-box-cta:hover {
+    background: #b91c1c !important;
+    background-color: #b91c1c !important;
+    filter: brightness(1.05) !important;
+}
+
+/* Dark Theme Adaptations for Instructor Boxes */
+body:not(.light-theme) .station-box-instructor-blue {
+    background: #0F172A !important;
+    border: 1.5px solid rgba(37, 99, 235, 0.35) !important;
+}
+body:not(.light-theme) .station-box-instructor-blue .station-box-badge,
+body:not(.light-theme) .station-box-instructor-blue .station-box-icon {
+    background: rgba(37, 99, 235, 0.2) !important;
+    color: #60a5fa !important;
+}
+body:not(.light-theme) .station-box-instructor-blue .station-box-title {
+    color: #60a5fa !important;
+}
+body:not(.light-theme) .station-box-instructor-blue .station-box-desc {
+    color: #94A3B8 !important;
+}
+
+body:not(.light-theme) .station-box-instructor-red {
+    background: #0F172A !important;
+    border: 1.5px solid rgba(220, 38, 38, 0.35) !important;
+}
+body:not(.light-theme) .station-box-instructor-red .station-box-badge,
+body:not(.light-theme) .station-box-instructor-red .station-box-icon {
+    background: rgba(220, 38, 38, 0.2) !important;
+    color: #f87171 !important;
+}
+body:not(.light-theme) .station-box-instructor-red .station-box-title {
+    color: #f87171 !important;
+}
+body:not(.light-theme) .station-box-instructor-red .station-box-desc {
+    color: #94A3B8 !important;
+}
+
+/* Save without submit secondary button */
+.btn-save-without-submit {
+    background: var(--input-bg) !important;
+    border: 1.5px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+}
+.btn-save-without-submit:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    background: var(--primary-muted) !important;
+}
+
+/* --- Review Mode Question Dashboard & Single-Question Stage --- */
+.offline-review-score-badge {
+    margin-top: 8px;
+    background: var(--panel-bg);
+    border: 1.5px solid var(--primary);
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.offline-question-nav-grid .offline-q-pill.has-pts {
+    border: 1.5px solid var(--success) !important;
+    color: var(--success) !important;
+    background: rgba(16, 185, 129, 0.08);
+    font-weight: 800;
+}
+
+.offline-question-nav-grid .offline-q-pill.zero-pts {
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+}
+
+.offline-question-nav-grid .offline-q-pill.active {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.offline-review-detail-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    overflow-y: auto;
+    max-height: 100%;
+    padding-right: 4px;
+}
+
+.review-section-box {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    box-sizing: border-box;
+}
+
+.review-student-ans-box,
+.answer-box-student {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1.5px solid rgba(59, 130, 246, 0.35);
+    border-radius: 12px;
+    padding: 0.85rem 1.15rem;
+    box-sizing: border-box;
+    text-align: left;
+}
+body.light-theme .review-student-ans-box,
+body.light-theme .answer-box-student {
+    background: #f0f7ff;
+    border-color: #93c5fd;
+}
+.answer-box-student-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #2563eb;
+    margin-bottom: 6px;
+}
+.answer-box-student-val {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-main);
+    word-break: break-word;
+    line-height: 1.45;
+}
+
+.review-correct-key-box,
+.answer-box-key {
+    background: rgba(16, 185, 129, 0.07);
+    border: 1.5px solid #10b981;
+    border-radius: 12px;
+    padding: 0.85rem 1.15rem;
+    box-sizing: border-box;
+    text-align: left;
+}
+body.light-theme .review-correct-key-box,
+body.light-theme .answer-box-key {
+    background: #ecfdf5;
+    border-color: #34d399;
+}
+.answer-box-key-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #059669;
+    margin-bottom: 6px;
+}
+.answer-box-key-val {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #047857;
+    word-break: break-word;
+    line-height: 1.45;
+}
+body:not(.light-theme) .answer-box-key-val {
+    color: #6ee7b7;
+}
+
+.review-rubric-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+}
+
+.review-feedback-box,
+.feedback-box-compact {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    background: rgba(139, 61, 255, 0.08) !important;
+    border: 1px solid rgba(139, 61, 255, 0.25) !important;
+    border-left: 4px solid #8b3dff !important;
+    border-radius: 8px !important;
+    padding: 0.55rem 0.85rem !important;
+    margin-top: 0.65rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+body.light-theme .review-feedback-box,
+body.light-theme .feedback-box-compact {
+    background: #fbf7ff !important;
+    border-color: #e9d5ff !important;
+    border-left-color: #8b3dff !important;
+}
+.feedback-box-compact-label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #8b3dff !important;
+    margin-bottom: 4px !important;
+    text-align: left !important;
+    width: 100% !important;
+}
+.feedback-box-compact-val {
+    font-size: 0.95rem !important;
+    color: var(--text-main) !important;
+    line-height: 1.45 !important;
+    white-space: pre-wrap !important;
+    font-weight: 500 !important;
+    text-align: left !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.offline-grade-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.35rem 1.5rem;
+    box-sizing: border-box;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.offline-scrollable-feed {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.offline-review-print-all {
+    display: none;
+}
+
+@media print {
+    .offline-review-print-all {
+        display: block !important;
+        width: 100% !important;
+    }
+    #offline-review-dashboard-layout {
+        display: none !important;
     }
 }
