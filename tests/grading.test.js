@@ -11,7 +11,9 @@ const {
     computeAttemptTotalScore,
     buildOfflineAttemptsCsv,
     verifyAdminCredentials,
-    findMatchingOfflineAttempt
+    findMatchingOfflineAttempt,
+    summarizeGradingReason,
+    buildConceptBreakdownItems
 } = require('../app-services.js');
 
 test('Levenshtein distance handles exact and typo matches', () => {
@@ -163,4 +165,64 @@ test('findMatchingOfflineAttempt matches by exact ID, case-insensitive ID, swapp
     assert.equal(findMatchingOfflineAttempt(attempts, '  ps ', '', true)?.studentId, '600');
     // In assignment mode (allowNameFallback = false), new Student ID does not collide with another student of same name
     assert.equal(findMatchingOfflineAttempt(attempts, '700', 'PS', false), null);
+});
+
+
+test('summarizeGradingReason strips AI chain-of-thought and condenses verbose phrasing', () => {
+    const shortRes = summarizeGradingReason('ตรงความหมาย (แมงดาทะเล)', 85);
+    assert.equal(shortRes.summary, 'ตรงความหมาย (แมงดาทะเล)');
+    assert.equal(shortRes.isTruncated, false);
+
+    const longReason = "The student wrote 'tetadotoxin' which is a misspelling of 'Tetrodotoxin'. While the intent is clear, let's look closer: t-e-t-r-o-d-o-t-o-x-i-n vs t-e-t-a-d-o-t-o-x-i-n. Actually, I will assign partial.";
+    const longRes = summarizeGradingReason(longReason, 85);
+    assert.equal(longRes.summary, "'tetadotoxin' → สะกดผิดจาก 'Tetrodotoxin'");
+    assert.equal(longRes.isTruncated, false);
+});
+
+test('buildConceptBreakdownItems extracts matched student phrases even from legacy reasons', () => {
+    const q = {
+        type: 'typing',
+        acceptedAnswers: [
+            { text: 'Tetrodotoxin', points: 10 },
+            { text: 'Horseshoe crab ingestion', points: 10 },
+            { text: 'Blue ring octopus', points: 10 }
+        ]
+    };
+    const legacyEntry = {
+        autoPoints: 50,
+        aiConcepts: [
+            { conceptId: 1, tier: 'partial', points: 5, reason: "The student wrote 'tetadotoxin' which is a misspelling of 'Tetrodotoxin'." },
+            { conceptId: 2, tier: 'full', points: 10, reason: "The student provided 'แมงดาทะเล' (Horseshoe crab) which is the correct Thai term for the source of the toxin in this context." },
+            { conceptId: 3, tier: 'none', points: 0, reason: "The student did not mention Blue ring octopus." }
+        ]
+    };
+
+    const res = buildConceptBreakdownItems(q, legacyEntry, null, 'tetadotoxin แมงดาทะเล');
+    assert.equal(res.items.length, 3);
+    assert.equal(res.earnedRubricPts, 15);
+    assert.equal(res.maxRubricPts, 30);
+    assert.equal(res.normalizedScore, 50);
+    assert.equal(res.fullCount, 1);
+    assert.equal(res.partialCount, 1);
+    assert.equal(res.noneCount, 1);
+    assert.equal(res.items[0].keyText, 'Tetrodotoxin');
+    assert.equal(res.items[0].matched, 'tetadotoxin');
+    assert.equal(res.items[1].matched, 'แมงดาทะเล');
+    assert.equal(res.items[2].tier, 'none');
+    assert.equal(res.items[2].reasonSummary, 'ไม่ได้ระบุ Blue ring octopus');
+
+    // Local fallback when aiConcepts is absent
+    const localRes = buildConceptBreakdownItems(
+        q,
+        { autoPoints: 33 },
+        [
+            { text: 'Tetrodotoxin', pts: 10, matched: false, matchedSyn: null },
+            { text: 'Horseshoe crab ingestion', pts: 10, matched: true, matchedSyn: 'horseshoe crab' },
+            { text: 'Blue ring octopus', pts: 10, matched: false, matchedSyn: null }
+        ],
+        'horseshoe crab'
+    );
+    assert.equal(localRes.fullCount, 1);
+    assert.equal(localRes.noneCount, 2);
+    assert.equal(localRes.items[1].matched, 'horseshoe crab');
 });

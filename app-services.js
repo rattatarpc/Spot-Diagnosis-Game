@@ -332,6 +332,204 @@ const AppServices = (() => {
     const ADMIN_USER_NORM = 'admin';
     const ADMIN_PASS_HASH = hashPinSync('00', 'spot-admin-v1');
 
+    // ── Readable Grading Breakdown Helpers ──────────────────────────────────
+    function summarizeGradingReason(reason, maxLength = 85) {
+        const cleaned = String(reason ?? '').replace(/\s+/g, ' ').trim();
+        if (!cleaned) return { summary: '', full: '', isTruncated: false };
+
+        // Strip common LLM chain-of-thought self-talk sentences
+        const cotPattern = /^(?:while the intent|let'?s |wait\b|but wait\b|actually\b|given the instruction|however,\s*in|usually,\s*|this looks like|it'?s a clear|it is clearly|i will (?:mark|assign)|the prompt says|no,\s*[a-z]-|'[a-z]+'\s+vs\s+'[a-z]+'|or just to be safe)/i;
+        const sentences = cleaned.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+        const meaningful = sentences.filter(s => !cotPattern.test(s));
+        let core = (meaningful.length > 0 ? meaningful[0] : (sentences[0] || cleaned));
+
+        // Condense repetitive verbose phrasing into short Thai/scannable verdict
+        core = core
+            .replace(/^The student wrote\s+/i, '')
+            .replace(/^The student provided\s+/i, '')
+            .replace(/^The student mentioned\s+/i, '')
+            .replace(/^The student did not mention\s+/i, 'ไม่ได้ระบุ ')
+            .replace(/\s*which is a misspelling of\s*/i, ' → สะกดผิดจาก ')
+            .replace(/\s*which is the correct Thai term for the source of the toxin in this context\.?$/i, ' → คำตอบตรงความหมาย')
+            .replace(/\s*which is the correct Thai term for another source of\s*[^.!?]+\.?$/i, ' → คำตอบตรงความหมาย')
+            .replace(/\s*which is the correct Thai term for\s*/i, ' → ตรงกับ ')
+            .replace(/\s*in this context\.?$/i, '')
+            .replace(/\.+$/, '')
+            .trim();
+
+        const cleanFull = meaningful.length > 0 ? meaningful.join(' ') : cleaned;
+        if (core.length <= maxLength) {
+            // If all remaining text was just stripped CoT noise, don't offer a noisy expand toggle
+            const hasMoreMeaningful = meaningful.length > 1 && cleanFull.length > core.length + 30;
+            return {
+                summary: core,
+                full: hasMoreMeaningful ? cleanFull : core,
+                isTruncated: hasMoreMeaningful
+            };
+        }
+
+        let slice = core.slice(0, maxLength);
+        const lastSpace = slice.lastIndexOf(' ');
+        if (lastSpace > Math.floor(maxLength * 0.55)) {
+            slice = slice.slice(0, lastSpace);
+        }
+        return { summary: `${slice.trim()}…`, full: cleanFull, isTruncated: true };
+    }
+
+    function extractMatchedPhrase(cObj, keyText, keyResultItem, studentAnswer) {
+        if (cObj?.matched && String(cObj.matched).trim()) {
+            return String(cObj.matched).trim();
+        }
+        const ans = String(studentAnswer ?? '').trim();
+        if (!ans) return '';
+
+        const ansLower = ans.toLowerCase();
+        // 1. Check quoted terms in the AI reason that actually appear in the student's answer
+        const rawReason = String(cObj?.reason || '');
+        const quoteRegex = /'([^'\n]{2,60})'|"([^"\n]{2,60})"/g;
+        let m;
+        while ((m = quoteRegex.exec(rawReason)) !== null) {
+            const candidate = (m[1] || m[2] || '').trim();
+            if (!candidate) continue;
+            const idx = ansLower.indexOf(candidate.toLowerCase());
+            if (idx !== -1) {
+                return ans.slice(idx, idx + candidate.length);
+            }
+        }
+
+        // 2. Fallback to local keyResults matched synonym
+        if (keyResultItem?.matched && keyResultItem.matchedSyn) {
+            const syn = String(keyResultItem.matchedSyn).trim();
+            const idx = ansLower.indexOf(syn.toLowerCase());
+            if (idx !== -1) {
+                return ans.slice(idx, idx + syn.length);
+            }
+            return syn;
+        }
+
+        // 3. Check direct substring against key synonyms
+        const syns = String(keyText || '').split('/').map(s => s.trim()).filter(Boolean);
+        for (const s of syns) {
+            const idx = ansLower.indexOf(s.toLowerCase());
+            if (idx !== -1) {
+                return ans.slice(idx, idx + s.length);
+            }
+        }
+        return '';
+    }
+
+    function buildConceptBreakdownItems(q = {}, gradingEntry = {}, keyResults = null, studentAnswer = '') {
+        let rawRubric = [];
+        if (Array.isArray(q.acceptedAnswers) && q.acceptedAnswers.length > 0) {
+            rawRubric = q.acceptedAnswers;
+        } else if (Array.isArray(q.answerKeys) && q.answerKeys.length > 0) {
+            rawRubric = q.answerKeys;
+        } else if (Array.isArray(q.rubric) && q.rubric.length > 0) {
+            rawRubric = q.rubric;
+        } else if (q.correctAnswer) {
+            rawRubric = Array.isArray(q.correctAnswer) ? q.correctAnswer : [q.correctAnswer];
+        }
+
+        const rubric = rawRubric.map((item, idx) => {
+            const text = typeof item === 'string' ? item : (item?.text || item?.concept || item?.label || item?.word || '');
+            const rawPts = (item && typeof item === 'object' && item.points !== undefined && item.points !== null)
+                ? Number(item.points)
+                : 10;
+            return {
+                conceptId: idx + 1,
+                keyText: String(text || `Concept #${idx + 1}`),
+                maxPoints: Number.isFinite(rawPts) ? rawPts : 10
+            };
+        }).filter(r => r.keyText.trim().length > 0);
+
+        const aiConcepts = Array.isArray(gradingEntry?.aiConcepts) ? gradingEntry.aiConcepts : [];
+        let sourceConcepts = [];
+        if (aiConcepts.length > 0) {
+            sourceConcepts = aiConcepts;
+        } else if (Array.isArray(keyResults) && keyResults.length > 0) {
+            sourceConcepts = keyResults.map((kr, idx) => ({
+                conceptId: idx + 1,
+                tier: kr.matched ? 'full' : 'none',
+                points: kr.matched ? Number(kr.pts ?? 10) : 0,
+                matched: kr.matchedSyn || '',
+                reason: kr.matched ? 'ตรงกับคำตอบในเฉลย' : 'ไม่ได้ระบุคำตอบนี้'
+            }));
+        } else {
+            return {
+                items: [],
+                earnedRubricPts: 0,
+                maxRubricPts: rubric.reduce((s, r) => s + r.maxPoints, 0),
+                normalizedScore: 0,
+                fullCount: 0,
+                partialCount: 0,
+                noneCount: 0
+            };
+        }
+
+        const byId = new Map();
+        sourceConcepts.forEach(c => {
+            if (c && c.conceptId !== undefined && c.conceptId !== null) {
+                byId.set(Number(c.conceptId), c);
+            }
+        });
+
+        const items = [];
+        const seenIds = new Set();
+
+        const pushItem = (conceptId, keyText, maxPoints, cObj, krObj) => {
+            const rawTier = String(cObj?.tier || 'none').toLowerCase();
+            const tier = (rawTier === 'full' || rawTier === 'partial') ? rawTier : 'none';
+            const earnedPoints = Number.isFinite(Number(cObj?.points)) ? Number(cObj.points) : 0;
+            const reasonInfo = summarizeGradingReason(cObj?.reason || '', 85);
+            const matched = tier === 'none'
+                ? ''
+                : extractMatchedPhrase(cObj, keyText, krObj, studentAnswer);
+            items.push({
+                conceptId,
+                keyText,
+                maxPoints,
+                earnedPoints,
+                tier,
+                matched,
+                reasonSummary: reasonInfo.summary,
+                reasonFull: reasonInfo.full,
+                isReasonTruncated: reasonInfo.isTruncated
+            });
+        };
+
+        rubric.forEach((r, idx) => {
+            seenIds.add(r.conceptId);
+            const krObj = Array.isArray(keyResults) ? keyResults[idx] : null;
+            pushItem(r.conceptId, r.keyText, r.maxPoints, byId.get(r.conceptId) || { tier: 'none', points: 0 }, krObj);
+        });
+
+        sourceConcepts.forEach(c => {
+            const cid = Number(c?.conceptId);
+            if (!seenIds.has(cid)) {
+                seenIds.add(cid);
+                pushItem(cid || (items.length + 1), `Concept #${cid || (items.length + 1)}`, Number(c?.points || 10), c, null);
+            }
+        });
+
+        const earnedRubricPts = items.reduce((s, it) => s + it.earnedPoints, 0);
+        const maxRubricPts = items.reduce((s, it) => s + it.maxPoints, 0);
+        const fullCount = items.filter(it => it.tier === 'full').length;
+        const partialCount = items.filter(it => it.tier === 'partial').length;
+        const noneCount = items.filter(it => it.tier === 'none').length;
+        const hasTeacher = gradingEntry?.teacherPoints !== undefined && gradingEntry?.teacherPoints !== null && gradingEntry?.teacherPoints !== '';
+        const normalizedScore = hasTeacher ? Number(gradingEntry.teacherPoints) : Number(gradingEntry?.autoPoints ?? 0);
+
+        return {
+            items,
+            earnedRubricPts,
+            maxRubricPts,
+            normalizedScore,
+            fullCount,
+            partialCount,
+            noneCount
+        };
+    }
+
     function verifyAdminCredentials(username, password) {
         const u = String(username ?? '').trim().toLowerCase();
         const p = String(password ?? '');
@@ -357,7 +555,9 @@ const AppServices = (() => {
         computeAttemptTotalScore,
         buildOfflineAttemptsCsv,
         downloadOfflineAttemptsCsv,
-        verifyAdminCredentials
+        verifyAdminCredentials,
+        summarizeGradingReason,
+        buildConceptBreakdownItems
     };
 })();
 
